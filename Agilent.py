@@ -15,7 +15,7 @@ agi.timeout = 10000
 
 agi.write('*IDN')
 
-agi_id = read()
+agi_id = agi.read()
 
 if agi_id == "Agilent Technologies,E4980A,MY46309287,A.06.11":
     print("Correct address!")
