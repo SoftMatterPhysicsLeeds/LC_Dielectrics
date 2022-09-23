@@ -8,6 +8,7 @@ import sys
 import numpy as np
 from LinkamHotstage import LinkamHotstage
 from Agilent_E4890A import AgilentSpectrometer
+import pyvisa
 
 
 class MainWindow(QMainWindow):
@@ -83,20 +84,28 @@ class MainWindow(QMainWindow):
     def instrumentSettingsFrame(self) -> None:
         self.instrument_settings_frame = QFrame()
         layout = QGridLayout(self.instrument_settings_frame)
-        
-
         self.instrument_settings_frame.setFrameStyle(QFrame.Box)
+
         layout.addWidget(QLabel("Linkam COM port: "), 0, 0)
         self.com_selector = QComboBox()
-        self.com_selector.addItem("ASRL1::INSTR")
-        self.com_selector.addItem("ASRL2::INSTR")
-        self.com_selector.addItem("ASRL3::INSTR")
+
         layout.addWidget(self.com_selector, 0, 1)
 
         layout.addWidget(QLabel("Agilent USB port: "), 1, 0)
         self.usb_selector = QComboBox()
-        self.usb_selector.addItem("USB0::0x0957::0x0909::MY46309287::INSTR")
         layout.addWidget(self.usb_selector, 1, 1)
+
+         # get all visa resources: 
+        rm = pyvisa.ResourceManager()
+        resource_list = rm.list_resources()
+
+        for resource in resource_list:
+            if resource.split("::")[0][0:4] == "ASRL":
+                self.com_selector.addItem(resource)
+            elif resource.split("::")[0][0:3] == "USB":
+                self.usb_selector.addItem(resource)
+            else:
+                print(f"Unknown resource: {resource} ")
         
         self.init_hardware_button = QPushButton("Initialise Hardware")
         layout.addWidget(self.init_hardware_button,2,0,1,2)
