@@ -53,7 +53,11 @@ class MainWindow(QMainWindow):
         self.layout.addWidget(self.output_settings_frame,5,0,1,2)
 
         self.graphFrame()
-        self.layout.addWidget(self.graph_frame,0,2,6,1)
+        self.layout.addWidget(self.graph_frame,0,2,7,1)
+
+        self.go_button = QPushButton("Start")
+        self.layout.addWidget(self.go_button,6, 0,1,2)
+        self.go_button.clicked.connect(self.start_measurement)
 
         widget = QWidget()
 
@@ -107,9 +111,13 @@ class MainWindow(QMainWindow):
             else:
                 print(f"Unknown resource: {resource} ")
         
-        self.init_hardware_button = QPushButton("Initialise Hardware")
-        layout.addWidget(self.init_hardware_button,2,0,1,2)
-        self.init_hardware_button.clicked.connect(self.init_hardware)
+        self.init_agilent_button = QPushButton("Initialise")
+        layout.addWidget(self.init_agilent_button,0,2)
+        self.init_agilent_button.clicked.connect(self.init_agilent)
+
+        self.init_linkam_button = QPushButton("Initialise")
+        layout.addWidget(self.init_linkam_button,1,2)
+        self.init_linkam_button.clicked.connect(self.init_linkam)
 
 
     def measurementSettingsFrame(self) -> None:
@@ -234,14 +242,22 @@ class MainWindow(QMainWindow):
 
     ###################### Control Logic ################################
 
-    def init_hardware(self) -> None:
+    def init_agilent(self) -> None:
         self.agilent = AgilentSpectrometer(self.usb_selector.currentText())
         self.agilent_status = "Connected"
         self.update_ui()
-        
+    
+    def init_linkam(self) -> None:
+        self.linkam = LinkamHotstage(self.com_selector.currentText())
+        self.linkam_status = "Connected"
+        self.update_ui()
+
     def update_ui(self) -> None:
         self.agilent_status_label.setText(self.agilent_status)
+        self.linkam_status_label.setText(self.linkam_status)
 
+    def start_measurement(self) -> None: 
+        print("Measurement Started!")
 
     
 

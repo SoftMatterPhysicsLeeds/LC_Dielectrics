@@ -3,15 +3,16 @@ import time
 
 class LinkamHotstage(): 
 
-    def __init__(self) -> None:
+    def __init__(self, address: str) -> None:
         
+        self.address = address
         self.initialise_linkam()
 
     def initialise_linkam(self) -> None:
         
         rm = pyvisa.ResourceManager()
 
-        self.link = rm.open_resource('ASRL3::INSTR')
+        self.link = rm.open_resource(self.address)
 
         self.link.baud_rate = 19200
 
