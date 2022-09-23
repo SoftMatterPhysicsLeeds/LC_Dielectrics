@@ -20,6 +20,14 @@ class LinkamHotstage():
         self.link.write_termination = '\r'
 
         self.link.timeout = 3000
+
+        try: 
+            self.current_temperature()
+            print("Linkam Connected!")
+
+        except pyvisa.errors.VisaIOError:
+            print("Could not connect to Linkam Hotstage. Try different address (make sure it is switched on)")
+
     
 
     def set_temperature(self, T: float, rate: float = 20.) -> None:
@@ -53,14 +61,14 @@ class LinkamHotstage():
         
         if status_byte == 1:
             status = "Stopped"
-        elif status_byte == 16:
+        elif status_byte == 16 or status_byte== 17:
             status = "Heating"
-        elif status_byte == 32:
+        elif status_byte == 32 or status_byte ==33:
             status = "Cooling"
-        elif status_byte == 48:
+        elif status_byte == 48 or status_byte == 49:
             status = "Holding"
         else:
-            status = "Holding"
+            status = "Dunno"
 
         
 

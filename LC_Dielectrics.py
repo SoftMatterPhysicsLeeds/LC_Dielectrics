@@ -9,6 +9,7 @@ import numpy as np
 from LinkamHotstage import LinkamHotstage
 from Agilent_E4890A import AgilentSpectrometer
 import pyvisa
+import time
 
 
 class MainWindow(QMainWindow):
@@ -26,6 +27,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("LC Dielectrics")
       
         self.current_T = 30.0
+        self.linkam_action = "Idle"
         self.linkam_status = "Not Connected"
         self.agilent_status = "Not Connected"
 
@@ -58,6 +60,16 @@ class MainWindow(QMainWindow):
         self.go_button = QPushButton("Start")
         self.layout.addWidget(self.go_button,6, 0,1,2)
         self.go_button.clicked.connect(self.start_measurement)
+
+        self.stop_button = QPushButton("Stop")
+        self.layout.addWidget(self.stop_button,7, 0,1,2)
+        self.stop_button.clicked.connect(self.stop_measurement)
+
+        #EVENT LOOP
+        self.timer = QtCore.QTimer()
+        self.timer.setInterval(100)
+        self.timer.timeout.connect(self.update_ui)
+        self.timer.start()
 
         widget = QWidget()
 
@@ -111,13 +123,15 @@ class MainWindow(QMainWindow):
             else:
                 print(f"Unknown resource: {resource} ")
         
+        
+        self.init_linkam_button = QPushButton("Initialise")
+        layout.addWidget(self.init_linkam_button,0,2)
+        self.init_linkam_button.clicked.connect(self.init_linkam)
+        
         self.init_agilent_button = QPushButton("Initialise")
-        layout.addWidget(self.init_agilent_button,0,2)
+        layout.addWidget(self.init_agilent_button,1,2)
         self.init_agilent_button.clicked.connect(self.init_agilent)
 
-        self.init_linkam_button = QPushButton("Initialise")
-        layout.addWidget(self.init_linkam_button,1,2)
-        self.init_linkam_button.clicked.connect(self.init_linkam)
 
 
     def measurementSettingsFrame(self) -> None:
@@ -188,7 +202,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.temp_start,1,0)
         
         layout.addWidget(QLabel("End Temp."),2,0)
-        self.temp_end = QLineEdit("25")
+        self.temp_end = QLineEdit("30")
         layout.addWidget(self.temp_end,3,0)
 
         layout.addWidget(QLabel("Temp Step."),4,0)
@@ -200,8 +214,8 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.temp_rate,1,1)
 
         layout.addWidget(QLabel("Stab. Time (s)"),2,1)
-        self.temp_rate = QLineEdit("60")
-        layout.addWidget(self.temp_rate,3,1)
+        self.stab_time = QLineEdit("1")
+        layout.addWidget(self.stab_time,3,1)
 
     def outputDataSettingsFrame(self) -> None:
         self.output_settings_frame = QGroupBox()
@@ -254,13 +268,55 @@ class MainWindow(QMainWindow):
 
     def update_ui(self) -> None:
         self.agilent_status_label.setText(self.agilent_status)
-        self.linkam_status_label.setText(self.linkam_status)
+        
+
+        if self.linkam_status == "Connected":
+            self.current_T, self.linkam_action = self.linkam.current_temperature()
+            self.linkam_status_label.setText(f"{self.linkam_status}, {self.linkam_action}, T: {self.current_T}")
+        else:
+            self.linkam_status_label.setText(f"{self.linkam_status}")
 
     def start_measurement(self) -> None: 
-        print("Measurement Started!")
+        #calculate T list 
+        T_start = float(self.temp_start.text())
+        T_end = float(self.temp_end.text())
+        T_inc = float(self.temp_step.text())
+        self.T_rate = float(self.temp_rate.text())
+
+        if T_start == T_end:
+            self.T_list = np.array([T_start])
+        elif T_start > T_end and T_inc > 0: 
+            self.T_list = np.arange(T_start,T_end-T_inc, -T_inc)
+        else:
+            self.T_list = np.arange(T_start, T_end + T_inc, T_inc)
+
+        self.T_step = 0
+        self.measurement_status = "Setting temperature"
+        
+        timer = QtCore.QTimer()
+        timer.setInterval(100)
+        timer.timeout.connect(self.measurement_loop)
+        timer.start()
+
+    def measurement_loop(self, T: float,T_rate: float) -> None:
+
+        if self.measurement_status == "Setting temperature":
+            self.linkam.set_temperature(self.T_list[self.T_step], self.T_rate)
+            
+    
+        
+
+    def temperature_reached(self) -> None:
+        if self.linkam_action == "Holding":
+            self.measurement_status == "Temperature reached!"
+            time.sleep(1)
+
+
+    def stop_measurement(self) -> None:
+        self.linkam.stop()
 
     
-
+    ###################### END OF CONTROL LOGIC ###############################
 
 if __name__ == "__main__":
 
