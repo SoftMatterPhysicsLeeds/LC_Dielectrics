@@ -24,14 +24,13 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("LC Dielectrics")
       
-
         self.current_T = 30.0
         self.linkam_status = "Not Connected"
         self.agilent_status = "Not Connected"
 
         self.layout = QGridLayout()
         self.statusFrame()
-        self.layout.addWidget(self.status_frame, 0, 0 ,1, 2)
+        
         
 
         self.instrumentSettingsFrame()
@@ -60,17 +59,23 @@ class MainWindow(QMainWindow):
         widget.setLayout(self.layout)
         self.setCentralWidget(widget)
 
+    ####### GUI LOGIC (all frames etc)
+
+
     def statusFrame(self) -> None:
         self.status_frame = QFrame()
         layout = QGridLayout(self.status_frame)
         self.status_frame.setFrameStyle(QFrame.Box)
 
         layout.addWidget(QLabel("Linkam Status: "), 0, 0)
-        layout.addWidget(
-            QLabel(f"{self.linkam_status}"), 0, 1)
+        self.linkam_status_label = QLabel(f"{self.linkam_status}")
+        layout.addWidget(self.linkam_status_label, 0, 1)
 
         layout.addWidget(QLabel("Agilent Status: "), 1, 0)
-        layout.addWidget(QLabel(f"{self.agilent_status}"), 1, 1)
+        self.agilent_status_label = QLabel(f"{self.agilent_status}")
+        layout.addWidget(self.agilent_status_label , 1, 1)
+
+        self.layout.addWidget(self.status_frame, 0, 0 ,1, 2)
 
         # self.status_frame.setStyleSheet(
         #     "QFrame {border: 1px solid rgb(100,100,100)}")
@@ -78,6 +83,8 @@ class MainWindow(QMainWindow):
     def instrumentSettingsFrame(self) -> None:
         self.instrument_settings_frame = QFrame()
         layout = QGridLayout(self.instrument_settings_frame)
+        
+
         self.instrument_settings_frame.setFrameStyle(QFrame.Box)
         layout.addWidget(QLabel("Linkam COM port: "), 0, 0)
         self.com_selector = QComboBox()
@@ -88,8 +95,12 @@ class MainWindow(QMainWindow):
 
         layout.addWidget(QLabel("Agilent USB port: "), 1, 0)
         self.usb_selector = QComboBox()
-        self.usb_selector.addItem("USB0::0x0957::0x0909::MY46412852::INSTR")
+        self.usb_selector.addItem("USB0::0x0957::0x0909::MY46309287::INSTR")
         layout.addWidget(self.usb_selector, 1, 1)
+        
+        self.init_hardware_button = QPushButton("Initialise Hardware")
+        layout.addWidget(self.init_hardware_button,2,0,1,2)
+        self.init_hardware_button.clicked.connect(self.init_hardware)
 
 
     def measurementSettingsFrame(self) -> None:
@@ -209,6 +220,22 @@ class MainWindow(QMainWindow):
 
         self.data_line_dis = self.graphWidget_Dis.plot(
             self.graph_time, self.graph_T, pen=pen)
+
+    ###################### END OF GUI LOGIC #############################
+
+    ###################### Control Logic ################################
+
+    def init_hardware(self) -> None:
+        self.agilent = AgilentSpectrometer(self.usb_selector.currentText())
+        self.agilent_status = "Connected"
+        self.update_ui()
+        
+    def update_ui(self) -> None:
+        self.agilent_status_label.setText(self.agilent_status)
+
+
+    
+
 
 if __name__ == "__main__":
 
