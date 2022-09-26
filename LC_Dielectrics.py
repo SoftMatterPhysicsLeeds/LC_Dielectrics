@@ -9,7 +9,7 @@ import numpy as np
 from LinkamHotstage import LinkamHotstage
 from Agilent_E4890A import AgilentSpectrometer
 import pyvisa
-import time
+import json
 
 
 class MainWindow(QMainWindow):
@@ -25,16 +25,18 @@ class MainWindow(QMainWindow):
             self.testing = True
 
         self.setWindowTitle("LC Dielectrics")
+
+        self.resultsDict = dict()
       
         self.current_T = 30.0
         self.linkam_action = "Idle"
         self.linkam_status = "Not Connected"
         self.agilent_status = "Not Connected"
+        self.measurement_status = "Idle"
+        self.t_stable_count = 0
 
         self.layout = QGridLayout()
         self.statusFrame()
-        
-        
 
         self.instrumentSettingsFrame()
         self.layout.addWidget(self.instrument_settings_frame, 1, 0, 1, 2)
@@ -84,13 +86,17 @@ class MainWindow(QMainWindow):
         layout = QGridLayout(self.status_frame)
         self.status_frame.setFrameStyle(QFrame.Box)
 
-        layout.addWidget(QLabel("Linkam Status: "), 0, 0)
+        layout.addWidget(QLabel("Measurement Status: "), 0,0)
+        self.measurement_status_label = QLabel(f"{self.measurement_status}")
+        layout.addWidget(self.measurement_status_label, 0, 1)
+        
+        layout.addWidget(QLabel("Linkam Status: "), 1, 0)
         self.linkam_status_label = QLabel(f"{self.linkam_status}")
-        layout.addWidget(self.linkam_status_label, 0, 1)
+        layout.addWidget(self.linkam_status_label, 1, 1)
 
-        layout.addWidget(QLabel("Agilent Status: "), 1, 0)
+        layout.addWidget(QLabel("Agilent Status: "), 2, 0)
         self.agilent_status_label = QLabel(f"{self.agilent_status}")
-        layout.addWidget(self.agilent_status_label , 1, 1)
+        layout.addWidget(self.agilent_status_label , 2, 1)
 
         self.layout.addWidget(self.status_frame, 0, 0 ,1, 2)
 
@@ -161,7 +167,7 @@ class MainWindow(QMainWindow):
         self.freq_settings_frame.setTitle("Frequency Settings")
 
         layout.addWidget(QLabel("Number of Data Points"),0)
-        self.freq_points = QLineEdit("100")
+        self.freq_points = QLineEdit("10")
         layout.addWidget(self.freq_points,1)
 
         layout.addWidget(QLabel("Min Frequency"),2)
@@ -263,20 +269,102 @@ class MainWindow(QMainWindow):
     
     def init_linkam(self) -> None:
         self.linkam = LinkamHotstage(self.com_selector.currentText())
-        self.linkam_status = "Connected"
+        try: 
+            self.linkam.current_temperature()
+            self.linkam_status = "Connected"
+        except pyvisa.errors.VisaIOError:
+            self.linkam_status = self.linkam_status
+        
         self.update_ui()
 
     def update_ui(self) -> None:
         self.agilent_status_label.setText(self.agilent_status)
         
-
+        # if Linkam is connected, show real-time temperature
         if self.linkam_status == "Connected":
             self.current_T, self.linkam_action = self.linkam.current_temperature()
             self.linkam_status_label.setText(f"{self.linkam_status}, {self.linkam_action}, T: {self.current_T}")
         else:
             self.linkam_status_label.setText(f"{self.linkam_status}")
 
+        
+        # control measurement loop - see if this is better than threading? 
+        if self.measurement_status == "Idle":
+            pass
+
+        elif self.measurement_status == "Setting temperature" and (self.linkam_action == "Stopped" or self.linkam_action == "Holding"):
+            self.linkam.set_temperature(self.T_list[self.T_step], self.T_rate)
+            self.measurement_status = f"Going to T: {self.T_list[self.T_step]}"
+
+        elif self.measurement_status == f"Going to T: {self.T_list[self.T_step]}" and self.linkam_action == "Holding":
+            self.measurement_status = f"Stabilising temperature for {float(self.stab_time.text())}s"
+            
+        elif self.measurement_status == f"Stabilising temperature for {float(self.stab_time.text())}s":    
+            self.t_stable_count+=1
+
+            if self.t_stable_count*0.1 >= float(self.stab_time.text()):
+                self.measurement_status = "Temperature Stabilised"
+                self.t_stable_count = 0
+
+        elif self.measurement_status == "Temperature Stabilised":
+            self.measurement_status = "Collecting data"
+            result = self.run_spectrometer()
+            self.parse_result(result,self.T_list[self.T_step])
+            print(result)
+            
+            if self.T_step == len(self.T_list) - 1:
+                self.measurement_status = "Finished"
+                with open("results.json", "w") as write_file:
+                    json.dump(self.resultsDict, write_file, indent=4)
+            else:
+                self.T_step+=1
+                self.measurement_status = "Setting temperature"
+
+
+        elif self.measurement_status == "Finished":
+            self.linkam.stop()
+            self.agilent.reset_and_clear()
+            self.measurement_status = "Idle"
+
+        # else: 
+        #     #print(f"{self.linkam_action}")
+        #     print(f"You haven't handled this status: {self.measurement_status}")
+
+        self.measurement_status_label.setText(self.measurement_status)
+
+
+
+    def parse_result(self, result: list, T: float) -> list:
+        self.resultsDict[T] = dict()
+        self.resultsDict[T]["Cp"] = []
+        self.resultsDict[T]["D"] = []
+        self.resultsDict[T]["freq"] = []
+        for i,freq in enumerate(self.freq_list):
+            increment = i+(3*i)
+            self.resultsDict[T]["freq"].append(freq)
+            self.resultsDict[T]["Cp"].append(result[increment])
+            self.resultsDict[T]["D"].append(result[increment + 1])
+
+
+    # 0...4...8...12
+    # 0...3...6...9
+    # 0...1...2...3
+    # i+(3*i)
+
+
+        
+
     def start_measurement(self) -> None: 
+        #calculate freq list
+
+        freq_min = float(self.freq_min.text())
+        freq_max = float(self.freq_max.text())
+        freq_points = int(self.freq_points.text())
+
+        self.freq_list = list(np.logspace(np.log10(freq_min), np.log10(freq_max), freq_points))
+
+        self.agilent.set_freq_list(self.freq_list)
+
         #calculate T list 
         T_start = float(self.temp_start.text())
         T_end = float(self.temp_end.text())
@@ -293,27 +381,21 @@ class MainWindow(QMainWindow):
         self.T_step = 0
         self.measurement_status = "Setting temperature"
         
-        timer = QtCore.QTimer()
-        timer.setInterval(100)
-        timer.timeout.connect(self.measurement_loop)
-        timer.start()
+        # timer = QtCore.QTimer()
+        # timer.setInterval(100)
+        # timer.timeout.connect(self.measurement_loop)
+        # timer.start()
 
-    def measurement_loop(self, T: float,T_rate: float) -> None:
+    def run_spectrometer(self) -> str:
+        result = self.agilent.measure()
+        return result
 
-        if self.measurement_status == "Setting temperature":
-            self.linkam.set_temperature(self.T_list[self.T_step], self.T_rate)
-            
+
     
-        
-
-    def temperature_reached(self) -> None:
-        if self.linkam_action == "Holding":
-            self.measurement_status == "Temperature reached!"
-            time.sleep(1)
-
-
     def stop_measurement(self) -> None:
         self.linkam.stop()
+        self.measurement_status = "Idle"
+
 
     
     ###################### END OF CONTROL LOGIC ###############################
