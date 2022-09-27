@@ -55,6 +55,9 @@ class AgilentSpectrometer():
         if auto:
             self.spectrometer.write(":FUNC:IMP:RANG:AUTO ON")
 
+    def set_aperture_mode(self, mode: str, av_factor: int) -> None:
+        self.spectrometer.write(f":APER {mode},{av_factor}")
+
     def measure(self) -> None:
         # self.spectrometer.write(":INIT")
         self.spectrometer.write(":TRIG:IMM")

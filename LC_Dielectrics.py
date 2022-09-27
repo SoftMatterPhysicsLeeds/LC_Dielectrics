@@ -2,14 +2,14 @@ from qtpy.QtWidgets import (QMainWindow, QWidget, QGridLayout, QApplication, QFr
                             QLabel, QLineEdit, 
                             QCheckBox, QHBoxLayout,QVBoxLayout, 
                             QPushButton, QFileDialog, QComboBox, QGroupBox)
-from qtpy import QtGui, QtCore
+from qtpy import QtCore
 from qtpy.QtCore import QThread
 from PyQt5.QtCore import pyqtSignal
 import pyqtgraph as pg
 import sys
 import numpy as np
-from LinkamHotstage import LinkamHotstage
-from Agilent_E4890A import AgilentSpectrometer
+from LinkamHotstage import LinkamHotstage  #type: ignore
+from Agilent_E4890A import AgilentSpectrometer  #type: ignore
 import pyvisa
 import json
 
@@ -25,11 +25,8 @@ class Experiment(QtCore.QObject):
 
     def run_spectrometer(self) -> None:
         result = self.agilent.measure()
-        print(result)
         self.result.emit(result)
         self.finished.emit()
-
-    
 
 
 class MainWindow(QMainWindow):
@@ -166,15 +163,22 @@ class MainWindow(QMainWindow):
         self.measurement_settings_frame.setFrame = True
         self.measurement_settings_frame.setTitle("Measurement Settings")
         
+
+        layout.addWidget(QLabel("Meas. Time. Mode: "), 0)
+        self.time_selector = QComboBox()    
+        self.time_selector.addItem("SHOR")
+        self.time_selector.addItem("MED")
+        self.time_selector.addItem("LONG")
+        layout.addWidget(self.time_selector,1)
         
-        layout.addWidget(QLabel("Averaging Factor"),0)
-        self.averaging_factor = QLineEdit("10")
-        layout.addWidget(self.averaging_factor,1)
+        layout.addWidget(QLabel("Averaging Factor"),2)
+        self.averaging_factor = QLineEdit("1")
+        layout.addWidget(self.averaging_factor,3)
 
         
-        layout.addWidget(QLabel("Bias Level (V)"),2)
+        layout.addWidget(QLabel("Bias Level (V)"),4)
         self.bias_voltage = QLineEdit("0")
-        layout.addWidget(self.bias_voltage,3)
+        layout.addWidget(self.bias_voltage,5)
 
     def frequencySettingsFrame(self) -> None:
         self.freq_settings_frame = QGroupBox()
@@ -388,6 +392,7 @@ class MainWindow(QMainWindow):
         self.freq_list = list(np.logspace(np.log10(freq_min), np.log10(freq_max), freq_points))
 
         self.agilent.set_freq_list(self.freq_list)
+        self.agilent.set_aperture_mode(self.time_selector.currentText(), int(self.averaging_factor.text()))
 
         #calculate T list 
         T_start = float(self.temp_start.text())
@@ -420,7 +425,7 @@ class MainWindow(QMainWindow):
         
     def get_result(self,result: list) -> None:
         self.parse_result(result,self.T_list[self.T_step])
-        print(result)
+    
 
         self.data_line_cap.setData(self.resultsDict[self.T_list[self.T_step]]["freq"],self.resultsDict[self.T_list[self.T_step]]["Cp"])        
         self.data_line_dis.setData(self.resultsDict[self.T_list[self.T_step]]["freq"],self.resultsDict[self.T_list[self.T_step]]["D"])      
