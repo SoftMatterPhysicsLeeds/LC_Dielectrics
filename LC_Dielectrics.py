@@ -3,6 +3,8 @@ from qtpy.QtWidgets import (QMainWindow, QWidget, QGridLayout, QApplication, QFr
                             QCheckBox, QHBoxLayout,QVBoxLayout, 
                             QPushButton, QFileDialog, QComboBox, QGroupBox)
 from qtpy import QtGui, QtCore
+from qtpy.QtCore import QThread
+from PyQt5.QtCore import pyqtSignal
 import pyqtgraph as pg
 import sys
 import numpy as np
@@ -10,6 +12,24 @@ from LinkamHotstage import LinkamHotstage
 from Agilent_E4890A import AgilentSpectrometer
 import pyvisa
 import json
+
+
+class Experiment(QtCore.QObject):
+    finished = pyqtSignal()
+    result =pyqtSignal(list)
+
+    def __init__(self, agilent: AgilentSpectrometer):
+        super().__init__()
+        self.agilent = agilent
+        
+
+    def run_spectrometer(self) -> None:
+        result = self.agilent.measure()
+        print(result)
+        self.result.emit(result)
+        self.finished.emit()
+
+    
 
 
 class MainWindow(QMainWindow):
@@ -230,16 +250,24 @@ class MainWindow(QMainWindow):
         self.output_settings_frame.setTitle("Output Data Settings")
 
         layout.addWidget(QLabel("Output data file: "),0)
-        self.output_file_input = QLineEdit(r"C:\something\dan")
+        self.output_file_input = QLineEdit("results.json")
         layout.addWidget(self.output_file_input,1)
+
+        self.add_file_button = QPushButton("Browse")
+        layout.addWidget(self.add_file_button,2)
+        self.add_file_button.clicked.connect(self.add_file_dialogue)
+
+    def add_file_dialogue(self) -> None:
+        filename, _ = QFileDialog.getSaveFileName(self, "Output File","","JSON Files (*.json)")
+        self.output_file_input.setText(filename)
 
     def graphFrame(self) -> None:
 
         self.graph_frame = QFrame()
-        layout = QVBoxLayout(self.graph_frame)
+        layout = QGridLayout(self.graph_frame)
 
         self.graphWidget_Cap = pg.PlotWidget()
-        layout.addWidget(self.graphWidget_Cap, 0)
+        layout.addWidget(self.graphWidget_Cap, 0,0)
         self.graphWidget_Cap.setBackground(None)
         self.graphWidget_Cap.setLabel('left', 'Capacitance', 'F')
         self.graphWidget_Cap.setLabel('bottom', 'Frequency', 'Hz')
@@ -250,7 +278,7 @@ class MainWindow(QMainWindow):
             self.graph_time, self.graph_T, pen=pen)
 
         self.graphWidget_Dis = pg.PlotWidget()
-        layout.addWidget(self.graphWidget_Dis, 1)
+        layout.addWidget(self.graphWidget_Dis, 1,0)
         self.graphWidget_Dis.setBackground(None)
         self.graphWidget_Dis.setLabel('left', 'Dissipation', 'F')
         self.graphWidget_Dis.setLabel('bottom', 'Frequency', 'Hz')
@@ -258,6 +286,8 @@ class MainWindow(QMainWindow):
         self.data_line_dis = self.graphWidget_Dis.plot(
             self.graph_time, self.graph_T, pen=pen)
 
+        self.data_line_cap.setLogMode(True,False)  
+        self.data_line_dis.setLogMode(True,False)  
     ###################### END OF GUI LOGIC #############################
 
     ###################### Control Logic ################################
@@ -265,6 +295,8 @@ class MainWindow(QMainWindow):
     def init_agilent(self) -> None:
         self.agilent = AgilentSpectrometer(self.usb_selector.currentText())
         self.agilent_status = "Connected"
+        self.init_agilent_button.setText("Connected")
+        self.init_agilent_button.setEnabled(False)
         self.update_ui()
     
     def init_linkam(self) -> None:
@@ -272,6 +304,8 @@ class MainWindow(QMainWindow):
         try: 
             self.linkam.current_temperature()
             self.linkam_status = "Connected"
+            self.init_linkam_button.setText("Connected")
+            self.init_linkam_button.setEnabled(False)
         except pyvisa.errors.VisaIOError:
             self.linkam_status = self.linkam_status
         
@@ -308,18 +342,8 @@ class MainWindow(QMainWindow):
 
         elif self.measurement_status == "Temperature Stabilised":
             self.measurement_status = "Collecting data"
-            result = self.run_spectrometer()
-            self.parse_result(result,self.T_list[self.T_step])
-            print(result)
+            self.run_spectrometer()
             
-            if self.T_step == len(self.T_list) - 1:
-                self.measurement_status = "Finished"
-                with open("results.json", "w") as write_file:
-                    json.dump(self.resultsDict, write_file, indent=4)
-            else:
-                self.T_step+=1
-                self.measurement_status = "Setting temperature"
-
 
         elif self.measurement_status == "Finished":
             self.linkam.stop()
@@ -380,16 +404,36 @@ class MainWindow(QMainWindow):
 
         self.T_step = 0
         self.measurement_status = "Setting temperature"
+    
+
+    def run_spectrometer(self) -> None:
+
+        self.thread = QThread()
+        self.worker = Experiment(self.agilent)
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.run_spectrometer)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.worker.result.connect(self.get_result)
+        self.thread.start()
         
-        # timer = QtCore.QTimer()
-        # timer.setInterval(100)
-        # timer.timeout.connect(self.measurement_loop)
-        # timer.start()
+    def get_result(self,result: list) -> None:
+        self.parse_result(result,self.T_list[self.T_step])
+        print(result)
 
-    def run_spectrometer(self) -> str:
-        result = self.agilent.measure()
-        return result
-
+        self.data_line_cap.setData(self.resultsDict[self.T_list[self.T_step]]["freq"],self.resultsDict[self.T_list[self.T_step]]["Cp"])        
+        self.data_line_dis.setData(self.resultsDict[self.T_list[self.T_step]]["freq"],self.resultsDict[self.T_list[self.T_step]]["D"])      
+        
+            
+        if self.T_step == len(self.T_list) - 1:
+            self.measurement_status = "Finished"
+            with open(self.output_file_input.text(), "w") as write_file:
+                json.dump(self.resultsDict, write_file, indent=4)
+        else:
+            self.T_step+=1
+            self.measurement_status = "Setting temperature"
+        
 
     
     def stop_measurement(self) -> None:
