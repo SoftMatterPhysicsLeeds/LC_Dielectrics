@@ -16,7 +16,7 @@ import json
 
 class Experiment(QtCore.QObject):
     finished = pyqtSignal()
-    result =pyqtSignal(list)
+    result = pyqtSignal(list)
 
     def __init__(self, agilent: AgilentSpectrometer):
         super().__init__()
@@ -33,6 +33,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self, testing="false"):
         super(MainWindow, self).__init__()
+        
 
         self.testing = testing
 
@@ -51,6 +52,7 @@ class MainWindow(QMainWindow):
         self.agilent_status = "Not Connected"
         self.measurement_status = "Idle"
         self.t_stable_count = 0
+        self.voltage_list_mode = False
 
         self.layout = QGridLayout()
         self.statusFrame()
@@ -77,12 +79,14 @@ class MainWindow(QMainWindow):
         self.layout.addWidget(self.graph_frame,0,2,7,1)
 
         self.go_button = QPushButton("Start")
-        self.layout.addWidget(self.go_button,6, 0,1,2)
+        self.layout.addWidget(self.go_button,6, 0,1,1)
         self.go_button.clicked.connect(self.start_measurement)
+        self.set_button_style(self.go_button,"green")
 
         self.stop_button = QPushButton("Stop")
-        self.layout.addWidget(self.stop_button,7, 0,1,2)
+        self.layout.addWidget(self.stop_button,6, 1,1,1)
         self.stop_button.clicked.connect(self.stop_measurement)
+        self.set_button_style(self.stop_button,"red")
 
         #EVENT LOOP
         self.timer = QtCore.QTimer()
@@ -96,6 +100,33 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
 
     ####### GUI LOGIC (all frames etc)
+
+
+    def set_button_style(self, button: QPushButton, bg_colour: str, fixed_width: bool = False) -> None:
+        #button.setFixedWidth(250)
+        button.setFixedHeight(40)
+
+        if fixed_width:
+            button.setFixedWidth(100)
+
+        button.setStyleSheet(
+        "\
+        QPushButton { \
+        color: white;\
+        /*font-family: 'helvetica';*/ \
+        /*font-size: 20px;*/ \
+        border-radius: 5px; \
+        padding: 2px 0; \
+        margin-top: 2px; \
+        " + "background-color:" + bg_colour + "; \
+        } \
+        QPushButton:hover { \
+            background-color: black;\
+            color: white;\
+        }\
+        ")
+        
+    
 
 
     def statusFrame(self) -> None:
@@ -183,10 +214,7 @@ class MainWindow(QMainWindow):
     def frequencySettingsFrame(self) -> None:
         self.freq_settings_frame = QGroupBox()
         layout = QVBoxLayout(self.freq_settings_frame)
-        # self.freq_settings_frame.setFrameStyle(QFrame.Box)
-        # self.freq_settings_frame.setStyleSheet("QGroupBox#self.freq_settings_frame \
-        # {border: 2px solid-gray;\
-        # font: Fira Code}")
+
         self.freq_settings_frame.setFrame = True
         self.freq_settings_frame.setTitle("Frequency Settings")
 
@@ -249,17 +277,17 @@ class MainWindow(QMainWindow):
 
     def outputDataSettingsFrame(self) -> None:
         self.output_settings_frame = QGroupBox()
-        layout = QVBoxLayout(self.output_settings_frame)
+        layout = QHBoxLayout(self.output_settings_frame)
         self.output_settings_frame.setFrame = True
         self.output_settings_frame.setTitle("Output Data Settings")
 
-        layout.addWidget(QLabel("Output data file: "),0)
         self.output_file_input = QLineEdit("results.json")
-        layout.addWidget(self.output_file_input,1)
+        layout.addWidget(self.output_file_input,0)
 
         self.add_file_button = QPushButton("Browse")
-        layout.addWidget(self.add_file_button,2)
+        layout.addWidget(self.add_file_button,1)
         self.add_file_button.clicked.connect(self.add_file_dialogue)
+        # self.set_button_style(self.add_file_button, "blue", True)
 
     def add_file_dialogue(self) -> None:
         filename, _ = QFileDialog.getSaveFileName(self, "Output File","","JSON Files (*.json)")
@@ -389,9 +417,17 @@ class MainWindow(QMainWindow):
         freq_max = float(self.freq_max.text())
         freq_points = int(self.freq_points.text())
 
-        self.freq_list = list(np.logspace(np.log10(freq_min), np.log10(freq_max), freq_points))
+        voltage_min = float(self.voltage_min.text())
+        voltage_max = float(self.voltage_max.text())
+        voltage_points = int(self.voltage_points.text())
 
-        self.agilent.set_freq_list(self.freq_list)
+        self.freq_list = list(np.logspace(np.log10(freq_min), np.log10(freq_max), freq_points))
+        self.voltage_list = list(np.linspace(voltage_min, voltage_max, voltage_points))
+
+        if len(self.voltage_list) == 1:
+            self.agilent.set_voltage(self.voltage_list[0])
+            self.agilent.set_freq_list(self.freq_list)
+        
         self.agilent.set_aperture_mode(self.time_selector.currentText(), int(self.averaging_factor.text()))
 
         #calculate T list 
