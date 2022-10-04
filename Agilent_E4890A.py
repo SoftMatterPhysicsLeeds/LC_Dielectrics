@@ -47,6 +47,15 @@ class AgilentSpectrometer():
 
         self.spectrometer.write(":LIST:FREQ ", freq_str)
 
+    def set_volt_list(self, volt_list: np.array)-> None:
+        self.spectrometer.write(":DISP:PAGE LIST")
+        self.spectrometer.write(":LIST:MODE SEQ")
+
+        volt_str= str(volt_list)
+        volt_str= volt_str.split('[')[1].split(']')[0]
+
+        self.spectrometer.write(":LIST:VOLT ", volt_str)
+
     def set_voltage(self,volt: float) -> None:
         self.spectrometer.write(f":VOLT {volt}")
 

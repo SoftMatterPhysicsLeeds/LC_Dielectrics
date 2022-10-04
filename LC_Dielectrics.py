@@ -190,64 +190,88 @@ class MainWindow(QMainWindow):
 
     def measurementSettingsFrame(self) -> None:
         self.measurement_settings_frame = QGroupBox()
-        layout =  QHBoxLayout(self.measurement_settings_frame)
+        layout =  QGridLayout(self.measurement_settings_frame)
         self.measurement_settings_frame.setFrame = True
         self.measurement_settings_frame.setTitle("Measurement Settings")
         
 
-        layout.addWidget(QLabel("Meas. Time. Mode: "), 0)
+        layout.addWidget(QLabel("Meas. Time. Mode: "), 0,0)
         self.time_selector = QComboBox()    
         self.time_selector.addItem("SHOR")
         self.time_selector.addItem("MED")
         self.time_selector.addItem("LONG")
-        layout.addWidget(self.time_selector,1)
+        layout.addWidget(self.time_selector,0,1)
         
-        layout.addWidget(QLabel("Averaging Factor"),2)
+        layout.addWidget(QLabel("Averaging Factor"),0,2)
         self.averaging_factor = QLineEdit("1")
-        layout.addWidget(self.averaging_factor,3)
+        layout.addWidget(self.averaging_factor,0,3)
 
         
-        layout.addWidget(QLabel("Bias Level (V)"),4)
+        layout.addWidget(QLabel("Bias Level (V)"),0,4)
         self.bias_voltage = QLineEdit("0")
-        layout.addWidget(self.bias_voltage,5)
+        layout.addWidget(self.bias_voltage,0,5)
 
     def frequencySettingsFrame(self) -> None:
         self.freq_settings_frame = QGroupBox()
-        layout = QVBoxLayout(self.freq_settings_frame)
+        layout = QGridLayout(self.freq_settings_frame)
 
         self.freq_settings_frame.setFrame = True
         self.freq_settings_frame.setTitle("Frequency Settings")
 
-        layout.addWidget(QLabel("Number of Data Points"),0)
+        layout.addWidget(QLabel("Number of Data Points"),0,0)
         self.freq_points = QLineEdit("10")
-        layout.addWidget(self.freq_points,1)
+        layout.addWidget(self.freq_points,1,0)
 
-        layout.addWidget(QLabel("Min Frequency"),2)
+        layout.addWidget(QLabel("Min Frequency"),2,0)
         self.freq_min = QLineEdit("20")
-        layout.addWidget(self.freq_min,3)
+        layout.addWidget(self.freq_min,3,0)
 
-        layout.addWidget(QLabel("Max Frequency"),4)
+        layout.addWidget(QLabel("Max Frequency"),4,0)
         self.freq_max = QLineEdit("2e6")
-        layout.addWidget(self.freq_max,5)
+        layout.addWidget(self.freq_max,5,0)
         
     def voltageSettingsFrame(self) -> None:
         self.voltage_settings_frame = QGroupBox()
-        layout = QVBoxLayout(self.voltage_settings_frame)
+        layout = QGridLayout(self.voltage_settings_frame)
         self.voltage_settings_frame.setFrame = True
         self.voltage_settings_frame.setTitle("Voltage Settings")
         
+      
 
-        layout.addWidget(QLabel("Number of Data Points"),0)
+        layout.addWidget(QLabel("Number of Data Points"),0,0)
         self.voltage_points = QLineEdit("1")
-        layout.addWidget(self.voltage_points,1)
+        layout.addWidget(self.voltage_points,1,0)
 
-        layout.addWidget(QLabel("Min Voltage"),2)
+        self.voltage_min_label = QLabel("Voltage")
+        layout.addWidget(self.voltage_min_label,2,0)
         self.voltage_min = QLineEdit("1")
-        layout.addWidget(self.voltage_min,3)
+        layout.addWidget(self.voltage_min,3,0)
 
-        layout.addWidget(QLabel("Max Voltage"),4)
+        layout.addWidget(QLabel("Max Voltage"),4,0)
         self.voltage_max = QLineEdit("1")
-        layout.addWidget(self.voltage_max,5)
+        layout.addWidget(self.voltage_max,5,0)
+
+          
+        layout.addWidget(QLabel("Single Voltage?"),0,1)
+        self.voltage_checkbox = QCheckBox()
+        layout.addWidget(self.voltage_checkbox,1,1)
+        self.voltage_checkbox.stateChanged.connect(self.voltage_toggle)
+        self.voltage_checkbox.setChecked(True)
+
+    def voltage_toggle(self) -> None:
+        if self.voltage_checkbox.isChecked():
+            self.voltage_points.setEnabled(False)
+            self.voltage_max.setEnabled(False)
+            self.voltage_min_label.setText("Voltage")
+            self.voltage_list_mode = False
+
+        else:
+            self.voltage_points.setEnabled(True)
+            self.voltage_max.setEnabled(True)
+            self.voltage_min_label.setText("Min Voltage")
+            self.voltage_list_mode = True
+
+
 
     def temperatureSettingsFrame(self) -> None:
         self.temperature_settings_frame = QGroupBox()
@@ -277,15 +301,15 @@ class MainWindow(QMainWindow):
 
     def outputDataSettingsFrame(self) -> None:
         self.output_settings_frame = QGroupBox()
-        layout = QHBoxLayout(self.output_settings_frame)
+        layout = QGridLayout(self.output_settings_frame)
         self.output_settings_frame.setFrame = True
         self.output_settings_frame.setTitle("Output Data Settings")
 
         self.output_file_input = QLineEdit("results.json")
-        layout.addWidget(self.output_file_input,0)
+        layout.addWidget(self.output_file_input,0,0)
 
         self.add_file_button = QPushButton("Browse")
-        layout.addWidget(self.add_file_button,1)
+        layout.addWidget(self.add_file_button,0,1)
         self.add_file_button.clicked.connect(self.add_file_dialogue)
         # self.set_button_style(self.add_file_button, "blue", True)
 
@@ -360,9 +384,17 @@ class MainWindow(QMainWindow):
 
         elif self.measurement_status == "Setting temperature" and (self.linkam_action == "Stopped" or self.linkam_action == "Holding"):
             self.linkam.set_temperature(self.T_list[self.T_step], self.T_rate)
-            self.measurement_status = f"Going to T: {self.T_list[self.T_step]}"
+            if self.voltage_list_mode:
+                self.agilent.set_frequency(self.freq_list[self.freq_step])
+                if self.freq_step != 0:
+                    self.measurement_status = "Temperature Stabilised"
+                else:
+                    self.measurement_status = f"Going to T: {self.T_list[self.T_step]}"
+            else:
+                self.measurement_status = f"Going to T: {self.T_list[self.T_step]}"
 
         elif self.measurement_status == f"Going to T: {self.T_list[self.T_step]}" and self.linkam_action == "Holding":
+            self.resultsDict[self.T_list[self.T_step]] = dict()
             self.measurement_status = f"Stabilising temperature for {float(self.stab_time.text())}s"
             
         elif self.measurement_status == f"Stabilising temperature for {float(self.stab_time.text())}s":    
@@ -390,28 +422,7 @@ class MainWindow(QMainWindow):
 
 
 
-    def parse_result(self, result: list, T: float) -> list:
-        self.resultsDict[T] = dict()
-        self.resultsDict[T]["Cp"] = []
-        self.resultsDict[T]["D"] = []
-        self.resultsDict[T]["freq"] = []
-        for i,freq in enumerate(self.freq_list):
-            increment = i+(3*i)
-            self.resultsDict[T]["freq"].append(freq)
-            self.resultsDict[T]["Cp"].append(result[increment])
-            self.resultsDict[T]["D"].append(result[increment + 1])
-
-
-    # 0...4...8...12
-    # 0...3...6...9
-    # 0...1...2...3
-    # i+(3*i)
-
-
-        
-
     def start_measurement(self) -> None: 
-        #calculate freq list
 
         freq_min = float(self.freq_min.text())
         freq_max = float(self.freq_max.text())
@@ -422,10 +433,15 @@ class MainWindow(QMainWindow):
         voltage_points = int(self.voltage_points.text())
 
         self.freq_list = list(np.logspace(np.log10(freq_min), np.log10(freq_max), freq_points))
-        self.voltage_list = list(np.linspace(voltage_min, voltage_max, voltage_points))
+       
 
-        if len(self.voltage_list) == 1:
-            self.agilent.set_voltage(self.voltage_list[0])
+        if  self.voltage_list_mode:
+            self.voltage_list = list(np.linspace(voltage_min, voltage_max, voltage_points))
+            self.agilent.set_volt_list(self.voltage_list)
+            self.agilent.set_frequency(self.freq_list[0])
+        else:
+            self.resultsDict["volt"] = voltage_min
+            self.agilent.set_voltage(voltage_min)
             self.agilent.set_freq_list(self.freq_list)
         
         self.agilent.set_aperture_mode(self.time_selector.currentText(), int(self.averaging_factor.text()))
@@ -444,7 +460,14 @@ class MainWindow(QMainWindow):
             self.T_list = np.arange(T_start, T_end + T_inc, T_inc)
 
         self.T_step = 0
+        self.freq_step = 0
         self.measurement_status = "Setting temperature"
+
+        
+    def stop_measurement(self) -> None:
+        self.linkam.stop()
+        self.measurement_status = "Idle"
+
     
 
     def run_spectrometer(self) -> None:
@@ -460,27 +483,77 @@ class MainWindow(QMainWindow):
         self.thread.start()
         
     def get_result(self,result: list) -> None:
-        self.parse_result(result,self.T_list[self.T_step])
-    
-
-        self.data_line_cap.setData(self.resultsDict[self.T_list[self.T_step]]["freq"],self.resultsDict[self.T_list[self.T_step]]["Cp"])        
-        self.data_line_dis.setData(self.resultsDict[self.T_list[self.T_step]]["freq"],self.resultsDict[self.T_list[self.T_step]]["D"])      
+        self.parse_result(result)
         
+        if self.voltage_list_mode:
+            self.data_line_cap.setData(self.resultsDict[self.T_list[self.T_step]][self.freq_list[self.freq_step]]["volt"],self.resultsDict[self.T_list[self.T_step]][self.freq_list[self.freq_step]]["Cp"])        
+            self.data_line_dis.setData(self.resultsDict[self.T_list[self.T_step]][self.freq_list[self.freq_step]]["volt"],self.resultsDict[self.T_list[self.T_step]][self.freq_list[self.freq_step]]["D"])      
             
-        if self.T_step == len(self.T_list) - 1:
-            self.measurement_status = "Finished"
-            with open(self.output_file_input.text(), "w") as write_file:
-                json.dump(self.resultsDict, write_file, indent=4)
+            if self.T_step == len(self.T_list) - 1 and self.freq_step == len(self.freq_list) - 1:
+                self.measurement_status = "Finished"
+                with open(self.output_file_input.text(), "w") as write_file:
+                    json.dump(self.resultsDict, write_file, indent=4)
+            else:
+                if self.freq_step == len(self.freq_list) - 1:
+                    self.T_step+=1
+                    self.freq_step = 0
+                    self.measurement_status = "Setting temperature"
+                
+                else:
+                    self.freq_step+=1
+                    self.measurement_status = "Setting temperature"
         else:
-            self.T_step+=1
-            self.measurement_status = "Setting temperature"
+            self.data_line_cap.setData(self.resultsDict[self.T_list[self.T_step]]["freq"],self.resultsDict[self.T_list[self.T_step]]["Cp"])        
+            self.data_line_dis.setData(self.resultsDict[self.T_list[self.T_step]]["freq"],self.resultsDict[self.T_list[self.T_step]]["D"])
+            
+            if self.T_step == len(self.T_list) - 1:
+                self.measurement_status = "Finished"
+                with open(self.output_file_input.text(), "w") as write_file:
+                    json.dump(self.resultsDict, write_file, indent=4)
+            else:
+                self.T_step+=1
+                self.measurement_status = "Setting temperature"
+     
+
+    def parse_result(self, result: list) -> list:
+
+        T = self.T_list[self.T_step]   
+        #self.resultsDict[T] = dict()
+        if self.voltage_list_mode:
+            freq = self.freq_list[self.freq_step]
+            
+            self.resultsDict[T][freq] = dict()
+
+            self.resultsDict[T][freq]["Cp"] = []
+            self.resultsDict[T][freq]["D"] = []
+            self.resultsDict[T][freq]["volt"] = []
+
+            for i,volt in enumerate(self.voltage_list):
+                increment = i+(3*i)
+                self.resultsDict[T][freq]["volt"].append(volt)
+                self.resultsDict[T][freq]["Cp"].append(result[increment])
+                self.resultsDict[T][freq]["D"].append(result[increment + 1])
+        else:
+
+            
+            self.resultsDict[T]["Cp"] = []
+            self.resultsDict[T]["D"] = []
+            self.resultsDict[T]["freq"] = []
+            for i,freq in enumerate(self.freq_list):
+                increment = i+(3*i)
+                self.resultsDict[T]["freq"].append(freq)
+                self.resultsDict[T]["Cp"].append(result[increment])
+                self.resultsDict[T]["D"].append(result[increment + 1])
+
+
+    # 0...4...8...12
+    # 0...3...6...9
+    # 0...1...2...3
+    # i+(3*i)
+
         
 
     
-    def stop_measurement(self) -> None:
-        self.linkam.stop()
-        self.measurement_status = "Idle"
-
 
     
     ###################### END OF CONTROL LOGIC ###############################
