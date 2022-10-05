@@ -205,7 +205,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(QLabel("Averaging Factor"),0,2)
         self.averaging_factor = QLineEdit("1")
         layout.addWidget(self.averaging_factor,0,3)
-        self.averaging_factor.textChanged.connect(self.averaging_limits)
+        self.averaging_factor.editingFinished.connect(lambda: self.limits(self.averaging_factor, 256, 1))
 
 
         
@@ -216,14 +216,14 @@ class MainWindow(QMainWindow):
         self.bias_voltage_selector.addItem("2")
         layout.addWidget(self.bias_voltage_selector,0,5)
 
-    def averaging_limits(self) -> None:
+    def limits(self, thing, limit: float, default: float, max_val = True) -> None:
         try:
-            if self.averaging_factor.text() == "":
+            if thing.text() == "":
                 pass
-            elif float(self.averaging_factor.text()) > 256:
-                self.averaging_factor.setText("256")
+            elif max_val == True and float(thing.text()) > limit or max_val == False and float(thing.text()) < limit:
+                thing.setText(f"{limit}")
         except ValueError:
-            self.averaging_factor.setText("1")
+           thing.setText(f"{default}")
 
     def frequencySettingsFrame(self) -> None:
         self.freq_settings_frame = QGroupBox()
@@ -235,14 +235,21 @@ class MainWindow(QMainWindow):
         layout.addWidget(QLabel("Number of Data Points"),0,0)
         self.freq_points = QLineEdit("10")
         layout.addWidget(self.freq_points,1,0)
+        self.freq_points.editingFinished.connect(lambda: self.limits(self.freq_points, 201, 10))
 
         layout.addWidget(QLabel("Min Frequency"),2,0)
         self.freq_min = QLineEdit("20")
         layout.addWidget(self.freq_min,3,0)
+        self.freq_min.editingFinished.connect(lambda: self.limits(self.freq_min, 20, 20, False))
+        self.freq_min.editingFinished.connect(lambda: self.limits(self.freq_min, 2e6, 20))
 
         layout.addWidget(QLabel("Max Frequency"),4,0)
         self.freq_max = QLineEdit("2e6")
         layout.addWidget(self.freq_max,5,0)
+        self.freq_max.editingFinished.connect(lambda: self.limits(self.freq_max, 20, 20, False))
+        self.freq_max.editingFinished.connect(lambda: self.limits(self.freq_max, 2e6, 20))
+    
+    
         
     def voltageSettingsFrame(self) -> None:
         self.voltage_settings_frame = QGroupBox()
@@ -252,18 +259,25 @@ class MainWindow(QMainWindow):
         
       
 
-        layout.addWidget(QLabel("Number of Data Points"),0,0)
-        self.voltage_points = QLineEdit("1")
-        layout.addWidget(self.voltage_points,1,0)
 
         self.voltage_min_label = QLabel("Voltage")
-        layout.addWidget(self.voltage_min_label,2,0)
+        layout.addWidget(self.voltage_min_label,0,0)
         self.voltage_min = QLineEdit("1")
-        layout.addWidget(self.voltage_min,3,0)
+        layout.addWidget(self.voltage_min,1,0)
+        self.voltage_min.editingFinished.connect(lambda: self.limits(self.voltage_min, 0, 1, False))
+        self.voltage_min.editingFinished.connect(lambda: self.limits(self.voltage_min, 20, 1))
 
-        layout.addWidget(QLabel("Max Voltage"),4,0)
+        layout.addWidget(QLabel("Max Voltage"),2,0)
         self.voltage_max = QLineEdit("1")
-        layout.addWidget(self.voltage_max,5,0)
+        layout.addWidget(self.voltage_max,3,0)
+        self.voltage_max.editingFinished.connect(lambda: self.limits(self.voltage_max, 0, 1, False))
+        self.voltage_max.editingFinished.connect(lambda: self.limits(self.voltage_max, 20, 1))
+
+        layout.addWidget(QLabel("Step Size"),4,0)
+        self.voltage_step = QLineEdit("1")
+        layout.addWidget(self.voltage_step,5,0)
+        self.voltage_step.editingFinished.connect(lambda: self.limits(self.voltage_step, 0.001, 0.1, False))
+        self.voltage_step.editingFinished.connect(lambda: self.limits(self.voltage_step, 20, 0.1))
 
           
         layout.addWidget(QLabel("Single Voltage?"),0,1)
@@ -274,13 +288,13 @@ class MainWindow(QMainWindow):
 
     def voltage_toggle(self) -> None:
         if self.voltage_checkbox.isChecked():
-            self.voltage_points.setEnabled(False)
+            self.voltage_step.setEnabled(False)
             self.voltage_max.setEnabled(False)
             self.voltage_min_label.setText("Voltage")
             self.voltage_list_mode = False
 
         else:
-            self.voltage_points.setEnabled(True)
+            self.voltage_step.setEnabled(True)
             self.voltage_max.setEnabled(True)
             self.voltage_min_label.setText("Min Voltage")
             self.voltage_list_mode = True
@@ -444,13 +458,13 @@ class MainWindow(QMainWindow):
 
         voltage_min = float(self.voltage_min.text())
         voltage_max = float(self.voltage_max.text())
-        voltage_points = int(self.voltage_points.text())
+        voltage_step = int(self.voltage_step.text())
 
         self.freq_list = list(np.logspace(np.log10(freq_min), np.log10(freq_max), freq_points))
        
 
         if  self.voltage_list_mode:
-            self.voltage_list = list(np.linspace(voltage_min, voltage_max, voltage_points))
+            self.voltage_list = list(np.arange(voltage_min, voltage_max, voltage_step))
             self.agilent.set_volt_list(self.voltage_list)
             self.agilent.set_frequency(self.freq_list[0])
         else:
