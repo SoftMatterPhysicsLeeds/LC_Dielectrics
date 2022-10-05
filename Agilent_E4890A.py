@@ -73,3 +73,9 @@ class AgilentSpectrometer():
         self.spectrometer.write(":FETC?") # request data acquisition
         return self.spectrometer.read_ascii_values() # get data as [val1, val2, data_status]. For CP-D func, this is [Cp, D, data_status]
 
+    def set_DC_bias(self,voltage: float) -> None:
+        self.spectrometer.write(f":BIAS:VOLT {voltage}")
+        self.spectrometer.write(f":BIAS:STATE ON")
+
+    def turn_off_DC_bias(self) -> None:
+        self.spectrometer.write(f":BIAS:STATE OFF")

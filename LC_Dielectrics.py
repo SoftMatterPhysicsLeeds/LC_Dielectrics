@@ -205,11 +205,25 @@ class MainWindow(QMainWindow):
         layout.addWidget(QLabel("Averaging Factor"),0,2)
         self.averaging_factor = QLineEdit("1")
         layout.addWidget(self.averaging_factor,0,3)
+        self.averaging_factor.textChanged.connect(self.averaging_limits)
+
 
         
         layout.addWidget(QLabel("Bias Level (V)"),0,4)
-        self.bias_voltage = QLineEdit("0")
-        layout.addWidget(self.bias_voltage,0,5)
+        self.bias_voltage_selector = QComboBox()
+        self.bias_voltage_selector.addItem("0")
+        self.bias_voltage_selector.addItem("1.5")
+        self.bias_voltage_selector.addItem("2")
+        layout.addWidget(self.bias_voltage_selector,0,5)
+
+    def averaging_limits(self) -> None:
+        try:
+            if self.averaging_factor.text() == "":
+                pass
+            elif float(self.averaging_factor.text()) > 256:
+                self.averaging_factor.setText("256")
+        except ValueError:
+            self.averaging_factor.setText("1")
 
     def frequencySettingsFrame(self) -> None:
         self.freq_settings_frame = QGroupBox()
@@ -446,6 +460,8 @@ class MainWindow(QMainWindow):
         
         self.agilent.set_aperture_mode(self.time_selector.currentText(), int(self.averaging_factor.text()))
 
+        if self.bias_voltage_selector.currentText() == "1.5" or self.bias_voltage_selector.currentText() == "2":
+            self.agilent.set_DC_bias(float(self.bias_voltage_selector.currentText()))
         #calculate T list 
         T_start = float(self.temp_start.text())
         T_end = float(self.temp_end.text())
@@ -466,7 +482,9 @@ class MainWindow(QMainWindow):
         
     def stop_measurement(self) -> None:
         self.linkam.stop()
+        self.agilent.reset_and_clear()
         self.measurement_status = "Idle"
+        
 
     
 
