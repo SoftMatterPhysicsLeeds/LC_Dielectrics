@@ -74,7 +74,7 @@ def measurementSettingsFrame(window) -> None:
     window.averaging_factor = QLineEdit("1")
     layout.addWidget(window.averaging_factor, 0, 3)
     window.averaging_factor.editingFinished.connect(
-        lambda: window.limits(window.averaging_factor, 256, 1))
+        lambda: limits(window, window.averaging_factor, 256, 1))
 
     layout.addWidget(QLabel("Bias Level (V)"), 0, 4)
     window.bias_voltage_selector = QComboBox()
@@ -95,23 +95,23 @@ def frequencySettingsFrame(window) -> None:
     window.freq_points = QLineEdit("10")
     layout.addWidget(window.freq_points, 1, 0)
     window.freq_points.editingFinished.connect(
-        lambda: window.limits(window.freq_points, 201, 10))
+        lambda: limits(window, window.freq_points, 201, 10))
 
     layout.addWidget(QLabel("Min Frequency"), 2, 0)
     window.freq_min = QLineEdit("20")
     layout.addWidget(window.freq_min, 3, 0)
     window.freq_min.editingFinished.connect(
-        lambda: window.limits(window.freq_min, 20, 20, False))
+        lambda: limits(window, window.freq_min, 20, 20, False))
     window.freq_min.editingFinished.connect(
-        lambda: window.limits(window.freq_min, 2e6, 20))
+        lambda: limits(window, window.freq_min, 2e6, 20))
 
     layout.addWidget(QLabel("Max Frequency"), 4, 0)
     window.freq_max = QLineEdit("2e6")
     layout.addWidget(window.freq_max, 5, 0)
     window.freq_max.editingFinished.connect(
-        lambda: window.limits(window.freq_max, 20, 20, False))
+        lambda: limits(window, window.freq_max, 20, 20, False))
     window.freq_max.editingFinished.connect(
-        lambda: window.limits(window.freq_max, 2e6, 20))
+        lambda: limits(window, window.freq_max, 2e6, 20))
 
 
 def voltageSettingsFrame(window) -> None:
@@ -125,25 +125,25 @@ def voltageSettingsFrame(window) -> None:
     window.voltage_min = QLineEdit("1")
     layout.addWidget(window.voltage_min, 1, 0)
     window.voltage_min.editingFinished.connect(
-        lambda: window.limits(window.voltage_min, 0, 1, False))
+        lambda: limits(window, window.voltage_min, 0, 1, False))
     window.voltage_min.editingFinished.connect(
-        lambda: window.limits(window.voltage_min, 20, 1))
+        lambda: limits(window, window.voltage_min, 20, 1))
 
     layout.addWidget(QLabel("Max Voltage"), 2, 0)
     window.voltage_max = QLineEdit("1")
     layout.addWidget(window.voltage_max, 3, 0)
     window.voltage_max.editingFinished.connect(
-        lambda: window.limits(window.voltage_max, 0, 1, False))
+        lambda: limits(window, window.voltage_max, 0, 1, False))
     window.voltage_max.editingFinished.connect(
-        lambda: window.limits(window.voltage_max, 20, 1))
+        lambda: limits(window, window.voltage_max, 20, 1))
 
     layout.addWidget(QLabel("Step Size"), 4, 0)
     window.voltage_step = QLineEdit("1")
     layout.addWidget(window.voltage_step, 5, 0)
     window.voltage_step.editingFinished.connect(
-        lambda: window.limits(window.voltage_step, 0.001, 0.1, False))
+        lambda: limits(window, window.voltage_step, 0.001, 0.1, False))
     window.voltage_step.editingFinished.connect(
-        lambda: window.limits(window.voltage_step, 20, 0.1))
+        lambda: limits(window, window.voltage_step, 20, 0.1))
 
     layout.addWidget(QLabel("Single Voltage?"), 0, 1)
     window.voltage_checkbox = QCheckBox()
