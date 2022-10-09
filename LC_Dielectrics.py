@@ -1,11 +1,7 @@
-from qtpy.QtWidgets import (QMainWindow, QWidget, QGridLayout, QApplication, QFrame,
-                            QLabel, QLineEdit,
-                            QCheckBox, QHBoxLayout, QVBoxLayout,
-                            QPushButton, QFileDialog, QComboBox, QGroupBox)
+from qtpy.QtWidgets import (QMainWindow, QWidget, QGridLayout, QApplication, QPushButton)
 from qtpy import QtCore
 from qtpy.QtCore import QThread
 from PyQt5.QtCore import pyqtSignal
-import pyqtgraph as pg
 import sys
 import numpy as np
 from LinkamHotstage import LinkamHotstage  # type: ignore
