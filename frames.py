@@ -190,7 +190,7 @@ def outputDataSettingsFrame(window) -> None:
 
     window.add_file_button = QPushButton("Browse")
     layout.addWidget(window.add_file_button, 0, 1)
-    window.add_file_button.clicked.connect(add_file_dialogue)
+    window.add_file_button.clicked.connect(lambda: add_file_dialogue(window))
 
 
 def graphFrame(window) -> None:
