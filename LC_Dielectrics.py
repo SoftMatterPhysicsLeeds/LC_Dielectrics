@@ -11,7 +11,7 @@ import json
 from frames import (statusFrame, instrumentSettingsFrame, measurementSettingsFrame,  # type:ignore
                     frequencySettingsFrame, voltageSettingsFrame, temperatureSettingsFrame,
                     outputDataSettingsFrame, graphFrame)
-
+from excel_writer import make_excel #type: ignore
 
 class Experiment(QtCore.QObject):
     finished = pyqtSignal()
@@ -295,6 +295,8 @@ class MainWindow(QMainWindow):
                 self.measurement_status = "Finished"
                 with open(self.output_file_input.text(), "w") as write_file:
                     json.dump(self.resultsDict, write_file, indent=4)
+
+                make_excel(self.resultsDict, self.output_file_input.text())
             else:
                 self.T_step += 1
                 self.measurement_status = "Setting temperature"
