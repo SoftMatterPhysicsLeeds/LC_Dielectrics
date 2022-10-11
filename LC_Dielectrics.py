@@ -63,6 +63,7 @@ class MainWindow(QMainWindow):
         outputDataSettingsFrame(self)
         graphFrame(self)
 
+
         # initialise layout
         self.layout.addWidget(self.status_frame, 0, 0, 1, 2)
         self.layout.addWidget(self.instrument_settings_frame, 1, 0, 1, 2)

@@ -3,7 +3,6 @@ import pyvisa
 import pyqtgraph as pg
 import numpy as np
 
-
 def statusFrame(window: QMainWindow) -> None:
     window.status_frame = QFrame()
     layout = QGridLayout(window.status_frame)
