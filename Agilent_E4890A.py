@@ -22,11 +22,12 @@ class AgilentSpectrometer():
             self.spectrometer.write("*IDN?")
             self.spectrometer_id = self.spectrometer.read()
             print(self.spectrometer_id)
+            self.reset_and_clear()
             
         except pyvisa.errors.VisaIOError:
             print("Could not connect to E4980A. Check address is correct.")
 
-        self.reset_and_clear()
+        
         
     def reset_and_clear(self) -> None:
         self.spectrometer.write("*RST; *CLS") # reset and clear buffer
