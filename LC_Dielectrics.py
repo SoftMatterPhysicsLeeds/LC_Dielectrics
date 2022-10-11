@@ -208,14 +208,14 @@ class MainWindow(QMainWindow):
 
         voltage_min = float(self.voltage_min.text())
         voltage_max = float(self.voltage_max.text())
-        voltage_step = int(self.voltage_step.text())
+        voltage_step = float(self.voltage_step.text())
 
         self.freq_list = list(np.logspace(
             np.log10(freq_min), np.log10(freq_max), freq_points))
 
         if self.voltage_list_mode:
             self.voltage_list = list(
-                np.arange(voltage_min, voltage_max, voltage_step))
+                np.arange(voltage_min, voltage_max+voltage_step, voltage_step))
             self.agilent.set_volt_list(self.voltage_list)
             self.agilent.set_frequency(self.freq_list[0])
         else:
@@ -274,6 +274,7 @@ class MainWindow(QMainWindow):
 
             if self.T_step == len(self.T_list) - 1 and self.freq_step == len(self.freq_list) - 1:
                 self.measurement_status = "Finished"
+                make_excel(self.resultsDict, self.output_file_input.text(), self.voltage_list_mode)
                 with open(self.output_file_input.text(), "w") as write_file:
                     json.dump(self.resultsDict, write_file, indent=4)
             else:
@@ -293,10 +294,11 @@ class MainWindow(QMainWindow):
 
             if self.T_step == len(self.T_list) - 1:
                 self.measurement_status = "Finished"
+                make_excel(self.resultsDict, self.output_file_input.text(), self.voltage_list_mode)
                 with open(self.output_file_input.text(), "w") as write_file:
                     json.dump(self.resultsDict, write_file, indent=4)
 
-                make_excel(self.resultsDict, self.output_file_input.text())
+                
             else:
                 self.T_step += 1
                 self.measurement_status = "Setting temperature"
