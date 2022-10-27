@@ -4,14 +4,11 @@ from qtpy.QtCore import QThread
 from PyQt5.QtCore import pyqtSignal
 import sys
 import numpy as np
-from LinkamHotstage import LinkamHotstage  # type: ignore
-from Agilent_E4890A import AgilentSpectrometer  # type: ignore
+from Instruments import LinkamHotstage, AgilentSpectrometer
 import pyvisa
 import json
-from frames import (statusFrame, instrumentSettingsFrame, measurementSettingsFrame,  # type:ignore
-                    frequencySettingsFrame, voltageSettingsFrame, temperatureSettingsFrame,
-                    outputDataSettingsFrame, graphFrame)
-from excel_writer import make_excel #type: ignore
+from frames import *
+from excel_writer import make_excel 
 
 class Experiment(QtCore.QObject):
     finished = pyqtSignal()
@@ -29,15 +26,8 @@ class Experiment(QtCore.QObject):
 
 class MainWindow(QMainWindow):
 
-    def __init__(self, testing="false"):
+    def __init__(self):
         super(MainWindow, self).__init__()
-
-        self.testing = testing
-
-        if self.testing == "false":
-            self.testing = False
-        else:
-            self.testing = True
 
         self.setWindowTitle("LC Dielectrics")
 
@@ -341,46 +331,7 @@ class MainWindow(QMainWindow):
     ###################### END OF CONTROL LOGIC ###############################
 if __name__ == "__main__":
 
-    # try: 
-    #     import pyi_splash
-
-    #     # Update the text on the splash screen
-    #     pyi_splash.update_text("PyInstaller is a great software!")
-    #     pyi_splash.update_text("Second time's a charm!")
-
-    #     # Close the splash screen. It does not matter when the call
-    #     # to this function is made, the splash screen remains open until
-    #     # this function is called or the Python program is terminated.
-    #     pyi_splash.close()
-        
-    #     app = QApplication(sys.argv)
-    #     if len(sys.argv) > 1:
-    #         main = MainWindow(sys.argv[1])
-    #     else:
-    #         main = MainWindow()
-
-    #     # main.setGeometry(200,100,800,480)
-
-    #     main.show()
-    #     sys.exit(app.exec_())
-    # except:
-    #     app = QApplication(sys.argv)
-    #     if len(sys.argv) > 1:
-    #         main = MainWindow(sys.argv[1])
-    #     else:
-    #         main = MainWindow()
-
-    #     # main.setGeometry(200,100,800,480)
-
-    #     main.show()
-    #     sys.exit(app.exec_())
     app = QApplication(sys.argv)
-    if len(sys.argv) > 1:
-        main = MainWindow(sys.argv[1])
-    else:
-        main = MainWindow()
-
-    # main.setGeometry(200,100,800,480)
-
+    main = MainWindow()
     main.show()
     sys.exit(app.exec_())
