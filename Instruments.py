@@ -146,8 +146,9 @@ class AgilentSpectrometer():
     def set_aperture_mode(self, mode: str, av_factor: int) -> None:
         self.spectrometer.write(f":APER {mode},{av_factor}")
 
-    def measure(self) -> None:
+    def measure(self, func: str) -> None:
         # self.spectrometer.write(":INIT")
+        self.spectrometer.write(f":FUNC:IMP {func}")
         self.spectrometer.write(":TRIG:IMM")
         self.spectrometer.write(":FETC?") # request data acquisition
         return self.spectrometer.read_ascii_values() # get data as [val1, val2, data_status]. For CP-D func, this is [Cp, D, data_status]

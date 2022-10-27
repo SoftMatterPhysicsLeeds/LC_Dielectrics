@@ -20,7 +20,7 @@ class Experiment(QtCore.QObject):
         self.agilent = agilent
 
     def run_spectrometer(self) -> None:
-        result = self.agilent.measure()
+        result = self.agilent.measure("CPD")
         self.result.emit(result)
         self.finished.emit()
 
