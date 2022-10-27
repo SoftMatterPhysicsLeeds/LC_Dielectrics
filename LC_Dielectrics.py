@@ -13,14 +13,16 @@ from Excel_writer import make_excel #type: ignore
 
 class Experiment(QtCore.QObject):
     finished = pyqtSignal()
-    result = pyqtSignal(list)
+    result = pyqtSignal(dict)
 
     def __init__(self, agilent: AgilentSpectrometer):
         super().__init__()
         self.agilent = agilent
 
     def run_spectrometer(self) -> None:
-        result = self.agilent.measure("CPD")
+        result = dict()
+        result["CPD"] = self.agilent.measure("CPD")
+        result["GB"] = self.agilent.measure("GB")
         self.result.emit(result)
         self.finished.emit()
 
@@ -295,10 +297,10 @@ class MainWindow(QMainWindow):
                 self.T_step += 1
                 self.measurement_status = "Setting temperature"
 
-    def parse_result(self, result: list) -> list:
+    def parse_result(self, result: dict) -> None:
 
         T = self.T_list[self.T_step]
-        #self.resultsDict[T] = dict()
+        
         if self.voltage_list_mode:
             freq = self.freq_list[self.freq_step]
 
@@ -307,26 +309,40 @@ class MainWindow(QMainWindow):
             self.resultsDict[T][freq]["Cp"] = []
             self.resultsDict[T][freq]["D"] = []
             self.resultsDict[T][freq]["volt"] = []
+            self.resultsDict[T][freq]["G"] = []
+            self.resultsDict[T][freq]["B"] = []
+        
 
             for i, volt in enumerate(self.voltage_list):
                 increment = i+(3*i)
                 self.resultsDict[T][freq]["volt"].append(volt)
-                self.resultsDict[T][freq]["Cp"].append(result[increment])
-                self.resultsDict[T][freq]["D"].append(result[increment + 1])
+                self.resultsDict[T][freq]["Cp"].append(result["CPD"][increment])
+                self.resultsDict[T][freq]["D"].append(result["CPD"][increment + 1])
+                self.resultsDict[T][freq]["G"].append(result["GB"][increment])
+                self.resultsDict[T][freq]["B"].append(result["GB"][increment + 1])
         else:
 
             self.resultsDict[T]["Cp"] = []
             self.resultsDict[T]["D"] = []
             self.resultsDict[T]["freq"] = []
+            self.resultsDict[T]["G"] = []
+            self.resultsDict[T]["B"] = []
+            
             for i, freq in enumerate(self.freq_list):
                 increment = i+(3*i)
                 self.resultsDict[T]["freq"].append(freq)
-                self.resultsDict[T]["Cp"].append(result[increment])
-                self.resultsDict[T]["D"].append(result[increment + 1])
+                self.resultsDict[T]["Cp"].append(result["CPD"][increment])
+                self.resultsDict[T]["D"].append(result["CPD"][increment + 1])
+                self.resultsDict[T]["G"].append(result["GB"][increment])
+                self.resultsDict[T]["B"].append(result["GB"][increment + 1])
+
+
+
+
 
     # 0...4...8...12
     # 0...3...6...9
-    # 0...1...2...3
+    # 0...1...2...3...4.
     # i+(3*i)
 
     ###################### END OF CONTROL LOGIC ###############################

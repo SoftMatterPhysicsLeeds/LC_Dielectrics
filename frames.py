@@ -137,7 +137,7 @@ def voltageSettingsFrame(window) -> None:
         lambda: limits(window, window.voltage_max, 20, 1))
 
     layout.addWidget(QLabel("Step Size"), 4, 0)
-    window.voltage_step = QLineEdit("1")
+    window.voltage_step = QLineEdit("0.1")
     layout.addWidget(window.voltage_step, 5, 0)
     window.voltage_step.editingFinished.connect(
         lambda: limits(window, window.voltage_step, 0.001, 0.1, False))
