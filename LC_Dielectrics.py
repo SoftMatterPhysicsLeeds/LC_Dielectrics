@@ -6,6 +6,7 @@ import sys
 import numpy as np
 import pyvisa
 import json
+import time
 
 from Instruments import LinkamHotstage, AgilentSpectrometer
 from Frames import * #type: ignore
@@ -22,6 +23,7 @@ class Experiment(QtCore.QObject):
     def run_spectrometer(self) -> None:
         result = dict()
         result["CPD"] = self.agilent.measure("CPD")
+        time.sleep(0.5)
         result["GB"] = self.agilent.measure("GB")
         self.result.emit(result)
         self.finished.emit()
