@@ -45,14 +45,14 @@ class MainWindow(QMainWindow):
         self.layout = QGridLayout()
 
         # initialise frames
-        statusFrame(self)
-        instrumentSettingsFrame(self)
-        measurementSettingsFrame(self)
-        frequencySettingsFrame(self)
-        voltageSettingsFrame(self)
-        temperatureSettingsFrame(self)
-        outputDataSettingsFrame(self)
-        graphFrame(self)
+        statusFrame(self) #type: ignore
+        instrumentSettingsFrame(self) #type: ignore
+        measurementSettingsFrame(self) #type: ignore
+        frequencySettingsFrame(self) #type: ignore
+        voltageSettingsFrame(self) #type: ignore
+        temperatureSettingsFrame(self) #type: ignore
+        outputDataSettingsFrame(self) #type: ignore
+        graphFrame(self) #type: ignore
 
 
         # initialise layout
