@@ -4,11 +4,12 @@ from qtpy.QtCore import QThread
 from PyQt5.QtCore import pyqtSignal
 import sys
 import numpy as np
-from Instruments import LinkamHotstage, AgilentSpectrometer
 import pyvisa
 import json
-from frames import *
-from excel_writer import make_excel 
+
+from Instruments import LinkamHotstage, AgilentSpectrometer
+from Frames import * #type: ignore
+from Excel_writer import make_excel #type: ignore
 
 class Experiment(QtCore.QObject):
     finished = pyqtSignal()
