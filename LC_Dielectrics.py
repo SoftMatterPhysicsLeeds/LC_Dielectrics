@@ -338,19 +338,15 @@ class MainWindow(QMainWindow):
                 self.resultsDict[T]["G"].append(result["GB"][increment])
                 self.resultsDict[T]["B"].append(result["GB"][increment + 1])
 
-
-
-
-
-    # 0...4...8...12
-    # 0...3...6...9
-    # 0...1...2...3...4.
-    # i+(3*i)
-
     ###################### END OF CONTROL LOGIC ###############################
-if __name__ == "__main__":
 
+
+def main():
     app = QApplication(sys.argv)
     main = MainWindow()
     main.show()
     sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    main()
+    
