@@ -1,5 +1,5 @@
 from qtpy.QtWidgets import (QMainWindow, QWidget, QGridLayout, QApplication, QPushButton)
-from qtpy import QtCore
+from qtpy import QtCore, QtGui
 from qtpy.QtCore import QThread
 from PyQt5.QtCore import pyqtSignal
 import sys
@@ -11,6 +11,7 @@ import time
 from Instruments import LinkamHotstage, AgilentSpectrometer
 from Frames import * #type: ignore
 from Excel_writer import make_excel #type: ignore
+import icon_qrc #type:ignore
 
 class Experiment(QtCore.QObject):
     finished = pyqtSignal()
@@ -35,6 +36,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
 
         self.setWindowTitle("LC Dielectrics")
+        self.setWindowIcon(QtGui.QIcon(':LCD_icon.ico'))
 
         self.resultsDict = dict()
 
