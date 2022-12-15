@@ -200,6 +200,8 @@ class MainWindow(QMainWindow):
 
     def start_measurement(self) -> None:
 
+        self.resultsDict = dict()
+
         freq_min = float(self.freq_min.text())
         freq_max = float(self.freq_max.text())
         freq_points = int(self.freq_points.text())
