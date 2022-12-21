@@ -230,9 +230,9 @@ class MainWindow(QMainWindow):
             self.agilent.set_DC_bias(
                 float(self.bias_voltage_selector.currentText()))
         # calculate T list
-        T_start = float(self.temp_start.text())
-        T_end = float(self.temp_end.text())
-        T_inc = float(self.temp_step.text())
+        T_start = round(float(self.temp_start.text()),2)
+        T_end = round(float(self.temp_end.text()),2)
+        T_inc = round(float(self.temp_step.text()),2)
         self.T_rate = float(self.temp_rate.text())
 
         if T_start == T_end:
@@ -241,6 +241,10 @@ class MainWindow(QMainWindow):
             self.T_list = np.arange(T_start, T_end-T_inc, -T_inc)
         else:
             self.T_list = np.arange(T_start, T_end + T_inc, T_inc)
+
+        #round T_list to 2 decimal places
+        self.T_list = [round(x,2) for x in self.T_list]
+
 
         self.T_step = 0
         self.freq_step = 0
