@@ -137,18 +137,6 @@ class MainWindow(QMainWindow):
 
         self.update_ui()
 
-    def voltage_toggle(self) -> None:
-        if self.voltage_checkbox.isChecked():
-            self.voltage_step.setEnabled(False)
-            self.voltage_max.setEnabled(False)
-            self.voltage_min_label.setText("Voltage")
-            self.voltage_list_mode = False
-
-        else:
-            self.voltage_step.setEnabled(True)
-            self.voltage_max.setEnabled(True)
-            self.voltage_min_label.setText("Min Voltage")
-            self.voltage_list_mode = True
 
     def update_ui(self) -> None:
         self.agilent_status_label.setText(self.agilent_status)
@@ -167,7 +155,7 @@ class MainWindow(QMainWindow):
 
         elif self.measurement_status == "Setting temperature" and (self.linkam_action == "Stopped" or self.linkam_action == "Holding"):
             self.linkam.set_temperature(self.T_list[self.T_step], self.T_rate)
-            if self.voltage_list_mode:
+            if len(self.voltage_list) > 1:
                 self.agilent.set_frequency(self.freq_list[self.freq_step])
                 if self.freq_step != 0:
                     self.measurement_status = "Temperature Stabilised"
@@ -201,24 +189,17 @@ class MainWindow(QMainWindow):
     def start_measurement(self) -> None:
 
         self.resultsDict = dict()
-
-        voltage_min = float(self.voltage_min.text())
-        voltage_max = float(self.voltage_max.text())
-        voltage_step = float(self.voltage_step.text())
-
         self.freq_list = [float(self.freq_list_widget.item(x).text()) for x in range(self.freq_list_widget.count())]
-
+        self.voltage_list = [float(self.volt_list_widget.item(x).text()) for x in range(self.volt_list_widget.count())]
         # self.freq_list = list(np.logspace(
         #     np.log10(freq_min), np.log10(freq_max), freq_points))
 
-        if self.voltage_list_mode:
-            self.voltage_list = list(
-                np.arange(voltage_min, voltage_max+voltage_step, voltage_step))
+        if len(self.voltage_list) > 1:
             self.agilent.set_volt_list(self.voltage_list)
             self.agilent.set_frequency(self.freq_list[0])
         else:
-            self.resultsDict["volt"] = voltage_min
-            self.agilent.set_voltage(voltage_min)
+            self.resultsDict["volt"] = self.voltage_list[0]
+            self.agilent.set_voltage(self.voltage_list[0])
             self.agilent.set_freq_list(self.freq_list)
 
         self.agilent.set_aperture_mode(

@@ -7,51 +7,59 @@ class ValueSelectorWindow(QWidget):
     """
     Popout window that will allow the user to select a range of frequencies/voltages to add to the relevant list.
     """
-    def __init__(self, main_window: QMainWindow):
+    def __init__(self, main_window: QMainWindow, value_list: QListWidget, min_val: float, max_val: float, logspace: bool = True):
         super().__init__()
         self.main_window_ref = main_window
+        self.value_list = value_list
+        self.logspace = logspace
+        self.setWindowTitle("Add values")
 
         layout = QGridLayout()
         layout.addWidget(QLabel("Number of Data Points"), 0, 0)
         
-        self.freq_points = QLineEdit("10")
-        layout.addWidget(self.freq_points, 1, 0)
-        self.freq_points.editingFinished.connect(
-            lambda: limits(self, self.freq_points, 201, 10))
+        self.points = QLineEdit("10")
+        layout.addWidget(self.points, 1, 0)
+        self.points.editingFinished.connect(
+            lambda: limits(self, self.points, 201, 10))
 
-        layout.addWidget(QLabel("Min Frequency"), 2, 1)
-        self.freq_min = QLineEdit("20")
-        layout.addWidget(self.freq_min, 3, 0)
-        self.freq_min.editingFinished.connect(
-            lambda: limits(self, self.freq_min, 20, 20, False))
-        self.freq_min.editingFinished.connect(
-            lambda: limits(self, self.freq_min, 2e6, 20))
+        layout.addWidget(QLabel("Minimum"), 2, 0)
+        self.min = QLineEdit(f"{min_val}")
+        layout.addWidget(self.min, 3, 0)
+        self.min.editingFinished.connect(
+            lambda: limits(self, self.min, min_val, min_val, False))
+        self.min.editingFinished.connect(
+            lambda: limits(self, self.min, max_val, min_val))
 
-        layout.addWidget(QLabel("Max Frequency"), 4, 0)
-        self.freq_max = QLineEdit("2e6")
-        layout.addWidget(self.freq_max, 5, 0)
-        self.freq_max.editingFinished.connect(
-            lambda: limits(self, self.freq_max, 20, 20, False))
-        self.freq_max.editingFinished.connect(
-            lambda: limits(self, self.freq_max, 2e6, 20))
+        layout.addWidget(QLabel("Maximum"), 4, 0)
+        self.max = QLineEdit(f"{max_val}")
+        layout.addWidget(self.max, 5, 0)
+        self.max.editingFinished.connect(
+            lambda: limits(self, self.max, min_val, min_val, False))
+        self.max.editingFinished.connect(
+            lambda: limits(self, self.max, max_val, min_val))
 
         self.add_button = QPushButton("Add to list")
         layout.addWidget(self.add_button, 6, 0)
-        self.add_button.clicked.connect(self.addFreqToList)
+        self.add_button.clicked.connect(self.addValuesToList)
 
         self.setLayout(layout)
     
-    def addFreqToList(self):
-        freq_min = float(self.freq_min.text())
-        freq_max = float(self.freq_max.text())
-        freq_points = int(self.freq_points.text())
-        freq_list = [str(x) for x in list(np.logspace(
-            np.log10(freq_min), np.log10(freq_max), freq_points))]
-        for freq in freq_list:
-            QListWidgetItem(freq,self.main_window_ref.freq_list_widget)
+    def addValuesToList(self):
+        min_val = float(self.min.text())
+        max_val = float(self.max.text())
+        points = int(self.points.text())
         
+        if self.logspace:
+            val_list = [f"{x:.2f}" for x in list(np.logspace(
+                np.log10(min_val), np.log10(max_val), points))]
+        else:
+            val_list = [f"{x:.2f}" for x in list(np.linspace(
+                min_val, max_val, points))]
+        
+        for val in val_list:
+            QListWidgetItem(val,self.value_list)
 
-
+        self.close()
 
 
 def statusFrame(window: QMainWindow) -> None:
@@ -156,35 +164,29 @@ def frequencySettingsFrame(window) -> None:
 
     add_freq_button = QPushButton("Add")
     layout.addWidget(add_freq_button, 1, 1)
-    add_freq_button.clicked.connect(lambda: addFreqToList(window, add_freq_edit.text()))
+    add_freq_button.clicked.connect(lambda: addValuesToList(window.freq_list_widget, add_freq_edit.text()))
     
     delete_freq_button = QPushButton("Delete")
     layout.addWidget(delete_freq_button, 2, 1)
-    delete_freq_button.clicked.connect(lambda: removeFreqsFromList(window))
+    delete_freq_button.clicked.connect(lambda: removeValuesFromList(window.freq_list_widget))
 
     multi_freq_button  = QPushButton("Add range")
     layout.addWidget(multi_freq_button, 3, 1)
-    multi_freq_button.clicked.connect(lambda: createMultiFreqWindow(window))
-
-#     test_button = QPushButton("Test")
-#     layout.addWidget(test_button, 4,1)
-#     test_button.clicked.connect(lambda: test_item_read(window))
-
-# def test_item_read(window: QMainWindow) -> None:
-#     print([window.freq_list_widget.item(x).text() for x in range(window.freq_list_widget.count())])
+    multi_freq_button.clicked.connect(lambda: createMultiValueWindow(window, window.freq_list_widget, 20, 2e6))
 
 
-def addFreqToList(window: QMainWindow, freq: str) -> None:
-    item = QListWidgetItem(freq,window.freq_list_widget)
-    window.freq_list_widget.setCurrentItem(item)
 
-def removeFreqsFromList(window: QMainWindow) -> None:
-    items = window.freq_list_widget.selectedItems()
+def addValuesToList(list_widget: QListWidget, value: str) -> None:
+    item = QListWidgetItem(value,list_widget)
+    list_widget.setCurrentItem(item)
+
+def removeValuesFromList(list_widget: QListWidget) -> None:
+    items = list_widget.selectedItems()
     for item in items:
-        window.freq_list_widget.takeItem(window.freq_list_widget.row(item))
+        list_widget.takeItem(list_widget.row(item))
 
-def createMultiFreqWindow(window: QMainWindow) -> None:
-    window.sw = ValueSelectorWindow(window)
+def createMultiValueWindow(window: QMainWindow, list_widget: QListWidget, min_val: float,  max_val: float, logspace: bool = True) -> None:
+    window.sw = ValueSelectorWindow(window, list_widget, min_val, max_val, logspace)
     window.sw.show()
 
 def voltageSettingsFrame(window) -> None:
@@ -193,36 +195,32 @@ def voltageSettingsFrame(window) -> None:
     window.voltage_settings_frame.setFrame = True
     window.voltage_settings_frame.setTitle("Voltage Settings")
 
-    window.voltage_min_label = QLabel("Voltage")
-    layout.addWidget(window.voltage_min_label, 0, 0)
-    window.voltage_min = QLineEdit("1")
-    layout.addWidget(window.voltage_min, 1, 0)
-    window.voltage_min.editingFinished.connect(
-        lambda: limits(window, window.voltage_min, 0, 1, False))
-    window.voltage_min.editingFinished.connect(
-        lambda: limits(window, window.voltage_min, 20, 1))
+    
+    window.volt_list_widget = QListWidget()
+    layout.addWidget(window.volt_list_widget, 0, 0, 4 ,1 )
+    window.volt_list_widget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+    QListWidgetItem("1",window.volt_list_widget)
 
-    layout.addWidget(QLabel("Max Voltage"), 2, 0)
-    window.voltage_max = QLineEdit("1")
-    layout.addWidget(window.voltage_max, 3, 0)
-    window.voltage_max.editingFinished.connect(
-        lambda: limits(window, window.voltage_max, 0, 1, False))
-    window.voltage_max.editingFinished.connect(
-        lambda: limits(window, window.voltage_max, 20, 1))
+    add_volt_edit = QLineEdit("1")
+    layout.addWidget(add_volt_edit, 0, 1)
+    add_volt_edit.editingFinished.connect(
+            lambda: limits(window, add_volt_edit, 20, 20, False))
+    add_volt_edit.editingFinished.connect(
+            lambda: limits(window, add_volt_edit, 2e6, 20))
 
-    layout.addWidget(QLabel("Step Size"), 4, 0)
-    window.voltage_step = QLineEdit("0.1")
-    layout.addWidget(window.voltage_step, 5, 0)
-    window.voltage_step.editingFinished.connect(
-        lambda: limits(window, window.voltage_step, 0.001, 0.1, False))
-    window.voltage_step.editingFinished.connect(
-        lambda: limits(window, window.voltage_step, 20, 0.1))
 
-    layout.addWidget(QLabel("Single Voltage?"), 0, 1)
-    window.voltage_checkbox = QCheckBox()
-    layout.addWidget(window.voltage_checkbox, 1, 1)
-    window.voltage_checkbox.stateChanged.connect(window.voltage_toggle)
-    window.voltage_checkbox.setChecked(True)
+    add_volt_button = QPushButton("Add")
+    layout.addWidget(add_volt_button, 1, 1)
+    add_volt_button.clicked.connect(lambda: addValuesToList(window.volt_list_widget, add_volt_edit.text()))
+    
+    delete_volt_button = QPushButton("Delete")
+    layout.addWidget(delete_volt_button, 2, 1)
+    delete_volt_button.clicked.connect(lambda: removeValuesFromList(window.volt_list_widget))
+
+    multi_volt_button  = QPushButton("Add range")
+    layout.addWidget(multi_volt_button, 3, 1)
+    multi_volt_button.clicked.connect(lambda: createMultiValueWindow(window, window.volt_list_widget, 0, 20, False))
+
 
 
 def temperatureSettingsFrame(window) -> None:
