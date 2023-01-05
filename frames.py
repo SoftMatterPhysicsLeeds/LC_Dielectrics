@@ -166,6 +166,13 @@ def frequencySettingsFrame(window) -> None:
     layout.addWidget(multi_freq_button, 3, 1)
     multi_freq_button.clicked.connect(lambda: createMultiFreqWindow(window))
 
+#     test_button = QPushButton("Test")
+#     layout.addWidget(test_button, 4,1)
+#     test_button.clicked.connect(lambda: test_item_read(window))
+
+# def test_item_read(window: QMainWindow) -> None:
+#     print([window.freq_list_widget.item(x).text() for x in range(window.freq_list_widget.count())])
+
 
 def addFreqToList(window: QMainWindow, freq: str) -> None:
     item = QListWidgetItem(freq,window.freq_list_widget)

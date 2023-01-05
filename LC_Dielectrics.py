@@ -210,8 +210,10 @@ class MainWindow(QMainWindow):
         voltage_max = float(self.voltage_max.text())
         voltage_step = float(self.voltage_step.text())
 
-        self.freq_list = list(np.logspace(
-            np.log10(freq_min), np.log10(freq_max), freq_points))
+        self.freq_list = [float(self.freq_list_widget.item(x).text()) for x in range(self.freq_list_widget.count())]
+
+        # self.freq_list = list(np.logspace(
+        #     np.log10(freq_min), np.log10(freq_max), freq_points))
 
         if self.voltage_list_mode:
             self.voltage_list = list(
