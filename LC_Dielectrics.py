@@ -191,9 +191,7 @@ class MainWindow(QMainWindow):
         self.resultsDict = dict()
         self.freq_list = [float(self.freq_list_widget.item(x).text()) for x in range(self.freq_list_widget.count())]
         self.voltage_list = [float(self.volt_list_widget.item(x).text()) for x in range(self.volt_list_widget.count())]
-        # self.freq_list = list(np.logspace(
-        #     np.log10(freq_min), np.log10(freq_max), freq_points))
-
+        
         if len(self.voltage_list) > 1:
             self.agilent.set_volt_list(self.voltage_list)
             self.agilent.set_frequency(self.freq_list[0])
