@@ -15,9 +15,18 @@ class ValueSelectorWindow(QWidget):
         self.setWindowTitle("Add values")
 
         layout = QGridLayout()
-        layout.addWidget(QLabel("Number of Data Points"), 0, 0, 1, 2)
-        
-        self.points = QLineEdit("10")
+
+        if logspace:
+            layout.addWidget(QLabel("Number of Points"), 0, 0, 1, 2)
+            self.points = QLineEdit("10")
+        else:
+            self.combo = QComboBox()
+            self.points = QLineEdit("0.1")
+            self.combo.currentIndexChanged.connect(self.comboChanged)
+            layout.addWidget(self.combo, 0, 0, 1, 2)
+            self.combo.addItem("Step Size")
+            self.combo.addItem("Number of Points")
+            
         layout.addWidget(self.points, 1, 0, 1, 2)
         self.points.editingFinished.connect(
             lambda: limits(self, self.points, 201, 10))
@@ -47,7 +56,13 @@ class ValueSelectorWindow(QWidget):
         self.add_button.clicked.connect(self.replace)
 
         self.setLayout(layout)
-    
+
+    def comboChanged(self):
+        if self.combo.currentText() == "Number of Points":
+            self.points.setText("10")
+        else: 
+            self.points.setText("0.1")
+
 
     def replace(self):
         self.value_list.clear()
@@ -57,14 +72,18 @@ class ValueSelectorWindow(QWidget):
     def append(self):
         min_val = float(self.min.text())
         max_val = float(self.max.text())
-        points = int(self.points.text())
+        points = float(self.points.text())
         
         if self.logspace:
             val_list = [f"{x:.2f}" for x in list(np.logspace(
                 np.log10(min_val), np.log10(max_val), points))]
         else:
-            val_list = [f"{x:.2f}" for x in list(np.linspace(
-                min_val, max_val, points))]
+            if self.combo.currentText() == "Number of Points":
+                val_list = [f"{x:.2f}" for x in list(np.linspace(
+                    min_val, max_val, points))]
+            else: 
+                val_list = [f"{x:.2f}" for x in list(np.arange(
+                    min_val, max_val+points, points))]
         
         for val in val_list:
             addValuesToList(self.value_list,val)
