@@ -202,10 +202,6 @@ class MainWindow(QMainWindow):
 
         self.resultsDict = dict()
 
-        freq_min = float(self.freq_min.text())
-        freq_max = float(self.freq_max.text())
-        freq_points = int(self.freq_points.text())
-
         voltage_min = float(self.voltage_min.text())
         voltage_max = float(self.voltage_max.text())
         voltage_step = float(self.voltage_step.text())
