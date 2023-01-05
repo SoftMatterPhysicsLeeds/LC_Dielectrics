@@ -15,36 +15,46 @@ class ValueSelectorWindow(QWidget):
         self.setWindowTitle("Add values")
 
         layout = QGridLayout()
-        layout.addWidget(QLabel("Number of Data Points"), 0, 0)
+        layout.addWidget(QLabel("Number of Data Points"), 0, 0, 1, 2)
         
         self.points = QLineEdit("10")
-        layout.addWidget(self.points, 1, 0)
+        layout.addWidget(self.points, 1, 0, 1, 2)
         self.points.editingFinished.connect(
             lambda: limits(self, self.points, 201, 10))
 
-        layout.addWidget(QLabel("Minimum"), 2, 0)
+        layout.addWidget(QLabel("Minimum"), 2, 0, 1, 2)
         self.min = QLineEdit(f"{min_val}")
-        layout.addWidget(self.min, 3, 0)
+        layout.addWidget(self.min, 3, 0, 1, 2)
         self.min.editingFinished.connect(
             lambda: limits(self, self.min, min_val, min_val, False))
         self.min.editingFinished.connect(
             lambda: limits(self, self.min, max_val, min_val))
 
-        layout.addWidget(QLabel("Maximum"), 4, 0)
+        layout.addWidget(QLabel("Maximum"), 4, 0, 1, 2)
         self.max = QLineEdit(f"{max_val}")
-        layout.addWidget(self.max, 5, 0)
+        layout.addWidget(self.max, 5, 0, 1, 2)
         self.max.editingFinished.connect(
             lambda: limits(self, self.max, min_val, min_val, False))
         self.max.editingFinished.connect(
             lambda: limits(self, self.max, max_val, min_val))
 
-        self.add_button = QPushButton("Add to list")
+        self.add_button = QPushButton("Append")
         layout.addWidget(self.add_button, 6, 0)
-        self.add_button.clicked.connect(self.addValuesToList)
+        self.add_button.clicked.connect(self.append)
+        
+        self.add_button = QPushButton("Replace")
+        layout.addWidget(self.add_button, 6, 1)
+        self.add_button.clicked.connect(self.replace)
 
         self.setLayout(layout)
     
-    def addValuesToList(self):
+
+    def replace(self):
+        self.value_list.clear()
+        self.append()
+
+
+    def append(self):
         min_val = float(self.min.text())
         max_val = float(self.max.text())
         points = int(self.points.text())
@@ -57,9 +67,25 @@ class ValueSelectorWindow(QWidget):
                 min_val, max_val, points))]
         
         for val in val_list:
-            QListWidgetItem(val,self.value_list)
+            addValuesToList(self.value_list,val)
 
         self.close()
+
+
+def addValuesToList(list_widget: QListWidget, value: str) -> None:
+    item = QListWidgetItem(value,list_widget)
+    list_widget.setCurrentItem(item)
+
+def removeValuesFromList(list_widget: QListWidget) -> None:
+    items = list_widget.selectedItems()
+    for item in items:
+        list_widget.takeItem(list_widget.row(item))
+
+
+
+def createMultiValueWindow(window: QMainWindow, list_widget: QListWidget, min_val: float,  max_val: float, logspace: bool = True) -> None:
+    window.sw = ValueSelectorWindow(window, list_widget, min_val, max_val, logspace)
+    window.sw.show()
 
 
 def statusFrame(window: QMainWindow) -> None:
@@ -147,7 +173,7 @@ def frequencySettingsFrame(window) -> None:
     layout = QGridLayout(window.freq_settings_frame)
 
     window.freq_settings_frame.setFrame = True
-    window.freq_settings_frame.setTitle("Frequency Settings")
+    window.freq_settings_frame.setTitle("Frequency List")
 
     window.freq_list_widget = QListWidget()
     layout.addWidget(window.freq_list_widget, 0, 0, 4 ,1 )
@@ -175,25 +201,11 @@ def frequencySettingsFrame(window) -> None:
     multi_freq_button.clicked.connect(lambda: createMultiValueWindow(window, window.freq_list_widget, 20, 2e6))
 
 
-
-def addValuesToList(list_widget: QListWidget, value: str) -> None:
-    item = QListWidgetItem(value,list_widget)
-    list_widget.setCurrentItem(item)
-
-def removeValuesFromList(list_widget: QListWidget) -> None:
-    items = list_widget.selectedItems()
-    for item in items:
-        list_widget.takeItem(list_widget.row(item))
-
-def createMultiValueWindow(window: QMainWindow, list_widget: QListWidget, min_val: float,  max_val: float, logspace: bool = True) -> None:
-    window.sw = ValueSelectorWindow(window, list_widget, min_val, max_val, logspace)
-    window.sw.show()
-
 def voltageSettingsFrame(window) -> None:
     window.voltage_settings_frame = QGroupBox()
     layout = QGridLayout(window.voltage_settings_frame)
     window.voltage_settings_frame.setFrame = True
-    window.voltage_settings_frame.setTitle("Voltage Settings")
+    window.voltage_settings_frame.setTitle("Voltage List")
 
     
     window.volt_list_widget = QListWidget()
