@@ -1,4 +1,4 @@
-from qtpy.QtWidgets import QWidget,  QMainWindow, QGridLayout, QFrame, QLabel, QComboBox, QPushButton, QGroupBox, QLineEdit, QCheckBox, QFileDialog, QListWidget, QListWidgetItem
+from qtpy.QtWidgets import QWidget,  QMainWindow, QGridLayout, QFrame, QLabel, QComboBox, QPushButton, QGroupBox, QLineEdit, QCheckBox, QFileDialog, QListWidget, QListWidgetItem, QAbstractItemView
 import pyvisa
 import pyqtgraph as pg
 import numpy as np
@@ -141,13 +141,19 @@ def frequencySettingsFrame(window) -> None:
     window.freq_settings_frame.setFrame = True
     window.freq_settings_frame.setTitle("Frequency Settings")
 
-
     window.freq_list_widget = QListWidget()
     layout.addWidget(window.freq_list_widget, 0, 0, 4 ,1 )
+    window.freq_list_widget.setSelectionMode(QAbstractItemView.ExtendedSelection)
     QListWidgetItem("20",window.freq_list_widget)
 
     add_freq_edit = QLineEdit("20")
     layout.addWidget(add_freq_edit, 0, 1)
+    add_freq_edit.editingFinished.connect(
+            lambda: limits(window, add_freq_edit, 20, 20, False))
+    add_freq_edit.editingFinished.connect(
+            lambda: limits(window, add_freq_edit, 2e6, 20))
+
+
     add_freq_button = QPushButton("Add")
     layout.addWidget(add_freq_button, 1, 1)
     add_freq_button.clicked.connect(lambda: addFreqToList(window, add_freq_edit.text()))
