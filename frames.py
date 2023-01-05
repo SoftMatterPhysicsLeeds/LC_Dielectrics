@@ -1,7 +1,58 @@
-from qtpy.QtWidgets import QMainWindow, QGridLayout, QFrame, QLabel, QComboBox, QPushButton, QGroupBox, QLineEdit, QCheckBox, QFileDialog
+from qtpy.QtWidgets import QWidget,  QMainWindow, QGridLayout, QFrame, QLabel, QComboBox, QPushButton, QGroupBox, QLineEdit, QCheckBox, QFileDialog, QListWidget, QListWidgetItem
 import pyvisa
 import pyqtgraph as pg
 import numpy as np
+
+class ValueSelectorWindow(QWidget):
+    """
+    Popout window that will allow the user to select a range of frequencies/voltages to add to the relevant list.
+    """
+    def __init__(self, main_window: QMainWindow):
+        super().__init__()
+        self.main_window_ref = main_window
+
+        layout = QGridLayout()
+        layout.addWidget(QLabel("Number of Data Points"), 0, 0)
+        
+        self.freq_points = QLineEdit("10")
+        layout.addWidget(self.freq_points, 1, 0)
+        self.freq_points.editingFinished.connect(
+            lambda: limits(self, self.freq_points, 201, 10))
+
+        layout.addWidget(QLabel("Min Frequency"), 2, 1)
+        self.freq_min = QLineEdit("20")
+        layout.addWidget(self.freq_min, 3, 0)
+        self.freq_min.editingFinished.connect(
+            lambda: limits(self, self.freq_min, 20, 20, False))
+        self.freq_min.editingFinished.connect(
+            lambda: limits(self, self.freq_min, 2e6, 20))
+
+        layout.addWidget(QLabel("Max Frequency"), 4, 0)
+        self.freq_max = QLineEdit("2e6")
+        layout.addWidget(self.freq_max, 5, 0)
+        self.freq_max.editingFinished.connect(
+            lambda: limits(self, self.freq_max, 20, 20, False))
+        self.freq_max.editingFinished.connect(
+            lambda: limits(self, self.freq_max, 2e6, 20))
+
+        self.add_button = QPushButton("Add to list")
+        layout.addWidget(self.add_button, 6, 0)
+        self.add_button.clicked.connect(self.addFreqToList)
+
+        self.setLayout(layout)
+    
+    def addFreqToList(self):
+        freq_min = float(self.freq_min.text())
+        freq_max = float(self.freq_max.text())
+        freq_points = int(self.freq_points.text())
+        freq_list = [str(x) for x in list(np.logspace(
+            np.log10(freq_min), np.log10(freq_max), freq_points))]
+        for freq in freq_list:
+            QListWidgetItem(freq,self.main_window_ref.freq_list_widget)
+        
+
+
+
 
 def statusFrame(window: QMainWindow) -> None:
     window.status_frame = QFrame()
@@ -90,28 +141,38 @@ def frequencySettingsFrame(window) -> None:
     window.freq_settings_frame.setFrame = True
     window.freq_settings_frame.setTitle("Frequency Settings")
 
-    layout.addWidget(QLabel("Number of Data Points"), 0, 0)
-    window.freq_points = QLineEdit("10")
-    layout.addWidget(window.freq_points, 1, 0)
-    window.freq_points.editingFinished.connect(
-        lambda: limits(window, window.freq_points, 201, 10))
 
-    layout.addWidget(QLabel("Min Frequency"), 2, 0)
-    window.freq_min = QLineEdit("20")
-    layout.addWidget(window.freq_min, 3, 0)
-    window.freq_min.editingFinished.connect(
-        lambda: limits(window, window.freq_min, 20, 20, False))
-    window.freq_min.editingFinished.connect(
-        lambda: limits(window, window.freq_min, 2e6, 20))
+    window.freq_list_widget = QListWidget()
+    layout.addWidget(window.freq_list_widget, 0, 0, 4 ,1 )
+    QListWidgetItem("20",window.freq_list_widget)
 
-    layout.addWidget(QLabel("Max Frequency"), 4, 0)
-    window.freq_max = QLineEdit("2e6")
-    layout.addWidget(window.freq_max, 5, 0)
-    window.freq_max.editingFinished.connect(
-        lambda: limits(window, window.freq_max, 20, 20, False))
-    window.freq_max.editingFinished.connect(
-        lambda: limits(window, window.freq_max, 2e6, 20))
+    add_freq_edit = QLineEdit("20")
+    layout.addWidget(add_freq_edit, 0, 1)
+    add_freq_button = QPushButton("Add")
+    layout.addWidget(add_freq_button, 1, 1)
+    add_freq_button.clicked.connect(lambda: addFreqToList(window, add_freq_edit.text()))
+    
+    delete_freq_button = QPushButton("Delete")
+    layout.addWidget(delete_freq_button, 2, 1)
+    delete_freq_button.clicked.connect(lambda: removeFreqsFromList(window))
 
+    multi_freq_button  = QPushButton("Add range")
+    layout.addWidget(multi_freq_button, 3, 1)
+    multi_freq_button.clicked.connect(lambda: createMultiFreqWindow(window))
+
+
+def addFreqToList(window: QMainWindow, freq: str) -> None:
+    item = QListWidgetItem(freq,window.freq_list_widget)
+    window.freq_list_widget.setCurrentItem(item)
+
+def removeFreqsFromList(window: QMainWindow) -> None:
+    items = window.freq_list_widget.selectedItems()
+    for item in items:
+        window.freq_list_widget.takeItem(window.freq_list_widget.row(item))
+
+def createMultiFreqWindow(window: QMainWindow) -> None:
+    window.sw = ValueSelectorWindow(window)
+    window.sw.show()
 
 def voltageSettingsFrame(window) -> None:
     window.voltage_settings_frame = QGroupBox()
