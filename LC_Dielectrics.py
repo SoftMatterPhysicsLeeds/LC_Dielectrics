@@ -191,6 +191,8 @@ class MainWindow(QMainWindow):
         self.resultsDict = dict()
         self.freq_list = [float(self.freq_list_widget.item(x).text()) for x in range(self.freq_list_widget.count())]
         self.voltage_list = [float(self.volt_list_widget.item(x).text()) for x in range(self.volt_list_widget.count())]
+        self.T_list = [float(self.temp_list_widget.item(x).text()) for x in range(self.temp_list_widget.count())]
+        self.T_list = [round(x,2) for x in self.T_list]
         
         if len(self.voltage_list) > 1:
             self.voltage_list_mode = True
@@ -207,23 +209,8 @@ class MainWindow(QMainWindow):
         if self.bias_voltage_selector.currentText() == "1.5" or self.bias_voltage_selector.currentText() == "2":
             self.agilent.set_DC_bias(
                 float(self.bias_voltage_selector.currentText()))
-        # calculate T list
-        T_start = round(float(self.temp_start.text()),2)
-        T_end = round(float(self.temp_end.text()),2)
-        T_inc = round(float(self.temp_step.text()),2)
+    
         self.T_rate = float(self.temp_rate.text())
-
-        if T_start == T_end:
-            self.T_list = np.array([T_start])
-        elif T_start > T_end and T_inc > 0:
-            self.T_list = np.arange(T_start, T_end-T_inc, -T_inc)
-        else:
-            self.T_list = np.arange(T_start, T_end + T_inc, T_inc)
-
-        #round T_list to 2 decimal places
-        self.T_list = [round(x,2) for x in self.T_list]
-
-
         self.T_step = 0
         self.freq_step = 0
         self.measurement_status = "Setting temperature"

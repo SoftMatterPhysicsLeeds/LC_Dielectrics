@@ -5,7 +5,7 @@ import numpy as np
 
 class ValueSelectorWindow(QWidget):
     """
-    Popout window that will allow the user to select a range of frequencies/voltages to add to the relevant list.
+    Popout window that will allow the user to select a range of frequencies/voltages/temperatures to add to the relevant list.
     """
     def __init__(self, main_window: QMainWindow, value_list: QListWidget, min_val: float, max_val: float, logspace: bool = True):
         super().__init__()
@@ -83,7 +83,7 @@ class ValueSelectorWindow(QWidget):
                     min_val, max_val, points))]
             else: 
                 val_list = [f"{x:.2f}" for x in list(np.arange(
-                    min_val, max_val+points, points))]
+                    min_val, max_val, points))]
         
         for val in val_list:
             addValuesToList(self.value_list,val)
@@ -258,27 +258,52 @@ def temperatureSettingsFrame(window) -> None:
     window.temperature_settings_frame = QGroupBox()
     layout = QGridLayout(window.temperature_settings_frame)
     window.temperature_settings_frame.setFrame = True
-    window.temperature_settings_frame.setTitle("Temperature Settings")
+    window.temperature_settings_frame.setTitle("Temperature List (°C)")
 
-    layout.addWidget(QLabel("Start Temp."), 0, 0)
-    window.temp_start = QLineEdit("25")
-    layout.addWidget(window.temp_start, 1, 0)
 
-    layout.addWidget(QLabel("End Temp."), 2, 0)
-    window.temp_end = QLineEdit("30")
-    layout.addWidget(window.temp_end, 3, 0)
+    window.temp_list_widget = QListWidget()
+    layout.addWidget(window.temp_list_widget, 0, 0, 4 ,1 )
+    window.temp_list_widget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+    QListWidgetItem("25",window.temp_list_widget)
 
-    layout.addWidget(QLabel("Temp Step."), 4, 0)
-    window.temp_step = QLineEdit("1")
-    layout.addWidget(window.temp_step, 5, 0)
+    add_temp_edit = QLineEdit("25")
+    layout.addWidget(add_temp_edit, 0, 1)
+    add_temp_edit.editingFinished.connect(
+            lambda: limits(window, add_temp_edit, -40, -40, False))
+    add_temp_edit.editingFinished.connect(
+            lambda: limits(window, add_temp_edit, 150, -40))
 
-    layout.addWidget(QLabel("Rate."), 0, 1)
+
+    add_temp_button = QPushButton("Add")
+    layout.addWidget(add_temp_button, 1, 1)
+    add_temp_button.clicked.connect(lambda: addValuesToList(window.temp_list_widget, add_temp_edit.text()))
+    
+    delete_temp_button = QPushButton("Delete")
+    layout.addWidget(delete_temp_button, 2, 1)
+    delete_temp_button.clicked.connect(lambda: removeValuesFromList(window.temp_list_widget))
+
+    multi_temp_button  = QPushButton("Add range")
+    layout.addWidget(multi_temp_button, 3, 1)
+    multi_temp_button.clicked.connect(lambda: createMultiValueWindow(window, window.temp_list_widget, -40, 150, False))
+
+    # layout.addWidget(QLabel("Start Temp."), 0, 0)
+    # window.temp_start = QLineEdit("25")
+    # layout.addWidget(window.temp_start, 1, 0)
+
+    # layout.addWidget(QLabel("End Temp."), 2, 0)
+    # window.temp_end = QLineEdit("30")
+    # layout.addWidget(window.temp_end, 3, 0)
+
+    # layout.addWidget(QLabel("Temp Step."), 4, 0)
+    # window.temp_step = QLineEdit("1")
+    # layout.addWidget(window.temp_step, 5, 0)
+    layout.addWidget(QLabel("Rate."), 4, 0)
     window.temp_rate = QLineEdit("10")
-    layout.addWidget(window.temp_rate, 1, 1)
+    layout.addWidget(window.temp_rate, 4, 1)
 
-    layout.addWidget(QLabel("Stab. Time (s)"), 2, 1)
+    layout.addWidget(QLabel("Stab. Time (s)"), 5, 0)
     window.stab_time = QLineEdit("1")
-    layout.addWidget(window.stab_time, 3, 1)
+    layout.addWidget(window.stab_time, 5, 1)
 
 
 def outputDataSettingsFrame(window) -> None:
