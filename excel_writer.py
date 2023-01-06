@@ -9,7 +9,8 @@ def make_excel(results: dict, output: str, v_list: bool) -> None:
                               
                 for i,freq in enumerate(results[key].keys()):
                     df = pd.DataFrame(results[key][freq])
-                    cols = ["volt","Cp","D","G","B"]
+                    cols = list(df.columns.values)
+                    cols.insert(0,cols.pop(cols.index("volt")))
                     df = df[cols]
                     df.to_excel(writer, sheet_name=str(key), index=False, startrow= ((len(df.index) + 3) * i)+1, startcol = 0)             
                     worksheet = writer.sheets[str(key)]
@@ -19,7 +20,8 @@ def make_excel(results: dict, output: str, v_list: bool) -> None:
             for key in results.keys():
                 if key != "volt":
                     df = pd.DataFrame(results[key])
-                    cols = ["freq","Cp","D","G","B"]
+                    cols = list(df.columns.values)
+                    cols.insert(0,cols.pop(cols.index("freq")))
                     df = df[cols]
                     df.to_excel(writer, sheet_name=str(key), index=False, startrow = 1, startcol = 0)
                 
