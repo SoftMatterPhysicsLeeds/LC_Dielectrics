@@ -3,6 +3,10 @@ import pyvisa
 import pyqtgraph as pg
 import numpy as np
 
+
+## TODO: Need docs everywhere
+## TODO: User could easily bypass maximum number of points - need to check length of listboxes after population
+
 class ValueSelectorWindow(QWidget):
     """
     Popout window that will allow the user to select a range of frequencies/voltages/temperatures to add to the relevant list.
