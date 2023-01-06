@@ -100,12 +100,9 @@ def removeValuesFromList(list_widget: QListWidget) -> None:
     for item in items:
         list_widget.takeItem(list_widget.row(item))
 
-
-
 def createMultiValueWindow(window: QMainWindow, list_widget: QListWidget, min_val: float,  max_val: float, logspace: bool = True) -> None:
     window.sw = ValueSelectorWindow(window, list_widget, min_val, max_val, logspace)
     window.sw.show()
-
 
 def statusFrame(window: QMainWindow) -> None:
     window.status_frame = QFrame()
@@ -220,7 +217,7 @@ def populateVariableFrame(window: QMainWindow,frame: QGroupBox, list_box: QListW
     delete_button.setFixedWidth(100)
     layout.addWidget(delete_button, 3, 1)
     delete_button.clicked.connect(lambda: removeValuesFromList(list_box))
-    
+
     return layout
 
 def frequencySettingsFrame(window) -> None:
