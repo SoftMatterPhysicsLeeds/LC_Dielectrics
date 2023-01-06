@@ -193,6 +193,8 @@ class MainWindow(QMainWindow):
         self.voltage_list = [float(self.volt_list_widget.item(x).text()) for x in range(self.volt_list_widget.count())]
         self.T_list = [float(self.temp_list_widget.item(x).text()) for x in range(self.temp_list_widget.count())]
         self.T_list = [round(x,2) for x in self.T_list]
+
+        print(self.volt_list_widget.count())
         
         if len(self.voltage_list) > 1:
             self.voltage_list_mode = True

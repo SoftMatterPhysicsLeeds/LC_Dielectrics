@@ -193,7 +193,6 @@ def populateVariableFrame(window: QMainWindow,frame: QGroupBox, list_box: QListW
 
     frame.setFrame = True
 
-    list_box = QListWidget()
     list_box.setFixedWidth(150)
     layout.addWidget(list_box, 0, 0, 4 ,1 )
     list_box.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -237,7 +236,7 @@ def voltageSettingsFrame(window) -> None:
     window.voltage_settings_frame.setTitle("Voltage List")
     window.volt_list_widget = QListWidget()
 
-    populateVariableFrame(window,window.voltage_settings_frame, window.freq_list_widget, 1,  0 , 20, False)
+    populateVariableFrame(window,window.voltage_settings_frame, window.volt_list_widget, 1,  0 , 20, False)
 
 
 def temperatureSettingsFrame(window) -> None:
@@ -245,7 +244,7 @@ def temperatureSettingsFrame(window) -> None:
     window.temperature_settings_frame.setTitle("Temperature List (°C)")
     window.temp_list_widget = QListWidget()
     
-    layout =  populateVariableFrame(window,window.temperature_settings_frame, window.freq_list_widget, 25,  -40 , 150, False)
+    layout =  populateVariableFrame(window,window.temperature_settings_frame, window.temp_list_widget, 25,  -40 , 150, False)
 
     layout.addWidget(QLabel("Rate (°C/min)"), 0, 2)
     window.temp_rate = QLineEdit("10")
