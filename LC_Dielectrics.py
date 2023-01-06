@@ -283,9 +283,9 @@ class MainWindow(QMainWindow):
 
             self.resultsDict[T][freq] = dict()
 
+            self.resultsDict[T][freq]["volt"] = []
             self.resultsDict[T][freq]["Cp"] = []
             self.resultsDict[T][freq]["D"] = []
-            self.resultsDict[T][freq]["volt"] = []
             self.resultsDict[T][freq]["G"] = []
             self.resultsDict[T][freq]["B"] = []
         
@@ -299,9 +299,9 @@ class MainWindow(QMainWindow):
                 self.resultsDict[T][freq]["B"].append(result["GB"][increment + 1])
         else:
 
+            self.resultsDict[T]["freq"] = []
             self.resultsDict[T]["Cp"] = []
             self.resultsDict[T]["D"] = []
-            self.resultsDict[T]["freq"] = []
             self.resultsDict[T]["G"] = []
             self.resultsDict[T]["B"] = []
             
