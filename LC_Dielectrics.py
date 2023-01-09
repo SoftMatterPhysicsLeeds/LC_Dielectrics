@@ -87,7 +87,7 @@ class MainWindow(QMainWindow):
 
         # UI update loop
         self.timer = QtCore.QTimer()
-        self.timer.setInterval(100)
+        self.timer.setInterval(150)
         self.timer.timeout.connect(self.update_ui)
         self.timer.start()
 
