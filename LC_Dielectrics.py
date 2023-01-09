@@ -29,6 +29,7 @@ class Experiment(QtCore.QObject):
         result["CPD"] = self.agilent.measure("CPD")
         time.sleep(0.5)
         result["GB"] = self.agilent.measure("GB")
+        time.sleep(0.5)
         self.result.emit(result)
         self.finished.emit()
 
