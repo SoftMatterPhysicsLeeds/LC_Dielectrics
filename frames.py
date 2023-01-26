@@ -248,15 +248,23 @@ def temperatureSettingsFrame(window) -> None:
     window.temperature_settings_frame.setTitle("Temperature List (°C)")
     window.temp_list_widget = QListWidget()
     
-    layout =  populateVariableFrame(window,window.temperature_settings_frame, window.temp_list_widget, 25,  -40 , 150, False)
+    layout = populateVariableFrame(window,window.temperature_settings_frame, window.temp_list_widget, 25,  -40 , 150, False)
 
-    layout.addWidget(QLabel("Rate (°C/min)"), 0, 2)
+    window.go_to_temp_button = QPushButton("Go to:")
+    layout.addWidget(window.go_to_temp_button, 0, 2)
+    window.go_to_temp_button.clicked.connect(lambda: window.linkam.set_temperature(float(window.go_to_temp.text()), window.temp_rate))
+   
+    window.go_to_temp = QLineEdit("25")
+    layout.addWidget(window.go_to_temp, 0, 3)
+    layout.addWidget(QLabel("°C"),0, 4)
+
+    layout.addWidget(QLabel("Rate (°C/min)"), 1, 2)
     window.temp_rate = QLineEdit("10")
-    layout.addWidget(window.temp_rate, 0, 3)
+    layout.addWidget(window.temp_rate, 1, 3)
 
-    layout.addWidget(QLabel("Stab. Time (s)"), 1, 2)
+    layout.addWidget(QLabel("Stab. Time (s)"), 2, 2)
     window.stab_time = QLineEdit("1")
-    layout.addWidget(window.stab_time, 1, 3)
+    layout.addWidget(window.stab_time, 2, 3)
 
 
 def outputDataSettingsFrame(window) -> None:
