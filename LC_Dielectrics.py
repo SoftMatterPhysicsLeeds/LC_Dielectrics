@@ -175,7 +175,7 @@ class MainWindow(QMainWindow):
         elif self.measurement_status == f"Stabilising temperature for {float(self.stab_time.text())}s":
             self.t_stable_count += 1
 
-            if self.t_stable_count*0.1 >= float(self.stab_time.text()):
+            if self.t_stable_count*0.15 >= float(self.stab_time.text()):
                 self.measurement_status = "Temperature Stabilised"
                 self.t_stable_count = 0
 
