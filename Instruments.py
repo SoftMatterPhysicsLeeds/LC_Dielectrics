@@ -1,5 +1,4 @@
 import pyvisa
-import time
 import numpy as np
 
 class LinkamHotstage(): 
@@ -34,26 +33,25 @@ class LinkamHotstage():
 
     def set_temperature(self, T: float, rate: float = 20.) -> None:
 
-        #need to link.read after writing anything... there's probably a way to fix this.
+        if self.init:
+            self.link.write(f"R1{int(rate*100)}")
+            self.link.read()
+            self.link.write(f"L1{int(T*10)}")
+            self.link.read()
+        else:
+            self.link.write(f"R1{int(rate*100)}")
+            self.link.read()
+            self.link.write(f"L1{int(T*10)}")
+            self.link.read()
+            self.link.write("S")
+            self.link.read()
+
+            self.init = True
     
-        self.link.write(f"R1{int(rate*100)}")
-        time.sleep(0.1)
-        self.link.read()
-        time.sleep(0.1)
-
-        self.link.write(f"L1{int(T*10)}")
-        time.sleep(0.1)
-        self.link.read()
-        time.sleep(0.1)
-
-        self.link.write("S")
-        time.sleep(0.1)
-        self.link.read()
-        time.sleep(0.1)
-
     def stop(self) -> None:
         self.link.write('E')
         self.link.read()
+        self.init = False
 
     def current_temperature(self) -> None:
         self.link.write('T')
@@ -71,14 +69,9 @@ class LinkamHotstage():
         else:
             status = "Dunno"
 
-        
-
         temperature = int(raw_string[6:10],16)/10.0
-        #print(f"Temperature is {temperature}")
         return temperature, status
     
-
-
 
 class AgilentSpectrometer():
 
