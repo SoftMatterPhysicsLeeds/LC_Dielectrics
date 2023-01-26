@@ -252,7 +252,7 @@ def temperatureSettingsFrame(window) -> None:
 
     window.go_to_temp_button = QPushButton("Go to:")
     layout.addWidget(window.go_to_temp_button, 0, 2)
-    window.go_to_temp_button.clicked.connect(lambda: window.linkam.set_temperature(float(window.go_to_temp.text()), window.temp_rate))
+    window.go_to_temp_button.clicked.connect(lambda: window.linkam.set_temperature(float(window.go_to_temp.text()), float(window.temp_rate.text())))
    
     window.go_to_temp = QLineEdit("25")
     layout.addWidget(window.go_to_temp, 0, 3)
