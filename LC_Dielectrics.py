@@ -320,7 +320,7 @@ class MainWindow(QMainWindow):
     ###################### END OF CONTROL LOGIC ###############################
 
 
-def main():
+def main() -> None:
     app = QApplication(sys.argv)
     main = MainWindow()
     main.show()
