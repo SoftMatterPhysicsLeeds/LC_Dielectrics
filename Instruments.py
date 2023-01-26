@@ -14,6 +14,7 @@ class LinkamHotstage():
         rm = pyvisa.ResourceManager()
 
         self.link = rm.open_resource(self.address)
+        self.init = False
 
         self.link.baud_rate = 19200
 
