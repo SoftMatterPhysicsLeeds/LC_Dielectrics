@@ -11,7 +11,7 @@ class ValueSelectorWindow(QWidget):
     """
     Popout window that will allow the user to select a range of frequencies/voltages/temperatures to add to the relevant list.
     """
-    def __init__(self, main_window: QMainWindow, value_list: QListWidget, min_val: float, max_val: float, logspace: bool = True):
+    def __init__(self, main_window: QMainWindow, value_list: QListWidget, start_val: float, end_val: float, logspace: bool = True):
         super().__init__()
         self.main_window_ref = main_window
         self.value_list = value_list
@@ -35,21 +35,21 @@ class ValueSelectorWindow(QWidget):
         self.points.editingFinished.connect(
             lambda: limits(self, self.points, 201, 10))
 
-        layout.addWidget(QLabel("Minimum"), 2, 0, 1, 2)
-        self.min = QLineEdit(f"{min_val}")
-        layout.addWidget(self.min, 3, 0, 1, 2)
-        self.min.editingFinished.connect(
-            lambda: limits(self, self.min, min_val, min_val, False))
-        self.min.editingFinished.connect(
-            lambda: limits(self, self.min, max_val, min_val))
+        layout.addWidget(QLabel("Start"), 2, 0, 1, 2)
+        self.start = QLineEdit(f"{start_val}")
+        layout.addWidget(self.start, 3, 0, 1, 2)
+        self.start.editingFinished.connect(
+            lambda: limits(self, self.start, start_val, start_val, False))
+        self.start.editingFinished.connect(
+            lambda: limits(self, self.start, end_val, start_val))
 
-        layout.addWidget(QLabel("Maximum"), 4, 0, 1, 2)
-        self.max = QLineEdit(f"{max_val}")
-        layout.addWidget(self.max, 5, 0, 1, 2)
-        self.max.editingFinished.connect(
-            lambda: limits(self, self.max, min_val, min_val, False))
-        self.max.editingFinished.connect(
-            lambda: limits(self, self.max, max_val, min_val))
+        layout.addWidget(QLabel("End"), 4, 0, 1, 2)
+        self.end = QLineEdit(f"{end_val}")
+        layout.addWidget(self.end, 5, 0, 1, 2)
+        self.end.editingFinished.connect(
+            lambda: limits(self, self.end, start_val, start_val, False))
+        self.end.editingFinished.connect(
+            lambda: limits(self, self.end, end_val, start_val))
 
         self.add_button = QPushButton("Append")
         layout.addWidget(self.add_button, 6, 0)
@@ -74,20 +74,24 @@ class ValueSelectorWindow(QWidget):
 
 
     def append(self):
-        min_val = float(self.min.text())
-        max_val = float(self.max.text())
+        start_val = float(self.start.text())
+        end_val = float(self.end.text())
         points = float(self.points.text())
         
         if self.logspace:
             val_list = [f"{x:.2f}" for x in list(np.logspace(
-                np.log10(min_val), np.log10(max_val), int(points)))]
+                np.log10(start_val), np.log10(end_val), int(points)))]
         else:
             if self.combo.currentText() == "Number of Points":
                 val_list = [f"{x:.2f}" for x in list(np.linspace(
-                    min_val, max_val, int(points)))]
+                        start_val, end_val, int(points)))]
             else: 
-                val_list = [f"{x:.2f}" for x in list(np.arange(
-                    min_val, max_val+points, points))]
+                if start_val <= end_val:
+                    val_list = [f"{x:.2f}" for x in list(np.arange(
+                        start_val, end_val+points, points))]
+                else:
+                    val_list = [f"{x:.2f}" for x in list(np.arange(
+                    start_val, end_val-points, -points))]
         
         for val in val_list:
             addValuesToList(self.value_list,val)
