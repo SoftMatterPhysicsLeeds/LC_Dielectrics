@@ -12,7 +12,7 @@ from lcdielectrics.Frames import *
 from lcdielectrics.Excel_Writer import make_excel 
 import lcdielectrics.icon_qrc
 
-# build command:  pyinstaller -i .\LCD_icon.ico --onefile .\LC_Dielectrics.py
+# build command:  pyinstaller -i .\LCD_icon.ico --onefile .\LC_Dielectrics.py => creates LC_Dielectrics.exe
 # if you install modules/packages with conda, resulting file is 6x bigger (300mb) - best to use pip
 
 class Experiment(QtCore.QObject):
