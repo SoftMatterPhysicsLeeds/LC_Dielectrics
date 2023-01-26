@@ -1,9 +1,0 @@
-@echo off
-
-echo Checking if conda environment exists, creating one if it doesnt...
-call conda env create --file "%~dp0\environment.yml"
-echo Activating conda environment...
-call conda activate SMPenv
-echo Loading LCD...
-call python "%~dp0\LC_Dielectrics.py"
-

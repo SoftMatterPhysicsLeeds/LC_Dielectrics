@@ -1,7 +1,7 @@
 *.xlsx
 *.pyc
 *.json
-lcd_env/
+docs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
