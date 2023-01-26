@@ -7,10 +7,10 @@ import pyvisa
 import json
 import time
 
-from Instruments import LinkamHotstage, AgilentSpectrometer
-from Frames import * #type: ignore
-from Excel_Writer import make_excel #type: ignore
-import icon_qrc #type:ignore
+from lcdielectrics.Instruments import LinkamHotstage, AgilentSpectrometer
+from lcdielectrics.Frames import * 
+from lcdielectrics.Excel_Writer import make_excel 
+import lcdielectrics.icon_qrc
 
 # build command:  pyinstaller -i .\LCD_icon.ico --onefile .\LC_Dielectrics.py
 # if you install modules/packages with conda, resulting file is 6x bigger (300mb) - best to use pip
