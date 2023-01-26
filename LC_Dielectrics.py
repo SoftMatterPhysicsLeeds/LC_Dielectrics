@@ -3,7 +3,6 @@ from qtpy import QtCore, QtGui
 from qtpy.QtCore import QThread
 from PyQt5.QtCore import pyqtSignal
 import sys
-import numpy as np
 import pyvisa
 import json
 import time
