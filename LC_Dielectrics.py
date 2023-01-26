@@ -9,7 +9,7 @@ import time
 
 from Instruments import LinkamHotstage, AgilentSpectrometer
 from Frames import * #type: ignore
-from Excel_writer import make_excel #type: ignore
+from Excel_Writer import make_excel #type: ignore
 import icon_qrc #type:ignore
 
 # build command:  pyinstaller -i .\LCD_icon.ico --onefile .\LC_Dielectrics.py
