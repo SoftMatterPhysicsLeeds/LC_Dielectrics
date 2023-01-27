@@ -248,7 +248,7 @@ def temperatureSettingsFrame(window) -> None:
     window.temperature_settings_frame.setTitle("Temperature List (°C)")
     window.temp_list_widget = QListWidget()
     
-    layout = populateVariableFrame(window,window.temperature_settings_frame, window.temp_list_widget, 25,  -40 , 150, False)
+    layout = populateVariableFrame(window,window.temperature_settings_frame, window.temp_list_widget, 25,  -40 , 350, False)
 
     window.go_to_temp_button = QPushButton("Go to:")
     layout.addWidget(window.go_to_temp_button, 0, 2)
