@@ -1,7 +1,6 @@
 from qtpy.QtWidgets import QMainWindow, QWidget, QGridLayout, QApplication, QPushButton
 from qtpy import QtCore, QtGui
-from qtpy.QtCore import QThread
-from PyQt5.QtCore import pyqtSignal
+from qtpy.QtCore import QThread, Signal
 import sys
 import pyvisa
 import json
@@ -27,8 +26,8 @@ from Excel_Writer import make_excel
 
 
 class Experiment(QtCore.QObject):
-    finished = pyqtSignal()
-    result = pyqtSignal(dict)
+    finished = Signal()
+    result = Signal(dict)
 
     def __init__(self, agilent: AgilentSpectrometer):
         super().__init__()
