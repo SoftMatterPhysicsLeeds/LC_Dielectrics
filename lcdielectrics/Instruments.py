@@ -89,9 +89,9 @@ class AgilentSpectrometer:
         # self.spectrometer = rm.open_resource(rm.list_resources()[0])
         self.spectrometer.read_termination = "\n"
         self.spectrometer.write_termination = "\n"
-        # set timeout to long enough that the machine doesn't loose 
+        # set timeout to long enough that the machine doesn't loose
         # connection during measurement.
-        self.spectrometer.timeout = 100000  
+        self.spectrometer.timeout = 100000
         # self.spectrometer.query("*IDN?")
         try:
             self.spectrometer.write("*IDN?")
@@ -147,11 +147,10 @@ class AgilentSpectrometer:
         self.spectrometer.write(f":FUNC:IMP {func}")
         self.spectrometer.write(":TRIG:IMM")
         self.spectrometer.write(":FETC?")  # request data acquisition
-         # get data as [val1, val2, data_status]. 
-         # For CP-D func, this is [Cp, D, data_status]
-        return (
-            self.spectrometer.read_ascii_values()
-        )
+        # get data as [val1, val2, data_status].
+        # For CP-D func, this is [Cp, D, data_status]
+        return self.spectrometer.read_ascii_values()
+
     def set_DC_bias(self, voltage: float) -> None:
         self.spectrometer.write(f":BIAS:VOLT {voltage}")
         self.spectrometer.write(":BIAS:STATE ON")
