@@ -262,17 +262,17 @@ class MainWindow(QMainWindow):
 
     def run_spectrometer(self) -> None:
 
-        self.thread = QThread()
+        thread = QThread()
         self.worker = Experiment(self.agilent)
-        self.worker.moveToThread(self.thread)
-        self.thread.started.connect(self.worker.run_spectrometer)
-        self.worker.finished.connect(self.thread.quit)
+        self.worker.moveToThread(QThread())
+        thread.started.connect(self.worker.run_spectrometer)
+        self.worker.finished.connect(thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
-        self.thread.finished.connect(self.thread.deleteLater)
+        thread.finished.connect(thread.deleteLater)
         self.worker.result.connect(self.get_result)
-        self.thread.start()
+        thread.start()
 
-    def get_result(self, result: list) -> None:
+    def get_result(self, result: dict) -> None:
         self.parse_result(result)
 
         if self.voltage_list_mode:
