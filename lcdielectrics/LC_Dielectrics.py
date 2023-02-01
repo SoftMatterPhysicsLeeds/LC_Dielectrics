@@ -1,23 +1,23 @@
-from qtpy.QtWidgets import QMainWindow, QWidget, QGridLayout, QApplication, QPushButton
-from qtpy import QtCore, QtGui
-from qtpy.QtCore import QThread, Signal
-import sys
-import pyvisa
 import json
+import sys
 import time
 
-from Instruments import LinkamHotstage, AgilentSpectrometer
+import pyvisa
+from Excel_Writer import make_excel
 from Frames import (
-    statusFrame,
-    voltageSettingsFrame,
-    temperatureSettingsFrame,
     frequencySettingsFrame,
+    graphFrame,
     instrumentSettingsFrame,
     measurementSettingsFrame,
     outputDataSettingsFrame,
-    graphFrame,
+    statusFrame,
+    temperatureSettingsFrame,
+    voltageSettingsFrame,
 )
-from Excel_Writer import make_excel
+from Instruments import AgilentSpectrometer, LinkamHotstage
+from qtpy import QtCore, QtGui
+from qtpy.QtCore import QThread, Signal
+from qtpy.QtWidgets import QApplication, QGridLayout, QMainWindow, QPushButton, QWidget
 
 # build command:
 # pyinstaller -i .\LCD_icon.ico --onefile .\LC_Dielectrics.py
@@ -63,14 +63,14 @@ class MainWindow(QMainWindow):
         self.layout = QGridLayout()
 
         # initialise frames
-        statusFrame(self)  # type: ignore
-        instrumentSettingsFrame(self)  # type: ignore
-        measurementSettingsFrame(self)  # type: ignore
-        frequencySettingsFrame(self)  # type: ignore
-        voltageSettingsFrame(self)  # type: ignore
-        temperatureSettingsFrame(self)  # type: ignore
-        outputDataSettingsFrame(self)  # type: ignore
-        graphFrame(self)  # type: ignore
+        statusFrame(self)
+        instrumentSettingsFrame(self)
+        measurementSettingsFrame(self)
+        frequencySettingsFrame(self)
+        voltageSettingsFrame(self)
+        temperatureSettingsFrame(self)
+        outputDataSettingsFrame(self)
+        graphFrame(self)
 
         # initialise layout
         self.layout.addWidget(self.status_frame, 0, 0, 1, 2)

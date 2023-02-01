@@ -1,22 +1,22 @@
+import numpy as np
+import pyvisa
 from qtpy.QtWidgets import (
-    QWidget,
-    QMainWindow,
-    QGridLayout,
-    QFrame,
-    QLabel,
+    QAbstractItemView,
     QComboBox,
-    QPushButton,
-    QGroupBox,
-    QLineEdit,
     QFileDialog,
+    QFrame,
+    QGridLayout,
+    QGroupBox,
+    QLabel,
+    QLineEdit,
     QListWidget,
     QListWidgetItem,
-    QAbstractItemView,
+    QMainWindow,
+    QPushButton,
+    QWidget,
 )
-import pyvisa
-import pyqtgraph as pg
-import numpy as np
 
+from LC_Dielectrics import MainWindow
 
 ## TODO: Need docs everywhere
 ## TODO: User could easily bypass maximum number of points -
@@ -26,7 +26,7 @@ import numpy as np
 class ValueSelectorWindow(QWidget):
     """
     Popout window that will allow the user to select a range of
-    frequencies/voltages/temperatures to add to the relevant list.
+    frequencies/voltages /temperatures to add to the relevant list.
     """
 
     def __init__(
@@ -153,29 +153,29 @@ def createMultiValueWindow(
     max_val: float,
     logspace: bool = True,
 ) -> None:
-    window.sw = ValueSelectorWindow(window, list_widget, min_val, max_val, logspace)
-    window.sw.show()
+    sw = ValueSelectorWindow(window, list_widget, min_val, max_val, logspace)
+    sw.show()
 
 
-def statusFrame(window: QMainWindow) -> None:
+def statusFrame(window: MainWindow) -> None:
     window.status_frame = QFrame()
     layout = QGridLayout(window.status_frame)
     window.status_frame.setFrameStyle(QFrame.Box)
 
     layout.addWidget(QLabel("Measurement Status: "), 0, 0)
-    window.measurement_status_label = QLabel(f"{window.measurement_status}")
-    layout.addWidget(window.measurement_status_label, 0, 1)
+    measurement_status_label = QLabel(f"{window.measurement_status}")
+    layout.addWidget(measurement_status_label, 0, 1)
 
     layout.addWidget(QLabel("Linkam Status: "), 1, 0)
-    window.linkam_status_label = QLabel(f"{window.linkam_status}")
-    layout.addWidget(window.linkam_status_label, 1, 1)
+    linkam_status_label = QLabel(f"{window.linkam_status}")
+    layout.addWidget(linkam_status_label, 1, 1)
 
     layout.addWidget(QLabel("Agilent Status: "), 2, 0)
-    window.agilent_status_label = QLabel(f"{window.agilent_status}")
-    layout.addWidget(window.agilent_status_label, 2, 1)
+    agilent_status_label = QLabel(f"{window.agilent_status}")
+    layout.addWidget(agilent_status_label, 2, 1)
 
 
-def instrumentSettingsFrame(window) -> None:
+def instrumentSettingsFrame(window: MainWindow) -> None:
     window.instrument_settings_frame = QFrame()
     layout = QGridLayout(window.instrument_settings_frame)
     window.instrument_settings_frame.setFrameStyle(QFrame.Box)
@@ -210,10 +210,10 @@ def instrumentSettingsFrame(window) -> None:
     window.init_agilent_button.clicked.connect(window.init_agilent)
 
 
-def measurementSettingsFrame(window) -> None:
+def measurementSettingsFrame(window: MainWindow) -> None:
     window.measurement_settings_frame = QGroupBox()
     layout = QGridLayout(window.measurement_settings_frame)
-    window.measurement_settings_frame.setFrame = True
+    window.measurement_settings_frame.setFrame = True  # type: ignore
     window.measurement_settings_frame.setTitle("Measurement Settings")
 
     layout.addWidget(QLabel("Meas. Time. Mode: "), 0, 0)
@@ -239,7 +239,7 @@ def measurementSettingsFrame(window) -> None:
 
 
 def populateVariableFrame(
-    window: QMainWindow,
+    window: MainWindow,
     frame: QGroupBox,
     list_box: QListWidget,
     default_val: float,
@@ -249,7 +249,7 @@ def populateVariableFrame(
 ) -> QGridLayout:
     layout = QGridLayout(frame)
 
-    frame.setFrame = True
+    frame.setFrame = True  # type: ignore
 
     list_box.setFixedWidth(150)
     layout.addWidget(list_box, 0, 0, 4, 1)
@@ -343,7 +343,7 @@ def temperatureSettingsFrame(window) -> None:
 def outputDataSettingsFrame(window) -> None:
     window.output_settings_frame = QGroupBox()
     layout = QGridLayout(window.output_settings_frame)
-    window.output_settings_frame.setFrame = True
+    window.output_settings_frame.setFrame = True  # type: ignore
     window.output_settings_frame.setTitle("Output Data Settings")
 
     window.output_file_input = QLineEdit("results.json")
@@ -354,35 +354,35 @@ def outputDataSettingsFrame(window) -> None:
     window.add_file_button.clicked.connect(lambda: add_file_dialogue(window))
 
 
-def graphFrame(window) -> None:
+# def graphFrame(window) -> None:
 
-    window.graph_frame = QFrame()
-    layout = QGridLayout(window.graph_frame)
+#     window.graph_frame = QFrame()
+#     layout = QGridLayout(window.graph_frame)
 
-    window.graphWidget_Cap = pg.PlotWidget()
-    layout.addWidget(window.graphWidget_Cap, 0, 0)
-    window.graphWidget_Cap.setBackground(None)
-    window.graphWidget_Cap.setLabel("left", "Capacitance", "F")
-    window.graphWidget_Cap.setLabel("bottom", "Frequency", "Hz")
-    window.graph_T = [window.current_T] * 100
-    window.graph_time = list(np.arange(0, 10, 0.1))
-    pen = pg.mkPen(color=(255, 0, 0))
-    window.data_line_cap = window.graphWidget_Cap.plot(
-        window.graph_time, window.graph_T, pen=pen
-    )
+#     window.graphWidget_Cap = pg.PlotWidget()
+#     layout.addWidget(window.graphWidget_Cap, 0, 0)
+#     window.graphWidget_Cap.setBackground(None)
+#     window.graphWidget_Cap.setLabel("left", "Capacitance", "F")
+#     window.graphWidget_Cap.setLabel("bottom", "Frequency", "Hz")
+#     window.graph_T = [window.current_T] * 100
+#     window.graph_time = list(np.arange(0, 10, 0.1))
+#     pen = pg.mkPen(color=(255, 0, 0))
+#     window.data_line_cap = window.graphWidget_Cap.plot(
+#         window.graph_time, window.graph_T, pen=pen
+#     )
 
-    window.graphWidget_Dis = pg.PlotWidget()
-    layout.addWidget(window.graphWidget_Dis, 1, 0)
-    window.graphWidget_Dis.setBackground(None)
-    window.graphWidget_Dis.setLabel("left", "Dissipation", "F")
-    window.graphWidget_Dis.setLabel("bottom", "Frequency", "Hz")
+#     window.graphWidget_Dis = pg.PlotWidget()
+#     layout.addWidget(window.graphWidget_Dis, 1, 0)
+#     window.graphWidget_Dis.setBackground(None)
+#     window.graphWidget_Dis.setLabel("left", "Dissipation", "F")
+#     window.graphWidget_Dis.setLabel("bottom", "Frequency", "Hz")
 
-    window.data_line_dis = window.graphWidget_Dis.plot(
-        window.graph_time, window.graph_T, pen=pen
-    )
+#     window.data_line_dis = window.graphWidget_Dis.plot(
+#         window.graph_time, window.graph_T, pen=pen
+#     )
 
-    window.data_line_cap.setLogMode(True, False)
-    window.data_line_dis.setLogMode(True, False)
+#     window.data_line_cap.setLogMode(True, False)
+#     window.data_line_dis.setLogMode(True, False)
 
 
 def add_file_dialogue(window) -> None:
