@@ -1,10 +1,19 @@
 import numpy as np
 import pyvisa
-from lc_dielectrics import MainWindow
-from qtpy.QtWidgets import (QAbstractItemView, QComboBox, QFileDialog, QFrame,
-                            QGridLayout, QGroupBox, QLabel, QLineEdit,
-                            QListWidget, QListWidgetItem, QMainWindow,
-                            QPushButton, QWidget)
+from qtpy.QtWidgets import (
+    QAbstractItemView,
+    QComboBox,
+    QFileDialog,
+    QFrame,
+    QGridLayout,
+    QGroupBox,
+    QLabel,
+    QLineEdit,
+    QListWidget,
+    QListWidgetItem,
+    QPushButton,
+    QWidget,
+)
 
 ## TODO: Need docs everywhere
 ## TODO: User could easily bypass maximum number of points -
@@ -19,14 +28,12 @@ class ValueSelectorWindow(QWidget):
 
     def __init__(
         self,
-        main_window: QMainWindow,
         value_list: QListWidget,
         start_val: float,
         end_val: float,
         logspace: bool = True,
     ):
         super().__init__()
-        self.main_window_ref = main_window
         self.value_list = value_list
         self.logspace = logspace
         self.setWindowTitle("Add values")
@@ -45,27 +52,25 @@ class ValueSelectorWindow(QWidget):
             self.combo.addItem("Number of Points")
 
         layout.addWidget(self.points, 1, 0, 1, 2)
-        self.points.editingFinished.connect(lambda: limits(self, self.points, 201, 10))
+        self.points.editingFinished.connect(lambda: limits(self.points, 201, 10))
 
         layout.addWidget(QLabel("Start"), 2, 0, 1, 2)
         self.start = QLineEdit(f"{start_val}")
         layout.addWidget(self.start, 3, 0, 1, 2)
         self.start.editingFinished.connect(
-            lambda: limits(self, self.start, start_val, start_val, False)
+            lambda: limits(self.start, start_val, start_val, False)
         )
         self.start.editingFinished.connect(
-            lambda: limits(self, self.start, end_val, start_val)
+            lambda: limits(self.start, end_val, start_val)
         )
 
         layout.addWidget(QLabel("End"), 4, 0, 1, 2)
         self.end = QLineEdit(f"{end_val}")
         layout.addWidget(self.end, 5, 0, 1, 2)
         self.end.editingFinished.connect(
-            lambda: limits(self, self.end, start_val, start_val, False)
+            lambda: limits(self.end, start_val, start_val, False)
         )
-        self.end.editingFinished.connect(
-            lambda: limits(self, self.end, end_val, start_val)
-        )
+        self.end.editingFinished.connect(lambda: limits(self.end, end_val, start_val))
 
         self.add_button = QPushButton("Append")
         layout.addWidget(self.add_button, 6, 0)
@@ -135,47 +140,53 @@ def removeValuesFromList(list_widget: QListWidget) -> None:
 
 
 def createMultiValueWindow(
-    window: QMainWindow,
     list_widget: QListWidget,
     min_val: float,
     max_val: float,
     logspace: bool = True,
 ) -> None:
-    sw = ValueSelectorWindow(window, list_widget, min_val, max_val, logspace)
+    sw = ValueSelectorWindow(list_widget, min_val, max_val, logspace)
     sw.show()
 
 
-def statusFrame(window: MainWindow) -> None:
-    window.status_frame = QFrame()
-    layout = QGridLayout(window.status_frame)
-    window.status_frame.setFrameStyle(QFrame.Box)
+def statusFrame() -> tuple[QFrame, QLabel, QLabel, QLabel]:
+    status_frame = QFrame()
+    layout = QGridLayout(status_frame)
+    status_frame.setFrameStyle(QFrame.Box)
 
     layout.addWidget(QLabel("Measurement Status: "), 0, 0)
-    measurement_status_label = QLabel(f"{window.measurement_status}")
+    measurement_status_label = QLabel("Idle")
     layout.addWidget(measurement_status_label, 0, 1)
 
     layout.addWidget(QLabel("Linkam Status: "), 1, 0)
-    linkam_status_label = QLabel(f"{window.linkam_status}")
+    linkam_status_label = QLabel("Not Connected")
     layout.addWidget(linkam_status_label, 1, 1)
 
     layout.addWidget(QLabel("Agilent Status: "), 2, 0)
-    agilent_status_label = QLabel(f"{window.agilent_status}")
+    agilent_status_label = QLabel("Not Connected")
     layout.addWidget(agilent_status_label, 2, 1)
 
+    return (
+        status_frame,
+        measurement_status_label,
+        linkam_status_label,
+        agilent_status_label,
+    )
 
-def instrumentSettingsFrame(window: MainWindow) -> None:
-    window.instrument_settings_frame = QFrame()
-    layout = QGridLayout(window.instrument_settings_frame)
-    window.instrument_settings_frame.setFrameStyle(QFrame.Box)
+
+def instrumentSettingsFrame() -> tuple[QFrame, QPushButton, QPushButton]:
+    instrument_settings_frame = QFrame()
+    layout = QGridLayout(instrument_settings_frame)
+    instrument_settings_frame.setFrameStyle(QFrame.Box)
 
     layout.addWidget(QLabel("Linkam COM port: "), 0, 0)
-    window.com_selector = QComboBox()
+    com_selector = QComboBox()
 
-    layout.addWidget(window.com_selector, 0, 1)
+    layout.addWidget(com_selector, 0, 1)
 
     layout.addWidget(QLabel("Agilent USB port: "), 1, 0)
-    window.usb_selector = QComboBox()
-    layout.addWidget(window.usb_selector, 1, 1)
+    usb_selector = QComboBox()
+    layout.addWidget(usb_selector, 1, 1)
 
     # get all visa resources:
     rm = pyvisa.ResourceManager()
@@ -183,51 +194,55 @@ def instrumentSettingsFrame(window: MainWindow) -> None:
 
     for resource in resource_list:
         if resource.split("::")[0][0:4] == "ASRL":
-            window.com_selector.addItem(resource)
+            com_selector.addItem(resource)
         elif resource.split("::")[0][0:3] == "USB":
-            window.usb_selector.addItem(resource)
+            usb_selector.addItem(resource)
         else:
             print(f"Unknown resource: {resource} ")
 
-    window.init_linkam_button = QPushButton("Initialise")
-    layout.addWidget(window.init_linkam_button, 0, 2)
-    window.init_linkam_button.clicked.connect(window.init_linkam)
+    init_linkam_button = QPushButton("Initialise")
+    layout.addWidget(init_linkam_button, 0, 2)
 
-    window.init_agilent_button = QPushButton("Initialise")
-    layout.addWidget(window.init_agilent_button, 1, 2)
-    window.init_agilent_button.clicked.connect(window.init_agilent)
+    init_agilent_button = QPushButton("Initialise")
+    layout.addWidget(init_agilent_button, 1, 2)
+
+    return instrument_settings_frame, init_linkam_button, init_agilent_button
 
 
-def measurementSettingsFrame(window: MainWindow) -> None:
-    window.measurement_settings_frame = QGroupBox()
-    layout = QGridLayout(window.measurement_settings_frame)
-    window.measurement_settings_frame.setFrame = True  # type: ignore
-    window.measurement_settings_frame.setTitle("Measurement Settings")
+def measurementSettingsFrame() -> tuple[QGroupBox, QComboBox, QLineEdit, QComboBox]:
+    measurement_settings_frame = QGroupBox()
+    layout = QGridLayout(measurement_settings_frame)
+    measurement_settings_frame.setFrame = True  # type: ignore
+    measurement_settings_frame.setTitle("Measurement Settings")
 
     layout.addWidget(QLabel("Meas. Time. Mode: "), 0, 0)
-    window.time_selector = QComboBox()
-    window.time_selector.addItem("SHOR")
-    window.time_selector.addItem("MED")
-    window.time_selector.addItem("LONG")
-    layout.addWidget(window.time_selector, 0, 1)
+    time_selector = QComboBox()
+    time_selector.addItem("SHOR")
+    time_selector.addItem("MED")
+    time_selector.addItem("LONG")
+    layout.addWidget(time_selector, 0, 1)
 
     layout.addWidget(QLabel("Averaging Factor"), 0, 2)
-    window.averaging_factor = QLineEdit("1")
-    layout.addWidget(window.averaging_factor, 0, 3)
-    window.averaging_factor.editingFinished.connect(
-        lambda: limits(window, window.averaging_factor, 256, 1)
-    )
+    averaging_factor = QLineEdit("1")
+    layout.addWidget(averaging_factor, 0, 3)
+    averaging_factor.editingFinished.connect(lambda: limits(averaging_factor, 256, 1))
 
     layout.addWidget(QLabel("Bias Level (V)"), 0, 4)
-    window.bias_voltage_selector = QComboBox()
-    window.bias_voltage_selector.addItem("0")
-    window.bias_voltage_selector.addItem("1.5")
-    window.bias_voltage_selector.addItem("2")
-    layout.addWidget(window.bias_voltage_selector, 0, 5)
+    bias_voltage_selector = QComboBox()
+    bias_voltage_selector.addItem("0")
+    bias_voltage_selector.addItem("1.5")
+    bias_voltage_selector.addItem("2")
+    layout.addWidget(bias_voltage_selector, 0, 5)
+
+    return (
+        measurement_settings_frame,
+        time_selector,
+        averaging_factor,
+        bias_voltage_selector,
+    )
 
 
 def populateVariableFrame(
-    window: MainWindow,
     frame: QGroupBox,
     list_box: QListWidget,
     default_val: float,
@@ -247,10 +262,8 @@ def populateVariableFrame(
     add_edit = QLineEdit(f"{default_val}")
     add_edit.setFixedWidth(100)
     layout.addWidget(add_edit, 0, 1)
-    add_edit.editingFinished.connect(
-        lambda: limits(window, add_edit, min_val, min_val, False)
-    )
-    add_edit.editingFinished.connect(lambda: limits(window, add_edit, max_val, min_val))
+    add_edit.editingFinished.connect(lambda: limits(add_edit, min_val, min_val, False))
+    add_edit.editingFinished.connect(lambda: limits(add_edit, max_val, min_val))
 
     add_button = QPushButton("Add")
     add_button.setFixedWidth(100)
@@ -261,7 +274,7 @@ def populateVariableFrame(
     multi_button.setFixedWidth(100)
     layout.addWidget(multi_button, 2, 1)
     multi_button.clicked.connect(
-        lambda: createMultiValueWindow(window, list_box, min_val, max_val, logspace)
+        lambda: createMultiValueWindow(list_box, min_val, max_val, logspace)
     )
 
     delete_button = QPushButton("Delete")
@@ -272,60 +285,63 @@ def populateVariableFrame(
     return layout
 
 
-def frequencySettingsFrame(window) -> None:
-    window.freq_settings_frame = QGroupBox()
-    window.freq_settings_frame.setTitle("Frequency List")
-    window.freq_list_widget = QListWidget()
+def frequencySettingsFrame() -> tuple[QGroupBox, QListWidget]:
+    freq_settings_frame = QGroupBox()
+    freq_settings_frame.setTitle("Frequency List")
+    freq_list_widget = QListWidget()
 
-    populateVariableFrame(
-        window, window.freq_settings_frame, window.freq_list_widget, 20, 20, 2e6
-    )
-
-
-def voltageSettingsFrame(window) -> None:
-    window.voltage_settings_frame = QGroupBox()
-    window.voltage_settings_frame.setTitle("Voltage List")
-    window.volt_list_widget = QListWidget()
-
-    populateVariableFrame(
-        window, window.voltage_settings_frame, window.volt_list_widget, 1, 0, 20, False
-    )
+    populateVariableFrame(freq_settings_frame, freq_list_widget, 20, 20, 2e6)
+    return freq_settings_frame, freq_list_widget
 
 
-def temperatureSettingsFrame(window) -> None:
-    window.temperature_settings_frame = QGroupBox()
-    window.temperature_settings_frame.setTitle("Temperature List (°C)")
-    window.temp_list_widget = QListWidget()
+def voltageSettingsFrame() -> tuple[QGroupBox, QListWidget]:
+    voltage_settings_frame = QGroupBox()
+    voltage_settings_frame.setTitle("Voltage List")
+    volt_list_widget = QListWidget()
+
+    populateVariableFrame(voltage_settings_frame, volt_list_widget, 1, 0, 20, False)
+
+    return voltage_settings_frame, volt_list_widget
+
+
+def temperatureSettingsFrame() -> tuple[
+    QGroupBox, QPushButton, QLineEdit, QLineEdit, QLineEdit
+]:
+    temperature_settings_frame = QGroupBox()
+    temperature_settings_frame.setTitle("Temperature List (°C)")
+    temp_list_widget = QListWidget()
 
     layout = populateVariableFrame(
-        window,
-        window.temperature_settings_frame,
-        window.temp_list_widget,
+        temperature_settings_frame,
+        temp_list_widget,
         25,
         -40,
         350,
         False,
     )
 
-    window.go_to_temp_button = QPushButton("Go to:")
-    layout.addWidget(window.go_to_temp_button, 0, 2)
-    window.go_to_temp_button.clicked.connect(
-        lambda: window.linkam.set_temperature(
-            float(window.go_to_temp.text()), float(window.temp_rate.text())
-        )
-    )
+    go_to_temp_button = QPushButton("Go to:")
+    layout.addWidget(go_to_temp_button, 0, 2)
 
-    window.go_to_temp = QLineEdit("25")
-    layout.addWidget(window.go_to_temp, 0, 3)
+    go_to_temp = QLineEdit("25")
+    layout.addWidget(go_to_temp, 0, 3)
     layout.addWidget(QLabel("°C"), 0, 4)
 
     layout.addWidget(QLabel("Rate (°C/min)"), 1, 2)
-    window.temp_rate = QLineEdit("10")
-    layout.addWidget(window.temp_rate, 1, 3)
+    temp_rate = QLineEdit("10")
+    layout.addWidget(temp_rate, 1, 3)
 
     layout.addWidget(QLabel("Stab. Time (s)"), 2, 2)
-    window.stab_time = QLineEdit("1")
-    layout.addWidget(window.stab_time, 2, 3)
+    stab_time = QLineEdit("1")
+    layout.addWidget(stab_time, 2, 3)
+
+    return (
+        temperature_settings_frame,
+        go_to_temp_button,
+        go_to_temp,
+        temp_rate,
+        stab_time,
+    )
 
 
 def outputDataSettingsFrame(window) -> None:
@@ -380,7 +396,7 @@ def add_file_dialogue(window) -> None:
     window.output_file_input.setText(filename)
 
 
-def limits(window, thing, limit: float, default: float, max_val=True) -> None:
+def limits(thing, limit: float, default: float, max_val=True) -> None:
     try:
         if thing.text() == "":
             pass

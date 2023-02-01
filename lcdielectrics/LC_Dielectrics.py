@@ -3,10 +3,15 @@ import time
 
 import pyvisa
 from excel_writer import make_excel
-from frames import (frequencySettingsFrame, instrumentSettingsFrame,
-                    measurementSettingsFrame, outputDataSettingsFrame,
-                    statusFrame, temperatureSettingsFrame,
-                    voltageSettingsFrame)
+from frames import (
+    frequencySettingsFrame,
+    instrumentSettingsFrame,
+    measurementSettingsFrame,
+    outputDataSettingsFrame,
+    statusFrame,
+    temperatureSettingsFrame,
+    voltageSettingsFrame,
+)
 from instruments import AgilentSpectrometer, LinkamHotstage
 from qtpy import QtCore, QtGui
 from qtpy.QtCore import QThread, Signal
@@ -56,14 +61,47 @@ class MainWindow(QMainWindow):
         self.layout = QGridLayout()
 
         # initialise frames
-        statusFrame(self)
-        instrumentSettingsFrame(self)
-        measurementSettingsFrame(self)
-        frequencySettingsFrame(self)
-        voltageSettingsFrame(self)
-        temperatureSettingsFrame(self)
+        (
+            self.status_frame,
+            self.measurement_status_label,
+            self.linkam_status_label,
+            self.agilent_status_label,
+        ) = statusFrame()
+
+        (
+            self.instrument_settings_frame,
+            self.init_linkam_button,
+            self.init_agilent_button,
+        ) = instrumentSettingsFrame()
+
+        (
+            self.measurement_settings_frame,
+            self.time_selector,
+            self.averaging_factor,
+            self.bias_voltage_selector,
+        ) = measurementSettingsFrame()
+
+        self.freq_settings_frame, self.freq_list_widget = frequencySettingsFrame()
+        self.voltage_settings_frame, self.volt_list_widget = voltageSettingsFrame()
+        (
+            self.temperature_settings_frame,
+            self.go_to_temp_button,
+            self.go_to_temp,
+            self.temp_rate,
+            self.stab_time,
+        ) = temperatureSettingsFrame()
+
         outputDataSettingsFrame(self)
         # graphFrame(self)
+
+        self.init_linkam_button.clicked.connect(self.init_linkam)
+        self.init_agilent_button.clicked.connect(self.init_agilent)
+
+        self.go_to_temp_button.clicked.connect(
+            lambda: self.linkam.set_temperature(
+                float(self.go_to_temp.text()), float(self.temp_rate.text())
+            )
+        )
 
         # initialise layout
         self.layout.addWidget(self.status_frame, 0, 0, 1, 2)
@@ -73,7 +111,7 @@ class MainWindow(QMainWindow):
         self.layout.addWidget(self.voltage_settings_frame, 3, 1)
         self.layout.addWidget(self.temperature_settings_frame, 4, 0, 1, 2)
         self.layout.addWidget(self.output_settings_frame, 5, 0, 1, 2)
-        self.layout.addWidget(self.graph_frame, 0, 2, 7, 1)
+        # self.layout.addWidget(self.graph_frame, 0, 2, 7, 1)
 
         self.go_button = QPushButton("Start")
         self.layout.addWidget(self.go_button, 6, 0, 1, 1)
@@ -370,5 +408,3 @@ class MainWindow(QMainWindow):
                 self.resultsDict[T]["B"].append(result["GB"][increment + 1])
 
     ###################### END OF CONTROL LOGIC ###############################
-
-
