@@ -1,23 +1,16 @@
 import json
-import sys
 import time
 
 import pyvisa
-from Excel_Writer import make_excel
-from Frames import (
-    frequencySettingsFrame,
-    graphFrame,
-    instrumentSettingsFrame,
-    measurementSettingsFrame,
-    outputDataSettingsFrame,
-    statusFrame,
-    temperatureSettingsFrame,
-    voltageSettingsFrame,
-)
-from Instruments import AgilentSpectrometer, LinkamHotstage
+from excel_writer import make_excel
+from frames import (frequencySettingsFrame, instrumentSettingsFrame,
+                    measurementSettingsFrame, outputDataSettingsFrame,
+                    statusFrame, temperatureSettingsFrame,
+                    voltageSettingsFrame)
+from instruments import AgilentSpectrometer, LinkamHotstage
 from qtpy import QtCore, QtGui
 from qtpy.QtCore import QThread, Signal
-from qtpy.QtWidgets import QApplication, QGridLayout, QMainWindow, QPushButton, QWidget
+from qtpy.QtWidgets import QGridLayout, QMainWindow, QPushButton, QWidget
 
 # build command:
 # pyinstaller -i .\LCD_icon.ico --onefile .\LC_Dielectrics.py
@@ -70,7 +63,7 @@ class MainWindow(QMainWindow):
         voltageSettingsFrame(self)
         temperatureSettingsFrame(self)
         outputDataSettingsFrame(self)
-        graphFrame(self)
+        # graphFrame(self)
 
         # initialise layout
         self.layout.addWidget(self.status_frame, 0, 0, 1, 2)
@@ -379,12 +372,3 @@ class MainWindow(QMainWindow):
     ###################### END OF CONTROL LOGIC ###############################
 
 
-def main() -> None:
-    app = QApplication(sys.argv)
-    main = MainWindow()
-    main.show()
-    sys.exit(app.exec_())
-
-
-if __name__ == "__main__":
-    main()

@@ -1,22 +1,10 @@
 import numpy as np
 import pyvisa
-from qtpy.QtWidgets import (
-    QAbstractItemView,
-    QComboBox,
-    QFileDialog,
-    QFrame,
-    QGridLayout,
-    QGroupBox,
-    QLabel,
-    QLineEdit,
-    QListWidget,
-    QListWidgetItem,
-    QMainWindow,
-    QPushButton,
-    QWidget,
-)
-
-from LC_Dielectrics import MainWindow
+from lc_dielectrics import MainWindow
+from qtpy.QtWidgets import (QAbstractItemView, QComboBox, QFileDialog, QFrame,
+                            QGridLayout, QGroupBox, QLabel, QLineEdit,
+                            QListWidget, QListWidgetItem, QMainWindow,
+                            QPushButton, QWidget)
 
 ## TODO: Need docs everywhere
 ## TODO: User could easily bypass maximum number of points -
