@@ -3,19 +3,11 @@ import time
 
 import pyvisa
 from excel_writer import make_excel
-from frames import (
-    frequencySettingsFrame,
-    instrumentSettingsFrame,
-    measurementSettingsFrame,
-    outputDataSettingsFrame,
-    statusFrame,
-    temperatureSettingsFrame,
-    voltageSettingsFrame,
-)
 from instruments import AgilentSpectrometer, LinkamHotstage
 from qtpy import QtCore, QtGui
 from qtpy.QtCore import QThread, Signal
-from qtpy.QtWidgets import QGridLayout, QMainWindow, QPushButton, QWidget
+from qtpy.QtWidgets import QFileDialog, QMainWindow, QWidget
+from ui import generate_ui
 
 # build command:
 # pyinstaller -i .\LCD_icon.ico --onefile .\LC_Dielectrics.py
@@ -58,44 +50,34 @@ class MainWindow(QMainWindow):
         self.t_stable_count = 0
         self.voltage_list_mode = False
 
-        self.layout = QGridLayout()
-
-        # initialise frames
         (
+            self.layout,
             self.status_frame,
             self.measurement_status_label,
             self.linkam_status_label,
             self.agilent_status_label,
-        ) = statusFrame()
-
-        (
             self.instrument_settings_frame,
             self.init_linkam_button,
             self.init_agilent_button,
-        ) = instrumentSettingsFrame()
-
-        (
             self.measurement_settings_frame,
             self.time_selector,
             self.averaging_factor,
             self.bias_voltage_selector,
-        ) = measurementSettingsFrame()
-
-        self.freq_settings_frame, self.freq_list_widget = frequencySettingsFrame()
-        self.voltage_settings_frame, self.volt_list_widget = voltageSettingsFrame()
-        (
             self.temperature_settings_frame,
             self.go_to_temp_button,
             self.go_to_temp,
             self.temp_rate,
             self.stab_time,
-        ) = temperatureSettingsFrame()
-
-        outputDataSettingsFrame(self)
-        # graphFrame(self)
+            self.output_settings_frame,
+            self.output_file_input,
+            self.add_file_button,
+            self.go_button,
+            self.stop_button,
+        ) = generate_ui()
 
         self.init_linkam_button.clicked.connect(self.init_linkam)
         self.init_agilent_button.clicked.connect(self.init_agilent)
+        self.add_file_button.clicked.connect(self.add_file_dialogue)
 
         self.go_to_temp_button.clicked.connect(
             lambda: self.linkam.set_temperature(
@@ -103,25 +85,8 @@ class MainWindow(QMainWindow):
             )
         )
 
-        # initialise layout
-        self.layout.addWidget(self.status_frame, 0, 0, 1, 2)
-        self.layout.addWidget(self.instrument_settings_frame, 1, 0, 1, 2)
-        self.layout.addWidget(self.measurement_settings_frame, 2, 0, 1, 2)
-        self.layout.addWidget(self.freq_settings_frame, 3, 0)
-        self.layout.addWidget(self.voltage_settings_frame, 3, 1)
-        self.layout.addWidget(self.temperature_settings_frame, 4, 0, 1, 2)
-        self.layout.addWidget(self.output_settings_frame, 5, 0, 1, 2)
-        # self.layout.addWidget(self.graph_frame, 0, 2, 7, 1)
-
-        self.go_button = QPushButton("Start")
-        self.layout.addWidget(self.go_button, 6, 0, 1, 1)
         self.go_button.clicked.connect(self.start_measurement)
-        self.set_button_style(self.go_button, "green")
-
-        self.stop_button = QPushButton("Stop")
-        self.layout.addWidget(self.stop_button, 6, 1, 1, 1)
         self.stop_button.clicked.connect(self.stop_measurement)
-        self.set_button_style(self.stop_button, "red")
 
         # UI update loop
         self.timer = QtCore.QTimer()
@@ -132,36 +97,6 @@ class MainWindow(QMainWindow):
         widget = QWidget()
         widget.setLayout(self.layout)
         self.setCentralWidget(widget)
-
-    def set_button_style(
-        self, button: QPushButton, bg_colour: str, fixed_width: bool = False
-    ) -> None:
-        # button.setFixedWidth(250)
-        button.setFixedHeight(40)
-
-        if fixed_width:
-            button.setFixedWidth(100)
-
-        button.setStyleSheet(
-            "\
-            QPushButton { \
-            color: white;\
-            /*font-family: 'helvetica';*/ \
-            /*font-size: 20px;*/ \
-            border-radius: 5px; \
-            padding: 2px 0; \
-            margin-top: 2px; \
-            "
-            + "background-color:"
-            + bg_colour
-            + "; \
-            } \
-            QPushButton:hover { \
-                background-color: black;\
-                color: white;\
-            }\
-         "
-        )
 
     ###################### Control Logic ################################
 
@@ -183,6 +118,12 @@ class MainWindow(QMainWindow):
             self.linkam_status = self.linkam_status
 
         self.update_ui()
+
+    def add_file_dialogue(self) -> None:
+        filename, _ = QFileDialog.getSaveFileName(
+            self, "Output File", "", "JSON Files (*.json)"
+        )
+        self.output_file_input.setText(filename)
 
     def update_ui(self) -> None:
         self.agilent_status_label.setText(self.agilent_status)
@@ -305,25 +246,7 @@ class MainWindow(QMainWindow):
 
     def get_result(self, result: dict) -> None:
         self.parse_result(result)
-
         if self.voltage_list_mode:
-            self.data_line_cap.setData(
-                self.resultsDict[self.T_list[self.T_step]][
-                    self.freq_list[self.freq_step]
-                ]["volt"],
-                self.resultsDict[self.T_list[self.T_step]][
-                    self.freq_list[self.freq_step]
-                ]["Cp"],
-            )
-            self.data_line_dis.setData(
-                self.resultsDict[self.T_list[self.T_step]][
-                    self.freq_list[self.freq_step]
-                ]["volt"],
-                self.resultsDict[self.T_list[self.T_step]][
-                    self.freq_list[self.freq_step]
-                ]["D"],
-            )
-
             if (
                 self.T_step == len(self.T_list) - 1
                 and self.freq_step == len(self.freq_list) - 1
@@ -346,15 +269,6 @@ class MainWindow(QMainWindow):
                     self.freq_step += 1
                     self.measurement_status = "Setting temperature"
         else:
-            self.data_line_cap.setData(
-                self.resultsDict[self.T_list[self.T_step]]["freq"],
-                self.resultsDict[self.T_list[self.T_step]]["Cp"],
-            )
-            self.data_line_dis.setData(
-                self.resultsDict[self.T_list[self.T_step]]["freq"],
-                self.resultsDict[self.T_list[self.T_step]]["D"],
-            )
-
             if self.T_step == len(self.T_list) - 1:
                 self.measurement_status = "Finished"
                 make_excel(

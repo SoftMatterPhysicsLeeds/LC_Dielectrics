@@ -3,7 +3,6 @@ import pyvisa
 from qtpy.QtWidgets import (
     QAbstractItemView,
     QComboBox,
-    QFileDialog,
     QFrame,
     QGridLayout,
     QGroupBox,
@@ -126,6 +125,119 @@ class ValueSelectorWindow(QWidget):
             addValuesToList(self.value_list, val)
 
         self.close()
+
+
+def set_button_style(
+    button: QPushButton, bg_colour: str, fixed_width: bool = False
+) -> None:
+    # button.setFixedWidth(250)
+    button.setFixedHeight(40)
+
+    if fixed_width:
+        button.setFixedWidth(100)
+
+    button.setStyleSheet(
+        "\
+            QPushButton { \
+            color: white;\
+            /*font-family: 'helvetica';*/ \
+            /*font-size: 20px;*/ \
+            border-radius: 5px; \
+            padding: 2px 0; \
+            margin-top: 2px; \
+            "
+        + "background-color:"
+        + bg_colour
+        + "; \
+            } \
+            QPushButton:hover { \
+                background-color: black;\
+                color: white;\
+            }\
+         "
+    )
+
+
+def generate_ui():
+    layout = QGridLayout()
+
+    # initialise frames
+    (
+        status_frame,
+        measurement_status_label,
+        linkam_status_label,
+        agilent_status_label,
+    ) = statusFrame()
+
+    (
+        instrument_settings_frame,
+        init_linkam_button,
+        init_agilent_button,
+    ) = instrumentSettingsFrame()
+
+    (
+        measurement_settings_frame,
+        time_selector,
+        averaging_factor,
+        bias_voltage_selector,
+    ) = measurementSettingsFrame()
+
+    freq_settings_frame, freq_list_widget = frequencySettingsFrame()
+    voltage_settings_frame, volt_list_widget = voltageSettingsFrame()
+    (
+        temperature_settings_frame,
+        go_to_temp_button,
+        go_to_temp,
+        temp_rate,
+        stab_time,
+    ) = temperatureSettingsFrame()
+
+    (
+        output_settings_frame,
+        output_file_input,
+        add_file_button,
+    ) = outputDataSettingsFrame()
+
+    layout.addWidget(status_frame, 0, 0, 1, 2)
+    layout.addWidget(instrument_settings_frame, 1, 0, 1, 2)
+    layout.addWidget(measurement_settings_frame, 2, 0, 1, 2)
+    layout.addWidget(freq_settings_frame, 3, 0)
+    layout.addWidget(voltage_settings_frame, 3, 1)
+    layout.addWidget(temperature_settings_frame, 4, 0, 1, 2)
+    layout.addWidget(output_settings_frame, 5, 0, 1, 2)
+
+    go_button = QPushButton("Start")
+    layout.addWidget(go_button, 6, 0, 1, 1)
+    set_button_style(go_button, "green")
+
+    stop_button = QPushButton("Stop")
+    layout.addWidget(stop_button, 6, 1, 1, 1)
+    set_button_style(stop_button, "red")
+
+    return (
+        layout,
+        status_frame,
+        measurement_status_label,
+        linkam_status_label,
+        agilent_status_label,
+        instrument_settings_frame,
+        init_linkam_button,
+        init_agilent_button,
+        measurement_settings_frame,
+        time_selector,
+        averaging_factor,
+        bias_voltage_selector,
+        temperature_settings_frame,
+        go_to_temp_button,
+        go_to_temp,
+        temp_rate,
+        stab_time,
+        output_settings_frame,
+        output_file_input,
+        add_file_button,
+        go_button,
+        stop_button,
+    )
 
 
 def addValuesToList(list_widget: QListWidget, value: str) -> None:
@@ -344,56 +456,19 @@ def temperatureSettingsFrame() -> tuple[
     )
 
 
-def outputDataSettingsFrame(window) -> None:
-    window.output_settings_frame = QGroupBox()
-    layout = QGridLayout(window.output_settings_frame)
-    window.output_settings_frame.setFrame = True  # type: ignore
-    window.output_settings_frame.setTitle("Output Data Settings")
+def outputDataSettingsFrame() -> tuple[QGroupBox, QLineEdit, QPushButton]:
+    output_settings_frame = QGroupBox()
+    layout = QGridLayout(output_settings_frame)
+    output_settings_frame.setFrame = True  # type: ignore
+    output_settings_frame.setTitle("Output Data Settings")
 
-    window.output_file_input = QLineEdit("results.json")
-    layout.addWidget(window.output_file_input, 0, 0)
+    output_file_input = QLineEdit("results.json")
+    layout.addWidget(output_file_input, 0, 0)
 
-    window.add_file_button = QPushButton("Browse")
-    layout.addWidget(window.add_file_button, 0, 1)
-    window.add_file_button.clicked.connect(lambda: add_file_dialogue(window))
+    add_file_button = QPushButton("Browse")
+    layout.addWidget(add_file_button, 0, 1)
 
-
-# def graphFrame(window) -> None:
-
-#     window.graph_frame = QFrame()
-#     layout = QGridLayout(window.graph_frame)
-
-#     window.graphWidget_Cap = pg.PlotWidget()
-#     layout.addWidget(window.graphWidget_Cap, 0, 0)
-#     window.graphWidget_Cap.setBackground(None)
-#     window.graphWidget_Cap.setLabel("left", "Capacitance", "F")
-#     window.graphWidget_Cap.setLabel("bottom", "Frequency", "Hz")
-#     window.graph_T = [window.current_T] * 100
-#     window.graph_time = list(np.arange(0, 10, 0.1))
-#     pen = pg.mkPen(color=(255, 0, 0))
-#     window.data_line_cap = window.graphWidget_Cap.plot(
-#         window.graph_time, window.graph_T, pen=pen
-#     )
-
-#     window.graphWidget_Dis = pg.PlotWidget()
-#     layout.addWidget(window.graphWidget_Dis, 1, 0)
-#     window.graphWidget_Dis.setBackground(None)
-#     window.graphWidget_Dis.setLabel("left", "Dissipation", "F")
-#     window.graphWidget_Dis.setLabel("bottom", "Frequency", "Hz")
-
-#     window.data_line_dis = window.graphWidget_Dis.plot(
-#         window.graph_time, window.graph_T, pen=pen
-#     )
-
-#     window.data_line_cap.setLogMode(True, False)
-#     window.data_line_dis.setLogMode(True, False)
-
-
-def add_file_dialogue(window) -> None:
-    filename, _ = QFileDialog.getSaveFileName(
-        window, "Output File", "", "JSON Files (*.json)"
-    )
-    window.output_file_input.setText(filename)
+    return (output_settings_frame, output_file_input, add_file_button)
 
 
 def limits(thing, limit: float, default: float, max_val=True) -> None:
