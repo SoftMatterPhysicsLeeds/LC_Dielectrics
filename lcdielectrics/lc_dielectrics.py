@@ -50,43 +50,20 @@ class MainWindow(QMainWindow):
         self.t_stable_count = 0
         self.voltage_list_mode = False
 
-        (
-            self.layout,
-            self.status_frame,
-            self.measurement_status_label,
-            self.linkam_status_label,
-            self.agilent_status_label,
-            self.instrument_settings_frame,
-            self.init_linkam_button,
-            self.init_agilent_button,
-            self.measurement_settings_frame,
-            self.time_selector,
-            self.averaging_factor,
-            self.bias_voltage_selector,
-            self.temperature_settings_frame,
-            self.go_to_temp_button,
-            self.go_to_temp,
-            self.temp_rate,
-            self.stab_time,
-            self.output_settings_frame,
-            self.output_file_input,
-            self.add_file_button,
-            self.go_button,
-            self.stop_button,
-        ) = generate_ui()
+        self.layout, self.widgets = generate_ui()
 
-        self.init_linkam_button.clicked.connect(self.init_linkam)
-        self.init_agilent_button.clicked.connect(self.init_agilent)
-        self.add_file_button.clicked.connect(self.add_file_dialogue)
+        self.widgets["init_linkam_button"].clicked.connect(self.init_linkam)
+        self.widgets["init_agilent_button"].clicked.connect(self.init_agilent)
+        self.widgets["add_file_button"].clicked.connect(self.add_file_dialogue)
 
-        self.go_to_temp_button.clicked.connect(
+        self.widgets["go_to_temp_button"].clicked.connect(
             lambda: self.linkam.set_temperature(
                 float(self.go_to_temp.text()), float(self.temp_rate.text())
             )
         )
 
-        self.go_button.clicked.connect(self.start_measurement)
-        self.stop_button.clicked.connect(self.stop_measurement)
+        self.widgets["go_button"].clicked.connect(self.start_measurement)
+        self.widgets["stop_button"].clicked.connect(self.stop_measurement)
 
         # UI update loop
         self.timer = QtCore.QTimer()
@@ -101,19 +78,19 @@ class MainWindow(QMainWindow):
     ###################### Control Logic ################################
 
     def init_agilent(self) -> None:
-        self.agilent = AgilentSpectrometer(self.usb_selector.currentText())
+        self.agilent = AgilentSpectrometer(self.widgets["usb_selector"].currentText())
         self.agilent_status = "Connected"
-        self.init_agilent_button.setText("Connected")
-        self.init_agilent_button.setEnabled(False)
+        self.widgets["init_agilent_button"].setText("Connected")
+        self.widgets["init_agilent_button"].setEnabled(False)
         self.update_ui()
 
     def init_linkam(self) -> None:
-        self.linkam = LinkamHotstage(self.com_selector.currentText())
+        self.linkam = LinkamHotstage(self.widgets["com_selector"].currentText())
         try:
             self.linkam.current_temperature()
             self.linkam_status = "Connected"
-            self.init_linkam_button.setText("Connected")
-            self.init_linkam_button.setEnabled(False)
+            self.widgets["init_linkam_button"].setText("Connected")
+            self.widgets["init_linkam_button"].setEnabled(False)
         except pyvisa.errors.VisaIOError:
             self.linkam_status = self.linkam_status
 
@@ -123,19 +100,19 @@ class MainWindow(QMainWindow):
         filename, _ = QFileDialog.getSaveFileName(
             self, "Output File", "", "JSON Files (*.json)"
         )
-        self.output_file_input.setText(filename)
+        self.widgets["output_file_input"].setText(filename)
 
     def update_ui(self) -> None:
-        self.agilent_status_label.setText(self.agilent_status)
+        self.widgets["agilent_status_label"].setText(self.agilent_status)
 
         # if Linkam is connected, show real-time temperature
         if self.linkam_status == "Connected":
             self.current_T, self.linkam_action = self.linkam.current_temperature()
-            self.linkam_status_label.setText(
+            self.widgets["linkam_status_label"].setText(
                 f"{self.linkam_status}, {self.linkam_action}, T: {self.current_T}"
             )
         else:
-            self.linkam_status_label.setText(f"{self.linkam_status}")
+            self.widgets["linkam_status_label"].setText(f"{self.linkam_status}")
 
         # control measurement loop - see if this is better than threading?
         if self.measurement_status == "Idle":
@@ -159,17 +136,16 @@ class MainWindow(QMainWindow):
             and self.linkam_action == "Holding"
         ):
             self.resultsDict[self.T_list[self.T_step]] = dict()
-            self.measurement_status = (
-                f"Stabilising temperature for {float(self.stab_time.text())}s"
-            )
 
+            self.measurement_status = f"""Stabilising temperature for \\
+                     {float(self.widgets['stab_time'].text())}s"""
         elif (
             self.measurement_status
-            == f"Stabilising temperature for {float(self.stab_time.text())}s"
+            == f"Stabilising temperature for {float(self.widgets['stab_time'].text())}s"
         ):
             self.t_stable_count += 1
 
-            if self.t_stable_count * 0.15 >= float(self.stab_time.text()):
+            if self.t_stable_count * 0.15 >= float(self.widgets["stab_time"].text()):
                 self.measurement_status = "Temperature Stabilised"
                 self.t_stable_count = 0
 
@@ -182,26 +158,26 @@ class MainWindow(QMainWindow):
             self.agilent.reset_and_clear()
             self.measurement_status = "Idle"
 
-        self.measurement_status_label.setText(self.measurement_status)
+        self.widgets["measurement_status_label"].setText(self.measurement_status)
 
     def start_measurement(self) -> None:
 
         self.resultsDict = dict()
         self.freq_list = [
-            float(self.freq_list_widget.item(x).text())
-            for x in range(self.freq_list_widget.count())
+            float(self.widgets["freq_list_widget"].item(x).text())
+            for x in range(self.widgets["freq_list_widget"].count())
         ]
         self.voltage_list = [
-            float(self.volt_list_widget.item(x).text())
-            for x in range(self.volt_list_widget.count())
+            float(self.widgets["volt_list_widget"].item(x).text())
+            for x in range(self.widgets["volt_list_widget"].count())
         ]
         self.T_list = [
-            float(self.temp_list_widget.item(x).text())
-            for x in range(self.temp_list_widget.count())
+            float(self.widgets["temp_list_widget"].item(x).text())
+            for x in range(self.widgets["temp_list_widget"].count())
         ]
         self.T_list = [round(x, 2) for x in self.T_list]
 
-        print(self.volt_list_widget.count())
+        print(self.widgets["volt_list_widget"].count())
 
         if len(self.voltage_list) > 1:
             self.voltage_list_mode = True
@@ -213,16 +189,19 @@ class MainWindow(QMainWindow):
             self.agilent.set_freq_list(self.freq_list)
 
         self.agilent.set_aperture_mode(
-            self.time_selector.currentText(), int(self.averaging_factor.text())
+            self.widgets["time_selector"].currentText(),
+            int(self.widgets["averaging_factor"].text()),
         )
 
         if (
-            self.bias_voltage_selector.currentText() == "1.5"
-            or self.bias_voltage_selector.currentText() == "2"
+            self.widgets["bias_voltage_selector"].currentText() == "1.5"
+            or self.widgets["bias_voltage_selector"].currentText() == "2"
         ):
-            self.agilent.set_DC_bias(float(self.bias_voltage_selector.currentText()))
+            self.agilent.set_DC_bias(
+                float(self.widgets["bias_voltage_selector"].currentText())
+            )
 
-        self.T_rate = float(self.temp_rate.text())
+        self.T_rate = float(self.widgets["temp_rate"].text())
         self.T_step = 0
         self.freq_step = 0
         self.measurement_status = "Setting temperature"
@@ -254,10 +233,10 @@ class MainWindow(QMainWindow):
                 self.measurement_status = "Finished"
                 make_excel(
                     self.resultsDict,
-                    self.output_file_input.text(),
+                    self.widgets["output_file_input"].text(),
                     self.voltage_list_mode,
                 )
-                with open(self.output_file_input.text(), "w") as write_file:
+                with open(self.widgets["output_file_input"].text(), "w") as write_file:
                     json.dump(self.resultsDict, write_file, indent=4)
             else:
                 if self.freq_step == len(self.freq_list) - 1:
@@ -273,10 +252,10 @@ class MainWindow(QMainWindow):
                 self.measurement_status = "Finished"
                 make_excel(
                     self.resultsDict,
-                    self.output_file_input.text(),
+                    self.widgets["output_file_input"].text(),
                     self.voltage_list_mode,
                 )
-                with open(self.output_file_input.text(), "w") as write_file:
+                with open(self.widgets["output_file_input"].text(), "w") as write_file:
                     json.dump(self.resultsDict, write_file, indent=4)
 
             else:

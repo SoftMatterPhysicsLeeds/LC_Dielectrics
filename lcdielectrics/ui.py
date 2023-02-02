@@ -160,7 +160,7 @@ def set_button_style(
 
 def generate_ui():
     layout = QGridLayout()
-
+    widgets = {}
     # initialise frames
     (
         status_frame,
@@ -171,6 +171,8 @@ def generate_ui():
 
     (
         instrument_settings_frame,
+        com_selector,
+        usb_selector,
         init_linkam_button,
         init_agilent_button,
     ) = instrumentSettingsFrame()
@@ -190,6 +192,7 @@ def generate_ui():
         go_to_temp,
         temp_rate,
         stab_time,
+        temp_list_widget,
     ) = temperatureSettingsFrame()
 
     (
@@ -214,30 +217,33 @@ def generate_ui():
     layout.addWidget(stop_button, 6, 1, 1, 1)
     set_button_style(stop_button, "red")
 
-    return (
-        layout,
-        status_frame,
-        measurement_status_label,
-        linkam_status_label,
-        agilent_status_label,
-        instrument_settings_frame,
-        init_linkam_button,
-        init_agilent_button,
-        measurement_settings_frame,
-        time_selector,
-        averaging_factor,
-        bias_voltage_selector,
-        temperature_settings_frame,
-        go_to_temp_button,
-        go_to_temp,
-        temp_rate,
-        stab_time,
-        output_settings_frame,
-        output_file_input,
-        add_file_button,
-        go_button,
-        stop_button,
+    widgets.update(
+        {
+            "measurement_status_label": measurement_status_label,
+            "linkam_status_label": linkam_status_label,
+            "agilent_status_label": agilent_status_label,
+            "com_selector": com_selector,
+            "usb_selector": usb_selector,
+            "init_linkam_button": init_linkam_button,
+            "init_agilent_button": init_agilent_button,
+            "time_selector": time_selector,
+            "averaging_factor": averaging_factor,
+            "bias_voltage_selector": bias_voltage_selector,
+            "go_to_temp_button": go_to_temp_button,
+            "go_to_temp": go_to_temp,
+            "temp_rate": temp_rate,
+            "stab_time": stab_time,
+            "output_file_input": output_file_input,
+            "add_file_button": add_file_button,
+            "go_button": go_button,
+            "stop_button": stop_button,
+            "freq_list_widget": freq_list_widget,
+            "volt_list_widget": volt_list_widget,
+            "temp_list_widget": temp_list_widget,
+        }
     )
+
+    return layout, widgets
 
 
 def addValuesToList(list_widget: QListWidget, value: str) -> None:
@@ -286,7 +292,9 @@ def statusFrame() -> tuple[QFrame, QLabel, QLabel, QLabel]:
     )
 
 
-def instrumentSettingsFrame() -> tuple[QFrame, QPushButton, QPushButton]:
+def instrumentSettingsFrame() -> tuple[
+    QFrame, QComboBox, QComboBox, QPushButton, QPushButton
+]:
     instrument_settings_frame = QFrame()
     layout = QGridLayout(instrument_settings_frame)
     instrument_settings_frame.setFrameStyle(QFrame.Box)
@@ -318,7 +326,13 @@ def instrumentSettingsFrame() -> tuple[QFrame, QPushButton, QPushButton]:
     init_agilent_button = QPushButton("Initialise")
     layout.addWidget(init_agilent_button, 1, 2)
 
-    return instrument_settings_frame, init_linkam_button, init_agilent_button
+    return (
+        instrument_settings_frame,
+        com_selector,
+        usb_selector,
+        init_linkam_button,
+        init_agilent_button,
+    )
 
 
 def measurementSettingsFrame() -> tuple[QGroupBox, QComboBox, QLineEdit, QComboBox]:
@@ -417,7 +431,7 @@ def voltageSettingsFrame() -> tuple[QGroupBox, QListWidget]:
 
 
 def temperatureSettingsFrame() -> tuple[
-    QGroupBox, QPushButton, QLineEdit, QLineEdit, QLineEdit
+    QGroupBox, QPushButton, QLineEdit, QLineEdit, QLineEdit, QListWidget
 ]:
     temperature_settings_frame = QGroupBox()
     temperature_settings_frame.setTitle("Temperature List (°C)")
@@ -453,6 +467,7 @@ def temperatureSettingsFrame() -> tuple[
         go_to_temp,
         temp_rate,
         stab_time,
+        temp_list_widget,
     )
 
 
