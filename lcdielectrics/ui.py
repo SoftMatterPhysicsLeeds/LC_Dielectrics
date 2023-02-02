@@ -272,8 +272,15 @@ def statusFrame() -> tuple[QFrame, QLabel]:
     layout = QGridLayout(status_frame)
     status_frame.setFrameStyle(QFrame.Box)
 
-    layout.addWidget(QLabel("Measurement Status: "), 0, 0)
+    style = """ QLabel { 
+        font-size: 20pt;
+     }"""
+
+    measurement_status = QLabel("Measurement Status: ")
+    measurement_status.setStyleSheet(style)
+    layout.addWidget(measurement_status, 0, 0)
     measurement_status_label = QLabel("Idle")
+    measurement_status_label.setStyleSheet(style)
     layout.addWidget(measurement_status_label, 0, 1)
 
     return (
@@ -298,7 +305,7 @@ def instrumentSettingsFrame() -> tuple[
     layout.addWidget(QLabel("Agilent Status: "), 1, 0)
     usb_selector = QComboBox()
     agilent_status_label = QLabel("Not Connected")
-    layout.addWidget(agilent_status_label, 2, 1)
+    layout.addWidget(agilent_status_label, 1, 1)
     layout.addWidget(usb_selector, 1, 2)
 
     # get all visa resources:
