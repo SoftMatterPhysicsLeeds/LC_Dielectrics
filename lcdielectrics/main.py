@@ -1,7 +1,8 @@
 import sys
 
-from lc_dielectrics import MainWindow
 from qtpy.QtWidgets import QApplication
+
+from lcdielectrics.lc_dielectrics import MainWindow
 
 
 def main() -> None:
@@ -12,4 +13,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    main()
     main()

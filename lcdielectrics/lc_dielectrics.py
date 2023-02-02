@@ -1,13 +1,15 @@
 import json
+import sys
 import time
 
 import pyvisa
-from excel_writer import make_excel
-from instruments import AgilentSpectrometer, LinkamHotstage
 from qtpy import QtCore, QtGui
 from qtpy.QtCore import QThread, Signal
-from qtpy.QtWidgets import QFileDialog, QMainWindow, QWidget
-from ui import generate_ui
+from qtpy.QtWidgets import QApplication, QFileDialog, QMainWindow, QWidget
+
+from lcdielectrics.excel_writer import make_excel
+from lcdielectrics.instruments import AgilentSpectrometer, LinkamHotstage
+from lcdielectrics.ui import generate_ui
 
 # build command:
 # pyinstaller -i .\LCD_icon.ico --onefile .\LC_Dielectrics.py
@@ -301,3 +303,15 @@ class MainWindow(QMainWindow):
                 self.resultsDict[T]["B"].append(result["GB"][increment + 1])
 
     ###################### END OF CONTROL LOGIC ###############################
+
+
+def main() -> None:
+    app = QApplication(sys.argv)
+    main = MainWindow()
+    main.show()
+    sys.exit(app.exec_())
+
+
+if __name__ == "__main__":
+    main()
+    main()
