@@ -165,8 +165,6 @@ def generate_ui():
     (
         status_frame,
         measurement_status_label,
-        linkam_status_label,
-        agilent_status_label,
     ) = statusFrame()
 
     (
@@ -175,6 +173,8 @@ def generate_ui():
         usb_selector,
         init_linkam_button,
         init_agilent_button,
+        linkam_status_label,
+        agilent_status_label,
     ) = instrumentSettingsFrame()
 
     (
@@ -267,7 +267,7 @@ def createMultiValueWindow(
     sw.show()
 
 
-def statusFrame() -> tuple[QFrame, QLabel, QLabel, QLabel]:
+def statusFrame() -> tuple[QFrame, QLabel]:
     status_frame = QFrame()
     layout = QGridLayout(status_frame)
     status_frame.setFrameStyle(QFrame.Box)
@@ -276,37 +276,30 @@ def statusFrame() -> tuple[QFrame, QLabel, QLabel, QLabel]:
     measurement_status_label = QLabel("Idle")
     layout.addWidget(measurement_status_label, 0, 1)
 
-    layout.addWidget(QLabel("Linkam Status: "), 1, 0)
-    linkam_status_label = QLabel("Not Connected")
-    layout.addWidget(linkam_status_label, 1, 1)
-
-    layout.addWidget(QLabel("Agilent Status: "), 2, 0)
-    agilent_status_label = QLabel("Not Connected")
-    layout.addWidget(agilent_status_label, 2, 1)
-
     return (
         status_frame,
         measurement_status_label,
-        linkam_status_label,
-        agilent_status_label,
     )
 
 
 def instrumentSettingsFrame() -> tuple[
-    QFrame, QComboBox, QComboBox, QPushButton, QPushButton
+    QFrame, QComboBox, QComboBox, QPushButton, QPushButton, QLabel, QLabel
 ]:
     instrument_settings_frame = QFrame()
     layout = QGridLayout(instrument_settings_frame)
     instrument_settings_frame.setFrameStyle(QFrame.Box)
 
-    layout.addWidget(QLabel("Linkam COM port: "), 0, 0)
+    layout.addWidget(QLabel("Linkam Status: "), 0, 0)
+    linkam_status_label = QLabel("Not Connected")
+    layout.addWidget(linkam_status_label, 0, 1)
     com_selector = QComboBox()
+    layout.addWidget(com_selector, 0, 2)
 
-    layout.addWidget(com_selector, 0, 1)
-
-    layout.addWidget(QLabel("Agilent USB port: "), 1, 0)
+    layout.addWidget(QLabel("Agilent Status: "), 1, 0)
     usb_selector = QComboBox()
-    layout.addWidget(usb_selector, 1, 1)
+    agilent_status_label = QLabel("Not Connected")
+    layout.addWidget(agilent_status_label, 2, 1)
+    layout.addWidget(usb_selector, 1, 2)
 
     # get all visa resources:
     rm = pyvisa.ResourceManager()
@@ -321,10 +314,10 @@ def instrumentSettingsFrame() -> tuple[
             print(f"Unknown resource: {resource} ")
 
     init_linkam_button = QPushButton("Initialise")
-    layout.addWidget(init_linkam_button, 0, 2)
+    layout.addWidget(init_linkam_button, 0, 3)
 
     init_agilent_button = QPushButton("Initialise")
-    layout.addWidget(init_agilent_button, 1, 2)
+    layout.addWidget(init_agilent_button, 1, 3)
 
     return (
         instrument_settings_frame,
@@ -332,6 +325,8 @@ def instrumentSettingsFrame() -> tuple[
         usb_selector,
         init_linkam_button,
         init_agilent_button,
+        linkam_status_label,
+        agilent_status_label,
     )
 
 
