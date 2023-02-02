@@ -104,8 +104,8 @@ class AgilentSpectrometer:
             print("Could not connect to E4980A. Check address is correct.")
 
     def reset_and_clear(self) -> None:
-        self.spectrometer.write("*RST; *CLS")  # type: ignore # reset and clear buffer
-        self.spectrometer.write(":DISP:ENAB")  # type: ignore # enable display and update
+        self.spectrometer.write("*RST; *CLS")  # type:ignore # reset and clear buffer
+        self.spectrometer.write(":DISP:ENAB")  # type:ignore # enable display and update
         self.spectrometer.write(  # type: ignore
             ":INIT:CONT"
         )  # type: ignore # automatically perform continuous measurements
@@ -157,5 +157,4 @@ class AgilentSpectrometer:
         self.spectrometer.write(":BIAS:STATE ON")  # type: ignore
 
     def turn_off_DC_bias(self) -> None:
-        self.spectrometer.write(":BIAS:STATE OFF")  # type: ignore
         self.spectrometer.write(":BIAS:STATE OFF")  # type: ignore
