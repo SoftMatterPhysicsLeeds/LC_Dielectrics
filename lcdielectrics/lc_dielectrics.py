@@ -2,6 +2,7 @@ import json
 import sys
 import time
 
+import lcdielectrics.icon_qrc
 import pyvisa
 from qtpy import QtCore, QtGui
 from qtpy.QtCore import QThread, Signal

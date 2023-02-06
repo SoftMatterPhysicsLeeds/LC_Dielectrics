@@ -1,18 +1,8 @@
 import numpy as np
 import pyvisa
-from qtpy.QtWidgets import (
-    QAbstractItemView,
-    QComboBox,
-    QFrame,
-    QGridLayout,
-    QGroupBox,
-    QLabel,
-    QLineEdit,
-    QListWidget,
-    QListWidgetItem,
-    QPushButton,
-    QWidget,
-)
+from qtpy.QtWidgets import (QAbstractItemView, QComboBox, QFrame, QGridLayout,
+                            QGroupBox, QLabel, QLineEdit, QListWidget,
+                            QListWidgetItem, QPushButton, QWidget)
 
 ## TODO: Need docs everywhere
 ## TODO: User could easily bypass maximum number of points -
@@ -220,26 +210,26 @@ def generate_ui():
     widgets.update(
         {
             "measurement_status_label": measurement_status_label,
-            "linkam_status_label": linkam_status_label,
-            "agilent_status_label": agilent_status_label,
-            "com_selector": com_selector,
-            "usb_selector": usb_selector,
-            "init_linkam_button": init_linkam_button,
-            "init_agilent_button": init_agilent_button,
-            "time_selector": time_selector,
-            "averaging_factor": averaging_factor,
-            "bias_voltage_selector": bias_voltage_selector,
-            "go_to_temp_button": go_to_temp_button,
-            "go_to_temp": go_to_temp,
-            "temp_rate": temp_rate,
-            "stab_time": stab_time,
-            "output_file_input": output_file_input,
-            "add_file_button": add_file_button,
-            "go_button": go_button,
-            "stop_button": stop_button,
-            "freq_list_widget": freq_list_widget,
-            "volt_list_widget": volt_list_widget,
-            "temp_list_widget": temp_list_widget,
+            "linkam_status_label"     : linkam_status_label,
+            "agilent_status_label"    : agilent_status_label,
+            "com_selector"            : com_selector,
+            "usb_selector"            : usb_selector,
+            "init_linkam_button"      : init_linkam_button,
+            "init_agilent_button"     : init_agilent_button,
+            "time_selector"           : time_selector,
+            "averaging_factor"        : averaging_factor,
+            "bias_voltage_selector"   : bias_voltage_selector,
+            "go_to_temp_button"       : go_to_temp_button,
+            "go_to_temp"              : go_to_temp,
+            "temp_rate"               : temp_rate,
+            "stab_time"               : stab_time,
+            "output_file_input"       : output_file_input,
+            "add_file_button"         : add_file_button,
+            "go_button"               : go_button,
+            "stop_button"             : stop_button,
+            "freq_list_widget"        : freq_list_widget,
+            "volt_list_widget"        : volt_list_widget,
+            "temp_list_widget"        : temp_list_widget,
         }
     )
 
