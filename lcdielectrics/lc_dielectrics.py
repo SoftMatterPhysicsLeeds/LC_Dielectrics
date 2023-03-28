@@ -214,15 +214,15 @@ class MainWindow(QMainWindow):
 
     def run_spectrometer(self) -> None:
 
-        thread = QThread()
+        self.thread = QThread()
         self.worker = Experiment(self.agilent)
-        self.worker.moveToThread(QThread())
-        thread.started.connect(self.worker.run_spectrometer)
-        self.worker.finished.connect(thread.quit)
-        self.worker.finished.connect(self.worker.deleteLater)
-        thread.finished.connect(thread.deleteLater)
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.run_spectrometer)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.thread.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
         self.worker.result.connect(self.get_result)
-        thread.start()
+        self.thread.start()
 
     def get_result(self, result: dict) -> None:
         self.parse_result(result)
