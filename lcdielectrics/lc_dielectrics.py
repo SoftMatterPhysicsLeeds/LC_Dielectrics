@@ -140,11 +140,9 @@ class MainWindow(QMainWindow):
         ):
             self.resultsDict[self.T_list[self.T_step]] = dict()
 
-            self.measurement_status = f"""Stabilising temperature for \\
-                     {float(self.widgets['stab_time'].text())}s"""
+            self.measurement_status = f"Stabilising temperature for {float(self.widgets['stab_time'].text())}s"
         elif (
-            self.measurement_status
-            == f"Stabilising temperature for {float(self.widgets['stab_time'].text())}s"
+            self.measurement_status == f"Stabilising temperature for {float(self.widgets['stab_time'].text())}s"
         ):
             self.t_stable_count += 1
 
