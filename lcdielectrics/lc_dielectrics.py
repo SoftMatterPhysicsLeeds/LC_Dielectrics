@@ -6,8 +6,8 @@ import pyvisa
 import json
 import time
 
-from Instruments import LinkamHotstage, AgilentSpectrometer
-from Frames import (
+from lcdielectrics.instruments import LinkamHotstage, AgilentSpectrometer
+from lcdielectrics.frames import (
     statusFrame,
     voltageSettingsFrame,
     temperatureSettingsFrame,
@@ -17,10 +17,10 @@ from Frames import (
     outputDataSettingsFrame,
     graphFrame,
 )
-from Excel_Writer import make_excel
+from lcdielectrics.excel_writer import make_excel
 
 # build command:
-# pyinstaller -i .\LCD_icon.ico --onefile .\LC_Dielectrics.py
+# pyinstaller -i .\LCD_icon.ico --onefile .\lc_dielectrics.py
 # if you install modules/packages with conda ->
 #    resulting file is 6x bigger (300mb) - best to use pip
 
