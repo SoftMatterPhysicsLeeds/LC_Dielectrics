@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "lcdielectrics"
+version = "0.0.1"
+authors = [
+    {name =  "Dan Baker", email = "D.L.Baker@leeds.ac.uk"}
+]
+description = "GUI to perform dielectric measurements on LC cells."
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)"
+]
+dependencies = [
+    "numpy",
+    "pandas",
+    "pyqtgraph",
+    "pyside6",
+    "pyvisa",
+    "qtpy",
+    "xlsxwriter",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/SoftMatterPhysicsLeeds/LC_Dielectrics"
+"Bug Tracker" = "https://github.com/SoftMatterPhysicsLeeds/LC_Dielectrics/issues"
+
+[project.gui-scripts]
+lcdielectrics = "lcdielectrics.lc_dielectrics:main"
