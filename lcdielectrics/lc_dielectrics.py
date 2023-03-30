@@ -61,7 +61,7 @@ class MainWindow(QMainWindow):
 
         self.widgets["go_to_temp_button"].clicked.connect(
             lambda: self.linkam.set_temperature(
-                float(self.go_to_temp.text()), float(self.temp_rate.text())
+                float(self.widgets["go_to_temp"].text()), float(self.widgets["temp_rate"].text())
             )
         )
 
