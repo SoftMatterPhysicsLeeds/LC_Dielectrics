@@ -2,20 +2,6 @@ import json
 import sys
 import time
 
-<<<<<<< HEAD
-from lcdielectrics.instruments import LinkamHotstage, AgilentSpectrometer
-from lcdielectrics.frames import (
-    statusFrame,
-    voltageSettingsFrame,
-    temperatureSettingsFrame,
-    frequencySettingsFrame,
-    instrumentSettingsFrame,
-    measurementSettingsFrame,
-    outputDataSettingsFrame,
-    graphFrame,
-)
-from lcdielectrics.excel_writer import make_excel
-=======
 import lcdielectrics.icon_qrc
 import pyvisa
 from qtpy import QtCore, QtGui
@@ -25,7 +11,6 @@ from qtpy.QtWidgets import QApplication, QFileDialog, QMainWindow, QWidget
 from lcdielectrics.excel_writer import make_excel
 from lcdielectrics.instruments import AgilentSpectrometer, LinkamHotstage
 from lcdielectrics.ui import generate_ui
->>>>>>> 2a3f3c5f993007e5ef72e8c9f69dd1b5c2d3419a
 
 # build command:
 # pyinstaller -i .\LCD_icon.ico --onefile .\lc_dielectrics.py
