@@ -2,12 +2,12 @@ import json
 import sys
 import time
 
-import lcdielectrics.icon_qrc
 import pyvisa
 from qtpy import QtCore, QtGui
 from qtpy.QtCore import QThread, Signal
 from qtpy.QtWidgets import QApplication, QFileDialog, QMainWindow, QWidget
 
+from lcdielectrics import icon_qrc
 from lcdielectrics.excel_writer import make_excel
 from lcdielectrics.instruments import AgilentSpectrometer, LinkamHotstage
 from lcdielectrics.ui import generate_ui
