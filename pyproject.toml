@@ -23,6 +23,11 @@ dependencies = [
     "pyvisa",
     "qtpy",
     "xlsxwriter",
+    "pyvisa-py",
+    "pyusb",
+    "pyserial",
+    "psutil",
+    "zeroconf"
 ]
 
 [project.urls]
