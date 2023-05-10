@@ -92,7 +92,7 @@ class AgilentSpectrometer:
         self.spectrometer.write_termination = "\n"  # type: ignore
         # set timeout to long enough that the machine doesn't loose
         # connection during measurement.
-        self.spectrometer.timeout = 100000
+        self.spectrometer.timeout = 10000000
         # self.spectrometer.query("*IDN?")
         try:
             self.spectrometer.write("*IDN?")  # type: ignore
