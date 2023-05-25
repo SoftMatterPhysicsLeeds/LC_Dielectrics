@@ -125,23 +125,13 @@ class MainWindow(QMainWindow):
             self.linkam_action == "Stopped" or self.linkam_action == "Holding"
         ):
             self.linkam.set_temperature(self.T_list[self.T_step], self.T_rate)
-            self.agilent.set_frequency(self.freq_list[self.freq_step])
-            self.agilent.set_voltage(self.volt_list[self.volt_step])
             
-            if len(self.voltage_list) > 1:
-                if self.freq_step != 0:
-                    self.measurement_status = "Temperature Stabilised"
-                else:
-                    self.measurement_status = f"Going to T: {self.T_list[self.T_step]}"
-            else:
-                self.measurement_status = f"Going to T: {self.T_list[self.T_step]}"
+            self.measurement_status = f"Going to T: {self.T_list[self.T_step]}"
 
         elif (
             self.measurement_status == f"Going to T: {self.T_list[self.T_step]}"
             and self.linkam_action == "Holding"
         ):
-            self.resultsDict[self.T_list[self.T_step]] = dict()
-
             self.measurement_status = f"Stabilising temperature for {float(self.widgets['stab_time'].text())}s"
         elif (
             self.measurement_status == f"Stabilising temperature for {float(self.widgets['stab_time'].text())}s"
@@ -154,6 +144,8 @@ class MainWindow(QMainWindow):
 
         elif self.measurement_status == "Temperature Stabilised":
             self.measurement_status = "Collecting data"
+            self.agilent.set_frequency(self.freq_list[self.freq_step])
+            self.agilent.set_voltage(self.voltage_list[self.volt_step])
             self.run_spectrometer()
 
         elif self.measurement_status == "Finished":
@@ -174,16 +166,12 @@ class MainWindow(QMainWindow):
             float(self.widgets["volt_list_widget"].item(x).text())
             for x in range(self.widgets["volt_list_widget"].count())
         ]
+
         self.T_list = [
             float(self.widgets["temp_list_widget"].item(x).text())
             for x in range(self.widgets["temp_list_widget"].count())
         ]
         self.T_list = [round(x, 2) for x in self.T_list]
-
-        if len(self.voltage_list) > 1:
-            self.voltage_list_mode = True 
-        else:
-            self.resultsDict["volt"] = self.voltage_list[0]
 
         self.agilent.set_aperture_mode(
             self.widgets["time_selector"].currentText(),
@@ -202,6 +190,20 @@ class MainWindow(QMainWindow):
         self.T_step = 0
         self.freq_step = 0
         self.volt_step = 0
+
+        T = self.T_list[self.T_step]
+        freq = self.freq_list[self.freq_step]
+        
+        self.resultsDict[self.T_list[self.T_step]] = dict()
+        self.resultsDict[T][freq] = dict()
+        self.resultsDict[T][freq]["volt"] = []
+        self.resultsDict[T][freq]["Cp"] = []
+        self.resultsDict[T][freq]["D"] = []
+        self.resultsDict[T][freq]["G"] = []
+        self.resultsDict[T][freq]["B"] = []
+
+
+
         self.measurement_status = "Setting temperature"
 
     def stop_measurement(self) -> None:
@@ -223,80 +225,70 @@ class MainWindow(QMainWindow):
 
     def get_result(self, result: dict) -> None:
         self.parse_result(result)
-        if self.voltage_list_mode:
-            if (
-                self.T_step == len(self.T_list) - 1
-                and self.freq_step == len(self.freq_list) - 1
-            ):
-                self.measurement_status = "Finished"
-                make_excel(
-                    self.resultsDict,
-                    self.widgets["output_file_input"].text(),
-                    self.voltage_list_mode,
-                )
-                with open(self.widgets["output_file_input"].text(), "w") as write_file:
-                    json.dump(self.resultsDict, write_file, indent=4)
-            else:
-                if self.freq_step == len(self.freq_list) - 1:
-                    self.T_step += 1
-                    self.freq_step = 0
-                    self.measurement_status = "Setting temperature"
-
-                else:
-                    self.freq_step += 1
-                    self.measurement_status = "Setting temperature"
+    
+        if (
+            self.T_step == len(self.T_list) - 1
+            and self.volt_step == len(self.voltage_list) - 1 and self.freq_step == len(self.freq_list) - 1
+        ):
+            self.measurement_status = "Finished"
+            make_excel(
+                self.resultsDict,
+                self.widgets["output_file_input"].text(),
+            )
+            with open(self.widgets["output_file_input"].text(), "w") as write_file:
+                json.dump(self.resultsDict, write_file, indent=4)
         else:
-            if self.T_step == len(self.T_list) - 1:
-                self.measurement_status = "Finished"
-                make_excel(
-                    self.resultsDict,
-                    self.widgets["output_file_input"].text(),
-                    self.voltage_list_mode,
-                )
-                with open(self.widgets["output_file_input"].text(), "w") as write_file:
-                    json.dump(self.resultsDict, write_file, indent=4)
 
-            else:
+
+
+            if self.volt_step == len(self.voltage_list) - 1 and self.freq_step == len(self.freq_list) - 1:
                 self.T_step += 1
+                self.freq_step = 0
+                self.volt_step = 0
+                
+                T = self.T_list[self.T_step]
+                freq = self.freq_list[self.freq_step]
+
+                self.resultsDict[self.T_list[self.T_step]] = dict()
+                self.resultsDict[T][freq] = dict()
+                self.resultsDict[T][freq]["volt"] = []
+                self.resultsDict[T][freq]["Cp"] = []
+                self.resultsDict[T][freq]["D"] = []
+                self.resultsDict[T][freq]["G"] = []
+                self.resultsDict[T][freq]["B"] = []
+
                 self.measurement_status = "Setting temperature"
+
+            elif self.volt_step == len(self.voltage_list) - 1:
+                self.freq_step+=1 
+                self.volt_step=0
+                
+                T = self.T_list[self.T_step]
+                freq = self.freq_list[self.freq_step]
+
+                self.resultsDict[T][freq] = dict()
+                self.resultsDict[T][freq]["volt"] = []
+                self.resultsDict[T][freq]["Cp"] = []
+                self.resultsDict[T][freq]["D"] = []
+                self.resultsDict[T][freq]["G"] = []
+                self.resultsDict[T][freq]["B"] = []
+
+                self.measurement_status = "Temperature Stabilised"
+            else:
+                self.volt_step +=1
+                self.measurement_status = "Temperature Stabilised"
 
     def parse_result(self, result: dict) -> None:
 
         T = self.T_list[self.T_step]
-
-        if self.voltage_list_mode:
-            freq = self.freq_list[self.freq_step]
-
-            self.resultsDict[T][freq] = dict()
-
-            self.resultsDict[T][freq]["volt"] = []
-            self.resultsDict[T][freq]["Cp"] = []
-            self.resultsDict[T][freq]["D"] = []
-            self.resultsDict[T][freq]["G"] = []
-            self.resultsDict[T][freq]["B"] = []
-
-            for i, volt in enumerate(self.voltage_list):
-                increment = i + (3 * i)
-                self.resultsDict[T][freq]["volt"].append(volt)
-                self.resultsDict[T][freq]["Cp"].append(result["CPD"][increment])
-                self.resultsDict[T][freq]["D"].append(result["CPD"][increment + 1])
-                self.resultsDict[T][freq]["G"].append(result["GB"][increment])
-                self.resultsDict[T][freq]["B"].append(result["GB"][increment + 1])
-        else:
-
-            self.resultsDict[T]["freq"] = []
-            self.resultsDict[T]["Cp"] = []
-            self.resultsDict[T]["D"] = []
-            self.resultsDict[T]["G"] = []
-            self.resultsDict[T]["B"] = []
-
-            for i, freq in enumerate(self.freq_list):
-                increment = i + (3 * i)
-                self.resultsDict[T]["freq"].append(freq)
-                self.resultsDict[T]["Cp"].append(result["CPD"][increment])
-                self.resultsDict[T]["D"].append(result["CPD"][increment + 1])
-                self.resultsDict[T]["G"].append(result["GB"][increment])
-                self.resultsDict[T]["B"].append(result["GB"][increment + 1])
+        freq = self.freq_list[self.freq_step]
+        volt = self.voltage_list[self.volt_step]
+        self.resultsDict[T][freq]["volt"].append(volt)
+        self.resultsDict[T][freq]["Cp"].append(result["CPD"][0])
+        self.resultsDict[T][freq]["D"].append(result["CPD"][1])
+        self.resultsDict[T][freq]["G"].append(result["GB"][0])
+        self.resultsDict[T][freq]["B"].append(result["GB"][1])
+       
 
     ###################### END OF CONTROL LOGIC ###############################
 

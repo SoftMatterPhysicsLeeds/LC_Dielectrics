@@ -99,7 +99,7 @@ class AgilentSpectrometer:
             self.spectrometer_id = self.spectrometer.read()  # type: ignore
             print(self.spectrometer_id)
             self.reset_and_clear()
-            self.set_voltage(0)
+            
 
         except pyvisa.errors.VisaIOError:
             print("Could not connect to E4980A. Check address is correct.")
@@ -111,6 +111,7 @@ class AgilentSpectrometer:
             ":INIT:CONT"
         )  # type: ignore # automatically perform continuous measurements
         self.spectrometer.write(":TRIG:SOUR EXT")  # type: ignore
+        self.set_voltage(0)
 
     def set_frequency(self, freq: float) -> None:
         self.spectrometer.write(f":FREQ {freq}")  # type: ignore
