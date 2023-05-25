@@ -178,16 +178,13 @@ class MainWindow(QMainWindow):
         ]
         self.T_list = [round(x, 2) for x in self.T_list]
 
-        print(self.widgets["volt_list_widget"].count())
+        self.agilent.set_voltage(self.voltage_list[0])
+        self.agilent.set_frequency(self.freq_list[0])
 
         if len(self.voltage_list) > 1:
-            self.voltage_list_mode = True
-            self.agilent.set_volt_list(self.voltage_list)
-            self.agilent.set_frequency(self.freq_list[0])
+            self.voltage_list_mode = True 
         else:
             self.resultsDict["volt"] = self.voltage_list[0]
-            self.agilent.set_voltage(self.voltage_list[0])
-            self.agilent.set_freq_list(self.freq_list)
 
         self.agilent.set_aperture_mode(
             self.widgets["time_selector"].currentText(),
@@ -205,6 +202,7 @@ class MainWindow(QMainWindow):
         self.T_rate = float(self.widgets["temp_rate"].text())
         self.T_step = 0
         self.freq_step = 0
+        self.volt_step = 0
         self.measurement_status = "Setting temperature"
 
     def stop_measurement(self) -> None:
