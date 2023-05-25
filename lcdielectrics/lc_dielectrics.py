@@ -125,8 +125,10 @@ class MainWindow(QMainWindow):
             self.linkam_action == "Stopped" or self.linkam_action == "Holding"
         ):
             self.linkam.set_temperature(self.T_list[self.T_step], self.T_rate)
+            self.agilent.set_frequency(self.freq_list[self.freq_step])
+            self.agilent.set_voltage(self.volt_list[self.volt_step])
+            
             if len(self.voltage_list) > 1:
-                self.agilent.set_frequency(self.freq_list[self.freq_step])
                 if self.freq_step != 0:
                     self.measurement_status = "Temperature Stabilised"
                 else:
@@ -177,9 +179,6 @@ class MainWindow(QMainWindow):
             for x in range(self.widgets["temp_list_widget"].count())
         ]
         self.T_list = [round(x, 2) for x in self.T_list]
-
-        self.agilent.set_voltage(self.voltage_list[0])
-        self.agilent.set_frequency(self.freq_list[0])
 
         if len(self.voltage_list) > 1:
             self.voltage_list_mode = True 
