@@ -169,6 +169,7 @@ def generate_ui():
 
     (
         measurement_settings_frame,
+        delay_time,
         time_selector,
         averaging_factor,
         bias_voltage_selector,
@@ -216,6 +217,7 @@ def generate_ui():
             "usb_selector"            : usb_selector,
             "init_linkam_button"      : init_linkam_button,
             "init_agilent_button"     : init_agilent_button,
+            "delay_time"              : delay_time,
             "time_selector"           : time_selector,
             "averaging_factor"        : averaging_factor,
             "bias_voltage_selector"   : bias_voltage_selector,
@@ -333,27 +335,33 @@ def measurementSettingsFrame() -> tuple[QGroupBox, QComboBox, QLineEdit, QComboB
     measurement_settings_frame.setFrame = True  # type: ignore
     measurement_settings_frame.setTitle("Measurement Settings")
 
-    layout.addWidget(QLabel("Meas. Time. Mode: "), 0, 0)
+    layout.addWidget(QLabel("Delay time (s):"), 0, 0)    
+    delay_time = QLineEdit("0.5")
+    layout.addWidget(delay_time, 0, 1)
+    delay_time.editingFinished.connect(lambda: limits(delay_time, 9999, 0.5))
+
+    layout.addWidget(QLabel("Meas. Time. Mode: "), 0, 2)
     time_selector = QComboBox()
     time_selector.addItem("SHOR")
     time_selector.addItem("MED")
     time_selector.addItem("LONG")
-    layout.addWidget(time_selector, 0, 1)
+    layout.addWidget(time_selector, 0, 3)
 
-    layout.addWidget(QLabel("Averaging Factor"), 0, 2)
+    layout.addWidget(QLabel("Averaging Factor"), 0, 4)
     averaging_factor = QLineEdit("1")
-    layout.addWidget(averaging_factor, 0, 3)
+    layout.addWidget(averaging_factor, 0, 5)
     averaging_factor.editingFinished.connect(lambda: limits(averaging_factor, 256, 1))
 
-    layout.addWidget(QLabel("Bias Level (V)"), 0, 4)
+    layout.addWidget(QLabel("Bias Level (V)"), 0, 6)
     bias_voltage_selector = QComboBox()
     bias_voltage_selector.addItem("0")
     bias_voltage_selector.addItem("1.5")
     bias_voltage_selector.addItem("2")
-    layout.addWidget(bias_voltage_selector, 0, 5)
+    layout.addWidget(bias_voltage_selector, 0, 7)
 
     return (
         measurement_settings_frame,
+        delay_time,
         time_selector,
         averaging_factor,
         bias_voltage_selector,

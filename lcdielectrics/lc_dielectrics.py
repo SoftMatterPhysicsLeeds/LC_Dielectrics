@@ -18,6 +18,17 @@ from lcdielectrics.ui import generate_ui
 #    resulting file is 6x bigger (300mb) - best to use pip
 
 
+class Sleepy(QtCore.QObject):
+    finished = Signal()
+    def __init__(self, sleep_time):
+        super().__init__()
+        self.sleep_time = sleep_time
+    
+    def sleep(self):
+        time.sleep(self.sleep_time)
+        self.finished.emit()
+
+
 class Experiment(QtCore.QObject):
     finished = Signal()
     result = Signal(dict)
@@ -148,7 +159,8 @@ class MainWindow(QMainWindow):
             self.agilent.set_frequency(self.freq_list[self.freq_step])
             self.agilent.set_voltage(self.voltage_list[self.volt_step])
             ## insert wait time here!
-            self.run_spectrometer()
+            self.sleep_before_measurement()
+            
 
         elif self.measurement_status == "Finished":
             self.linkam.stop()
@@ -212,6 +224,17 @@ class MainWindow(QMainWindow):
         self.linkam.stop()
         self.agilent.reset_and_clear()
         self.measurement_status = "Idle"
+
+    def sleep_before_measurement(self):
+        self.thread = QThread()
+        self.worker = Sleepy(float(self.widgets["delay_time"].text()))
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.sleep)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.run_spectrometer)
+        self.worker.finished.connect(self.thread.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.thread.start()
 
     def run_spectrometer(self) -> None:
 

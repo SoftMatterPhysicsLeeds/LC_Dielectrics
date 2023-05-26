@@ -26,6 +26,7 @@ class LinkamHotstage:
         try:
             self.current_temperature()
             print("Linkam Connected!")
+            
 
         except pyvisa.errors.VisaIOError:
             print(
