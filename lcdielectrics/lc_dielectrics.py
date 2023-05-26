@@ -28,6 +28,7 @@ class Experiment(QtCore.QObject):
 
     def run_spectrometer(self) -> None:
         result = dict()
+        time.sleep(0.5)
         result["CPD"] = self.agilent.measure("CPD")
         time.sleep(0.5)
         result["GB"] = self.agilent.measure("GB")
@@ -146,6 +147,7 @@ class MainWindow(QMainWindow):
             self.measurement_status = "Collecting data"
             self.agilent.set_frequency(self.freq_list[self.freq_step])
             self.agilent.set_voltage(self.voltage_list[self.volt_step])
+            ## insert wait time here!
             self.run_spectrometer()
 
         elif self.measurement_status == "Finished":
