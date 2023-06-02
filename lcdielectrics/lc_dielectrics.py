@@ -45,6 +45,7 @@ class Experiment(QtCore.QObject):
 
     def run_spectrometer(self) -> None:
         result = dict()
+        
         time.sleep(self.delay)
         result["CPD"] = self.agilent.measure("CPD")
         time.sleep(0.5)
@@ -78,15 +79,15 @@ class MainWindow(QMainWindow):
         
 
        
-        self.xdata = []
-        self.ydata = []
+        # self.xdata = []
+        # self.ydata = []
 
-        self.canvas = MplCanvas()
-        layout.addWidget(self.canvas, 0, 0)
-        self.layout.addWidget(graph_frame,0,2,7,1)
+        # self.canvas = MplCanvas()
+        # layout.addWidget(self.canvas, 0, 0)
+        # self.layout.addWidget(graph_frame,0,2,7,1)
 
-        self._plot_ref  = None
-        self.update_plot()
+        # self._plot_ref  = None
+        # self.update_plot()
         
         
 
@@ -149,10 +150,9 @@ class MainWindow(QMainWindow):
     def update_ui(self) -> None:
         self.widgets["agilent_status_label"].setText(self.agilent_status)
         
-        self.update_plot()
         # if Linkam is connected, show real-time temperature
         if self.linkam_status == "Connected":
-            self.current_T, self.linkam_action = self.linkam.current_teperature()
+            self.current_T, self.linkam_action = self.linkam.current_temperature()
             self.widgets["linkam_status_label"].setText(
                 f"{self.linkam_status}, {self.linkam_action}, T: {self.current_T}"
             )
@@ -252,6 +252,7 @@ class MainWindow(QMainWindow):
         self.measurement_status = "Setting temperature"
 
     def stop_measurement(self) -> None:
+        self.worker.finished.emit()
         self.linkam.stop()
         self.agilent.reset_and_clear()
         self.measurement_status = "Idle"
@@ -263,76 +264,82 @@ class MainWindow(QMainWindow):
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run_spectrometer)
         self.worker.finished.connect(self.thread.quit)
-        self.worker.finished.connect(self.thread.deleteLater)
+        self.worker.finished.connect(self.worker.deleteLater)
         self.thread.finished.connect(self.thread.deleteLater)
         self.worker.result.connect(self.get_result)
         self.thread.start()
 
+        
     def get_result(self, result: dict) -> None:
         self.parse_result(result)
+
+        if self.measurement_status == "Idle":
+            pass
+
+        else:
     
-        if len(self.voltage_list)==1: 
-            make_excel(
-                self.resultsDict,
-                self.widgets["output_file_input"].text(),
-                True,
-            )
-        else:
-            make_excel(
-                self.resultsDict,
-                self.widgets["output_file_input"].text(),
-                False,
-            )
-
-
-        with open(self.widgets["output_file_input"].text(), "w") as write_file:
-            json.dump(self.resultsDict, write_file, indent=4)
-        if (
-            self.T_step == len(self.T_list) - 1
-            and self.volt_step == len(self.voltage_list) - 1 and self.freq_step == len(self.freq_list) - 1
-        ):
-            self.measurement_status = "Finished"
-            
-        else:
-
-
-
-            if self.volt_step == len(self.voltage_list) - 1 and self.freq_step == len(self.freq_list) - 1:
-                self.T_step += 1
-                self.freq_step = 0
-                self.volt_step = 0
-                
-                T = self.T_list[self.T_step]
-                freq = self.freq_list[self.freq_step]
-
-                self.resultsDict[self.T_list[self.T_step]] = dict()
-                self.resultsDict[T][freq] = dict()
-                self.resultsDict[T][freq]["volt"] = []
-                self.resultsDict[T][freq]["Cp"] = []
-                self.resultsDict[T][freq]["D"] = []
-                self.resultsDict[T][freq]["G"] = []
-                self.resultsDict[T][freq]["B"] = []
-
-                self.measurement_status = "Setting temperature"
-
-            elif self.volt_step == len(self.voltage_list) - 1:
-                self.freq_step+=1 
-                self.volt_step=0
-                
-                T = self.T_list[self.T_step]
-                freq = self.freq_list[self.freq_step]
-
-                self.resultsDict[T][freq] = dict()
-                self.resultsDict[T][freq]["volt"] = []
-                self.resultsDict[T][freq]["Cp"] = []
-                self.resultsDict[T][freq]["D"] = []
-                self.resultsDict[T][freq]["G"] = []
-                self.resultsDict[T][freq]["B"] = []
-
-                self.measurement_status = "Temperature Stabilised"
+            if len(self.voltage_list)==1: 
+                make_excel(
+                    self.resultsDict,
+                    self.widgets["output_file_input"].text(),
+                    True,
+                )
             else:
-                self.volt_step +=1
-                self.measurement_status = "Temperature Stabilised"
+                make_excel(
+                    self.resultsDict,
+                    self.widgets["output_file_input"].text(),
+                    False,
+                )
+
+
+            with open(self.widgets["output_file_input"].text(), "w") as write_file:
+                json.dump(self.resultsDict, write_file, indent=4)
+            if (
+                self.T_step == len(self.T_list) - 1
+                and self.volt_step == len(self.voltage_list) - 1 and self.freq_step == len(self.freq_list) - 1
+            ):
+                self.measurement_status = "Finished"
+                
+            else:
+
+
+
+                if self.volt_step == len(self.voltage_list) - 1 and self.freq_step == len(self.freq_list) - 1:
+                    self.T_step += 1
+                    self.freq_step = 0
+                    self.volt_step = 0
+                    
+                    T = self.T_list[self.T_step]
+                    freq = self.freq_list[self.freq_step]
+
+                    self.resultsDict[self.T_list[self.T_step]] = dict()
+                    self.resultsDict[T][freq] = dict()
+                    self.resultsDict[T][freq]["volt"] = []
+                    self.resultsDict[T][freq]["Cp"] = []
+                    self.resultsDict[T][freq]["D"] = []
+                    self.resultsDict[T][freq]["G"] = []
+                    self.resultsDict[T][freq]["B"] = []
+
+                    self.measurement_status = "Setting temperature"
+
+                elif self.volt_step == len(self.voltage_list) - 1:
+                    self.freq_step+=1 
+                    self.volt_step=0
+                    
+                    T = self.T_list[self.T_step]
+                    freq = self.freq_list[self.freq_step]
+
+                    self.resultsDict[T][freq] = dict()
+                    self.resultsDict[T][freq]["volt"] = []
+                    self.resultsDict[T][freq]["Cp"] = []
+                    self.resultsDict[T][freq]["D"] = []
+                    self.resultsDict[T][freq]["G"] = []
+                    self.resultsDict[T][freq]["B"] = []
+
+                    self.measurement_status = "Temperature Stabilised"
+                else:
+                    self.volt_step +=1
+                    self.measurement_status = "Temperature Stabilised"
 
     def parse_result(self, result: dict) -> None:
 
@@ -345,10 +352,13 @@ class MainWindow(QMainWindow):
         self.resultsDict[T][freq]["G"].append(result["GB"][0])
         self.resultsDict[T][freq]["B"].append(result["GB"][1])
 
-        self.xdata = self.resultsDict[T][freq]["volt"]
-        self.ydata = self.resultsDict[T][freq]["Cp"]
-        self.canvas.axes.set_title(f"T: {T}")
-        self.update_plot()
+        # self.xdata = self.resultsDict[T][freq]["volt"]
+        # self.ydata = self.resultsDict[T][freq]["Cp"]
+        # print(self.xdata)
+        # print(self.ydata)
+
+        # self.canvas.axes.set_title(f"T: {T}")
+        # self.update_plot()
 
     def update_plot(self):
         # Note: we no longer need to clear the axis.
@@ -360,7 +370,9 @@ class MainWindow(QMainWindow):
             self._plot_ref = plot_refs[0]
             self.canvas.axes.set_title(f"Hello!")
         else:
-            # We have a reference, we can use it to update the data for that line.
+            # We have a reference, we can use it to update the data for that
+            # line.
+            self._plot_ref.set_xdata(self.xdata)
             self._plot_ref.set_ydata(self.ydata)
 
         # Trigger the canvas to update and redraw.
