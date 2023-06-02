@@ -1,11 +1,12 @@
 import json
 import sys
 import time
+import random
 
 import pyvisa
 from qtpy import QtCore, QtGui
 from qtpy.QtCore import QThread, Signal
-from qtpy.QtWidgets import QApplication, QFileDialog, QMainWindow, QWidget
+from qtpy.QtWidgets import QApplication, QFileDialog, QMainWindow, QWidget, QFrame, QGridLayout
 
 from lcdielectrics import icon_qrc
 from lcdielectrics.excel_writer import make_excel
@@ -16,6 +17,20 @@ from lcdielectrics.ui import generate_ui
 # pyinstaller -i .\LCD_icon.ico --onefile .\lc_dielectrics.py
 # if you install modules/packages with conda ->
 #    resulting file is 6x bigger (300mb) - best to use pip
+
+import matplotlib
+matplotlib.use('Qt5Agg')
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+
+
+# class taken from https://www.pythonguis.com/tutorials/pyside6-plotting-matplotlib/
+class MplCanvas(FigureCanvasQTAgg):
+    def __init__(self, parent=None, width=5, height=4, dpi=100):
+        fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = fig.add_subplot(111)
+        super(MplCanvas, self).__init__(fig)
 
 
 
@@ -58,6 +73,27 @@ class MainWindow(QMainWindow):
 
         self.layout, self.widgets = generate_ui()
 
+        graph_frame = QFrame()
+        layout = QGridLayout(graph_frame)
+        
+
+       
+        self.xdata = []
+        self.ydata = []
+
+        self.canvas = MplCanvas()
+        layout.addWidget(self.canvas, 0, 0)
+        self.layout.addWidget(graph_frame,0,2,7,1)
+
+        self._plot_ref  = None
+        self.update_plot()
+        
+        
+
+        widget = QWidget()
+        widget.setLayout(self.layout)
+        self.setCentralWidget(widget)
+
         self.widgets["init_linkam_button"].clicked.connect(self.init_linkam)
         self.widgets["init_agilent_button"].clicked.connect(self.init_agilent)
         self.widgets["add_file_button"].clicked.connect(self.add_file_dialogue)
@@ -77,11 +113,13 @@ class MainWindow(QMainWindow):
         self.timer.timeout.connect(self.update_ui)
         self.timer.start()
 
-        widget = QWidget()
-        widget.setLayout(self.layout)
-        self.setCentralWidget(widget)
+        
+
+        self.show()
 
     ###################### Control Logic ################################
+
+    
 
     def init_agilent(self) -> None:
         self.agilent = AgilentSpectrometer(self.widgets["usb_selector"].currentText())
@@ -110,10 +148,11 @@ class MainWindow(QMainWindow):
 
     def update_ui(self) -> None:
         self.widgets["agilent_status_label"].setText(self.agilent_status)
-
+        
+        self.update_plot()
         # if Linkam is connected, show real-time temperature
         if self.linkam_status == "Connected":
-            self.current_T, self.linkam_action = self.linkam.current_temperature()
+            self.current_T, self.linkam_action = self.linkam.current_teperature()
             self.widgets["linkam_status_label"].setText(
                 f"{self.linkam_status}, {self.linkam_action}, T: {self.current_T}"
             )
@@ -159,6 +198,7 @@ class MainWindow(QMainWindow):
             self.measurement_status = "Idle"
 
         self.widgets["measurement_status_label"].setText(self.measurement_status)
+
 
     def start_measurement(self) -> None:
 
@@ -304,6 +344,27 @@ class MainWindow(QMainWindow):
         self.resultsDict[T][freq]["D"].append(result["CPD"][1])
         self.resultsDict[T][freq]["G"].append(result["GB"][0])
         self.resultsDict[T][freq]["B"].append(result["GB"][1])
+
+        self.xdata = self.resultsDict[T][freq]["volt"]
+        self.ydata = self.resultsDict[T][freq]["Cp"]
+        self.canvas.axes.set_title(f"T: {T}")
+        self.update_plot()
+
+    def update_plot(self):
+        # Note: we no longer need to clear the axis.
+        if self._plot_ref is None:
+            # First time we have no plot reference, so do a normal plot.
+            # .plot returns a list of line <reference>s, as we're
+            # only getting one we can take the first element.
+            plot_refs = self.canvas.axes.plot(self.xdata, self.ydata, 'r')
+            self._plot_ref = plot_refs[0]
+            self.canvas.axes.set_title(f"Hello!")
+        else:
+            # We have a reference, we can use it to update the data for that line.
+            self._plot_ref.set_ydata(self.ydata)
+
+        # Trigger the canvas to update and redraw.
+        self.canvas.draw()
        
 
     ###################### END OF CONTROL LOGIC ###############################

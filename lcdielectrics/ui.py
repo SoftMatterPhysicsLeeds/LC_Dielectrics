@@ -3,10 +3,14 @@ import pyvisa
 from qtpy.QtWidgets import (QAbstractItemView, QComboBox, QFrame, QGridLayout,
                             QGroupBox, QLabel, QLineEdit, QListWidget,
                             QListWidgetItem, QPushButton, QWidget)
+# import pyqtgraph as pg
+
 
 ## TODO: Need docs everywhere
 ## TODO: User could easily bypass maximum number of points -
 #       need to check length of listboxes after population
+
+
 
 
 class ValueSelectorWindow(QWidget):
@@ -192,6 +196,10 @@ def generate_ui():
         add_file_button,
     ) = outputDataSettingsFrame()
 
+
+    
+    # 
+
     layout.addWidget(status_frame, 0, 0, 1, 2)
     layout.addWidget(instrument_settings_frame, 1, 0, 1, 2)
     layout.addWidget(measurement_settings_frame, 2, 0, 1, 2)
@@ -199,6 +207,7 @@ def generate_ui():
     layout.addWidget(voltage_settings_frame, 3, 1)
     layout.addWidget(temperature_settings_frame, 4, 0, 1, 2)
     layout.addWidget(output_settings_frame, 5, 0, 1, 2)
+    
 
     go_button = QPushButton("Start")
     layout.addWidget(go_button, 6, 0, 1, 1)
@@ -232,6 +241,7 @@ def generate_ui():
             "freq_list_widget"        : freq_list_widget,
             "volt_list_widget"        : volt_list_widget,
             "temp_list_widget"        : temp_list_widget,
+            
         }
     )
 
@@ -484,6 +494,40 @@ def outputDataSettingsFrame() -> tuple[QGroupBox, QLineEdit, QPushButton]:
     layout.addWidget(add_file_button, 0, 1)
 
     return (output_settings_frame, output_file_input, add_file_button)
+
+
+# def graphFrame():
+
+#     graph_frame = QFrame()
+#     layout = QGridLayout(graph_frame)
+
+#     graphWidget_Cap = pg.PlotWidget()
+#     layout.addWidget(graphWidget_Cap, 0, 0)
+#     graphWidget_Cap.setBackground(None)
+#     graphWidget_Cap.setLabel("left", "Capacitance", "F")
+#     graphWidget_Cap.setLabel("bottom", "Frequency", "Hz")
+#     graphWidget_Cap.
+    
+#     pen = pg.mkPen(color=(255, 0, 0))
+#     data_line_cap = graphWidget_Cap.plot(
+#         [], [], pen=pen
+#     )
+
+#     data_line_cap.setLogMode(True, False)
+   
+#     return graph_frame, graphWidget_Cap, data_line_cap
+
+# def graphFrame():
+#     graph_frame = QFrame()
+#     layout = QGridLayout(graph_frame)
+
+#     cap_canvas = MplCanvas()
+#     layout.addWidget(cap_canvas, 0, 0)
+    
+#     data_line_cap,  = cap_canvas.axes.plot([1,1,1,1,1],[1,1,1,1,1], 'ro')
+#     cap_canvas.draw()
+
+#     return graph_frame, cap_canvas, data_line_cap
 
 
 def limits(thing, limit: float, default: float, max_val=True) -> None:
