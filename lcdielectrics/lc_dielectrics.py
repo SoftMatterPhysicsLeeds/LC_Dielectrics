@@ -251,27 +251,28 @@ class MainWindow(QMainWindow):
     def get_result(self, result: dict) -> None:
         self.parse_result(result)
     
+        if len(self.voltage_list)==1: 
+            make_excel(
+                self.resultsDict,
+                self.widgets["output_file_input"].text(),
+                True,
+            )
+        else:
+            make_excel(
+                self.resultsDict,
+                self.widgets["output_file_input"].text(),
+                False,
+            )
+
+
+        with open(self.widgets["output_file_input"].text(), "w") as write_file:
+            json.dump(self.resultsDict, write_file, indent=4)
         if (
             self.T_step == len(self.T_list) - 1
             and self.volt_step == len(self.voltage_list) - 1 and self.freq_step == len(self.freq_list) - 1
         ):
             self.measurement_status = "Finished"
             
-            if len(self.voltage_list)==1: 
-                make_excel(
-                    self.resultsDict,
-                    self.widgets["output_file_input"].text(),
-                    True,
-                )
-            else:
-                make_excel(
-                    self.resultsDict,
-                    self.widgets["output_file_input"].text(),
-                    False,
-                )
-
-            with open(self.widgets["output_file_input"].text(), "w") as write_file:
-                json.dump(self.resultsDict, write_file, indent=4)
         else:
 
 
