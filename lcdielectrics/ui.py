@@ -244,7 +244,7 @@ def generate_ui():
             "freq_list_widget"        : freq_list_widget,
             "volt_list_widget"        : volt_list_widget,
             "temp_list_widget"        : temp_list_widget,
-            "graphwidget_Cap"         : graphwidget_cap,
+            "graphwidget_cap"         : graphwidget_cap,
             
         }
     )

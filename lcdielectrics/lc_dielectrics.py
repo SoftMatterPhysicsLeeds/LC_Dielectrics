@@ -12,8 +12,6 @@ from lcdielectrics.instruments import AgilentSpectrometer, LinkamHotstage
 from lcdielectrics.ui import generate_ui
 
 
-
-
 # build command:
 # pyinstaller -i .\LCD_icon.ico --onefile .\lc_dielectrics.py
 # if you install modules/packages with conda ->
@@ -31,7 +29,7 @@ class Experiment(QtCore.QObject):
 
     def run_spectrometer(self) -> None:
         result = dict()
-        
+
         time.sleep(self.delay)
         result["CPD"] = self.agilent.measure("CPD")
         time.sleep(0.5)
@@ -64,9 +62,9 @@ class MainWindow(QMainWindow):
         self.ydata = []
         self.datalines = []
 
-        self._plot_ref  = None
+        self._plot_ref = None
         self.update_plot()
-        
+
         widget = QWidget()
         widget.setLayout(self.layout)
         self.setCentralWidget(widget)
@@ -77,7 +75,8 @@ class MainWindow(QMainWindow):
 
         self.widgets["go_to_temp_button"].clicked.connect(
             lambda: self.linkam.set_temperature(
-                float(self.widgets["go_to_temp"].text()), float(self.widgets["temp_rate"].text())
+                float(self.widgets["go_to_temp"].text()),
+                float(self.widgets["temp_rate"].text()),
             )
         )
 
@@ -90,13 +89,9 @@ class MainWindow(QMainWindow):
         self.timer.timeout.connect(self.update_ui)
         self.timer.start()
 
-        
-
         self.show()
 
     ###################### Control Logic ################################
-
-    
 
     def init_agilent(self) -> None:
         self.agilent = AgilentSpectrometer(self.widgets["usb_selector"].currentText())
@@ -125,7 +120,7 @@ class MainWindow(QMainWindow):
 
     def update_ui(self) -> None:
         self.widgets["agilent_status_label"].setText(self.agilent_status)
-        
+
         # if Linkam is connected, show real-time temperature
         if self.linkam_status == "Connected":
             self.current_T, self.linkam_action = self.linkam.current_temperature()
@@ -143,7 +138,7 @@ class MainWindow(QMainWindow):
             self.linkam_action == "Stopped" or self.linkam_action == "Holding"
         ):
             self.linkam.set_temperature(self.T_list[self.T_step], self.T_rate)
-            
+
             self.measurement_status = f"Going to T: {self.T_list[self.T_step]}"
 
         elif (
@@ -152,7 +147,8 @@ class MainWindow(QMainWindow):
         ):
             self.measurement_status = f"Stabilising temperature for {float(self.widgets['stab_time'].text())}s"
         elif (
-            self.measurement_status == f"Stabilising temperature for {float(self.widgets['stab_time'].text())}s"
+            self.measurement_status
+            == f"Stabilising temperature for {float(self.widgets['stab_time'].text())}s"
         ):
             self.t_stable_count += 1
 
@@ -164,9 +160,8 @@ class MainWindow(QMainWindow):
             self.measurement_status = "Collecting data"
             self.agilent.set_frequency(self.freq_list[self.freq_step])
             self.agilent.set_voltage(self.voltage_list[self.volt_step])
-            
+
             self.run_spectrometer()
-            
 
         elif self.measurement_status == "Finished":
             self.linkam.stop()
@@ -175,9 +170,7 @@ class MainWindow(QMainWindow):
 
         self.widgets["measurement_status_label"].setText(self.measurement_status)
 
-
     def start_measurement(self) -> None:
-
         self.resultsDict = dict()
         self.freq_list = [
             float(self.widgets["freq_list_widget"].item(x).text())
@@ -214,7 +207,7 @@ class MainWindow(QMainWindow):
 
         T = self.T_list[self.T_step]
         freq = self.freq_list[self.freq_step]
-        
+
         self.resultsDict[self.T_list[self.T_step]] = dict()
         self.resultsDict[T][freq] = dict()
         self.resultsDict[T][freq]["volt"] = []
@@ -222,8 +215,6 @@ class MainWindow(QMainWindow):
         self.resultsDict[T][freq]["D"] = []
         self.resultsDict[T][freq]["G"] = []
         self.resultsDict[T][freq]["B"] = []
-
-
 
         self.measurement_status = "Setting temperature"
 
@@ -234,7 +225,6 @@ class MainWindow(QMainWindow):
         self.measurement_status = "Idle"
 
     def run_spectrometer(self) -> None:
-
         self.thread = QThread()
         self.worker = Experiment(self.agilent, float(self.widgets["delay_time"].text()))
         self.worker.moveToThread(self.thread)
@@ -245,7 +235,6 @@ class MainWindow(QMainWindow):
         self.worker.result.connect(self.get_result)
         self.thread.start()
 
-        
     def get_result(self, result: dict) -> None:
         self.parse_result(result)
 
@@ -253,8 +242,7 @@ class MainWindow(QMainWindow):
             pass
 
         else:
-    
-            if len(self.voltage_list)==1: 
+            if len(self.voltage_list) == 1:
                 make_excel(
                     self.resultsDict,
                     self.widgets["output_file_input"].text(),
@@ -267,24 +255,24 @@ class MainWindow(QMainWindow):
                     False,
                 )
 
-
             with open(self.widgets["output_file_input"].text(), "w") as write_file:
                 json.dump(self.resultsDict, write_file, indent=4)
             if (
                 self.T_step == len(self.T_list) - 1
-                and self.volt_step == len(self.voltage_list) - 1 and self.freq_step == len(self.freq_list) - 1
+                and self.volt_step == len(self.voltage_list) - 1
+                and self.freq_step == len(self.freq_list) - 1
             ):
                 self.measurement_status = "Finished"
-                
+
             else:
-
-
-
-                if self.volt_step == len(self.voltage_list) - 1 and self.freq_step == len(self.freq_list) - 1:
+                if (
+                    self.volt_step == len(self.voltage_list) - 1
+                    and self.freq_step == len(self.freq_list) - 1
+                ):
                     self.T_step += 1
                     self.freq_step = 0
                     self.volt_step = 0
-                    
+
                     T = self.T_list[self.T_step]
                     freq = self.freq_list[self.freq_step]
 
@@ -296,12 +284,13 @@ class MainWindow(QMainWindow):
                     self.resultsDict[T][freq]["G"] = []
                     self.resultsDict[T][freq]["B"] = []
 
+                    self.agilent.set_voltage(0)
                     self.measurement_status = "Setting temperature"
 
                 elif self.volt_step == len(self.voltage_list) - 1:
-                    self.freq_step+=1 
-                    self.volt_step=0
-                    
+                    self.freq_step += 1
+                    self.volt_step = 0
+
                     T = self.T_list[self.T_step]
                     freq = self.freq_list[self.freq_step]
 
@@ -314,11 +303,10 @@ class MainWindow(QMainWindow):
 
                     self.measurement_status = "Temperature Stabilised"
                 else:
-                    self.volt_step +=1
+                    self.volt_step += 1
                     self.measurement_status = "Temperature Stabilised"
 
     def parse_result(self, result: dict) -> None:
-
         T = self.T_list[self.T_step]
         freq = self.freq_list[self.freq_step]
         volt = self.voltage_list[self.volt_step]
@@ -331,36 +319,28 @@ class MainWindow(QMainWindow):
         self.xdata = self.resultsDict[T][freq]["volt"]
         self.ydata = self.resultsDict[T][freq]["Cp"]
 
-        if len(self.xdata) > 1:
-            self.canvas.axes.set_xlim(min(self.xdata) - 1, max(self.xdata) + 1)
-            self.canvas.axes.set_ylim(min(self.ydata) - min(self.ydata)*0.1, max(self.ydata) + max(self.ydata)*0.1)        
-        
-        self.canvas.axes.set_title(f"T: {T}°C, f = {freq}Hz")
+        # self.canvas.axes.set_title(f"T: {T}°C, f = {freq}Hz")
         self.update_plot()
 
     def update_plot(self):
-        
         if len(self.datalines) == 0:
-            pen = pg.mkPen(color=(255, 0, 0))
-            data_line_cap = self.widgets["graphWidget_cap"].plot(
-                self.xdata, self.ydata, pen=pen
+            pen = pg.mkPen(color=(0, 0, 0))
+
+            self.datalines.append(
+                self.widgets["graphwidget_cap"].plot(
+                    self.xdata,
+                    self.ydata,
+                    pen=None,
+                    symbol="o",
+                    symbolPen=pen,
+                    symbolBrush=(255, 0, 0),
+                )
             )
 
-            data_line_cap.setLogMode(False, False)
+            self.datalines[0].setLogMode(False, False)
 
-            plot_refs = self.widget["graphwidget_cap"].plot(self.xdata, self.ydata, 'ro', linestyle = "None", markersize = 10)
-            self._plot_ref = plot_refs[0]
-            self.canvas.axes.set_title(f"Hello!")
-            # self.canvas.axes.set_yscale("log")
         else:
-            # We have a reference, we can use it to update the data for that
-            # line.
-            self._plot_ref.set_xdata(self.xdata)
-            self._plot_ref.set_ydata(self.ydata)
-
-        # Trigger the canvas to update and redraw.
-        self.canvas.draw()
-       
+            self.datalines[0].setData(self.xdata, self.ydata)
 
     ###################### END OF CONTROL LOGIC ###############################
 
