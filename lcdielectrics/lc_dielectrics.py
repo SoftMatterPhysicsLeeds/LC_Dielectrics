@@ -1,7 +1,6 @@
 import json
 import sys
 import time
-import random
 
 import pyvisa
 from qtpy import QtCore, QtGui
@@ -18,8 +17,8 @@ from lcdielectrics.ui import generate_ui
 # if you install modules/packages with conda ->
 #    resulting file is 6x bigger (300mb) - best to use pip
 
-import matplotlib
-matplotlib.use('Qt5Agg')
+import matplotlib as mpl
+mpl.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
@@ -76,18 +75,18 @@ class MainWindow(QMainWindow):
 
         graph_frame = QFrame()
         layout = QGridLayout(graph_frame)
+       
+        self.xdata = []
+        self.ydata = []
+
+        self.canvas = MplCanvas()
+        layout.addWidget(self.canvas, 0, 0)
+        self.layout.addWidget(graph_frame,0,2,7,1)
+
         
 
-       
-        # self.xdata = []
-        # self.ydata = []
-
-        # self.canvas = MplCanvas()
-        # layout.addWidget(self.canvas, 0, 0)
-        # self.layout.addWidget(graph_frame,0,2,7,1)
-
-        # self._plot_ref  = None
-        # self.update_plot()
+        self._plot_ref  = None
+        self.update_plot()
         
         
 
@@ -352,13 +351,15 @@ class MainWindow(QMainWindow):
         self.resultsDict[T][freq]["G"].append(result["GB"][0])
         self.resultsDict[T][freq]["B"].append(result["GB"][1])
 
-        # self.xdata = self.resultsDict[T][freq]["volt"]
-        # self.ydata = self.resultsDict[T][freq]["Cp"]
-        # print(self.xdata)
-        # print(self.ydata)
+        self.xdata = self.resultsDict[T][freq]["volt"]
+        self.ydata = self.resultsDict[T][freq]["Cp"]
 
-        # self.canvas.axes.set_title(f"T: {T}")
-        # self.update_plot()
+        if len(self.xdata) > 1:
+            self.canvas.axes.set_xlim(min(self.xdata) - min(self.xdata)*0.1, max(self.xdata) + max(self.xdata)*0.1)
+            self.canvas.axes.set_ylim(min(self.ydata) - min(self.ydata)*0.1, max(self.ydata) + max(self.ydata)*0.1)        
+        
+        self.canvas.axes.set_title(f"T: {T}°C, f = {freq}Hz")
+        self.update_plot()
 
     def update_plot(self):
         # Note: we no longer need to clear the axis.
@@ -366,9 +367,10 @@ class MainWindow(QMainWindow):
             # First time we have no plot reference, so do a normal plot.
             # .plot returns a list of line <reference>s, as we're
             # only getting one we can take the first element.
-            plot_refs = self.canvas.axes.plot(self.xdata, self.ydata, 'r')
+            plot_refs = self.canvas.axes.plot(self.xdata, self.ydata, 'ro', linestyle = "None")
             self._plot_ref = plot_refs[0]
             self.canvas.axes.set_title(f"Hello!")
+            # self.canvas.axes.set_yscale("log")
         else:
             # We have a reference, we can use it to update the data for that
             # line.
