@@ -1,36 +1,23 @@
 import json
 import sys
 import time
-
+import pyqtgraph as pg
 import pyvisa
 from qtpy import QtCore, QtGui
 from qtpy.QtCore import QThread, Signal
-from qtpy.QtWidgets import QApplication, QFileDialog, QMainWindow, QWidget, QFrame, QGridLayout
-
+from qtpy.QtWidgets import QApplication, QFileDialog, QMainWindow, QWidget
 from lcdielectrics import icon_qrc
 from lcdielectrics.excel_writer import make_excel
 from lcdielectrics.instruments import AgilentSpectrometer, LinkamHotstage
 from lcdielectrics.ui import generate_ui
 
+
+
+
 # build command:
 # pyinstaller -i .\LCD_icon.ico --onefile .\lc_dielectrics.py
 # if you install modules/packages with conda ->
 #    resulting file is 6x bigger (300mb) - best to use pip
-
-import matplotlib as mpl
-mpl.use('Qt5Agg')
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
-import matplotlib.pyplot as plt
-from matplotlib.figure import Figure
-
-
-# class taken from https://www.pythonguis.com/tutorials/pyside6-plotting-matplotlib/
-class MplCanvas(FigureCanvasQTAgg):
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
-        fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = fig.add_subplot(111)
-        super(MplCanvas, self).__init__(fig)
-
 
 
 class Experiment(QtCore.QObject):
@@ -73,23 +60,13 @@ class MainWindow(QMainWindow):
 
         self.layout, self.widgets = generate_ui()
 
-        graph_frame = QFrame()
-        layout = QGridLayout(graph_frame)
-       
         self.xdata = []
         self.ydata = []
-
-        self.canvas = MplCanvas()
-        layout.addWidget(self.canvas, 0, 0)
-        self.layout.addWidget(graph_frame,0,2,7,1)
-
-        
+        self.datalines = []
 
         self._plot_ref  = None
         self.update_plot()
         
-        
-
         widget = QWidget()
         widget.setLayout(self.layout)
         self.setCentralWidget(widget)
@@ -355,19 +332,23 @@ class MainWindow(QMainWindow):
         self.ydata = self.resultsDict[T][freq]["Cp"]
 
         if len(self.xdata) > 1:
-            self.canvas.axes.set_xlim(min(self.xdata) - min(self.xdata)*0.1, max(self.xdata) + max(self.xdata)*0.1)
+            self.canvas.axes.set_xlim(min(self.xdata) - 1, max(self.xdata) + 1)
             self.canvas.axes.set_ylim(min(self.ydata) - min(self.ydata)*0.1, max(self.ydata) + max(self.ydata)*0.1)        
         
         self.canvas.axes.set_title(f"T: {T}°C, f = {freq}Hz")
         self.update_plot()
 
     def update_plot(self):
-        # Note: we no longer need to clear the axis.
-        if self._plot_ref is None:
-            # First time we have no plot reference, so do a normal plot.
-            # .plot returns a list of line <reference>s, as we're
-            # only getting one we can take the first element.
-            plot_refs = self.canvas.axes.plot(self.xdata, self.ydata, 'ro', linestyle = "None")
+        
+        if len(self.datalines) == 0:
+            pen = pg.mkPen(color=(255, 0, 0))
+            data_line_cap = self.widgets["graphWidget_cap"].plot(
+                self.xdata, self.ydata, pen=pen
+            )
+
+            data_line_cap.setLogMode(False, False)
+
+            plot_refs = self.widget["graphwidget_cap"].plot(self.xdata, self.ydata, 'ro', linestyle = "None", markersize = 10)
             self._plot_ref = plot_refs[0]
             self.canvas.axes.set_title(f"Hello!")
             # self.canvas.axes.set_yscale("log")

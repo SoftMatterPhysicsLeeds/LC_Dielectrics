@@ -3,7 +3,7 @@ import pyvisa
 from qtpy.QtWidgets import (QAbstractItemView, QComboBox, QFrame, QGridLayout,
                             QGroupBox, QLabel, QLineEdit, QListWidget,
                             QListWidgetItem, QPushButton, QWidget)
-# import pyqtgraph as pg
+import pyqtgraph as pg
 
 
 ## TODO: Need docs everywhere
@@ -196,7 +196,9 @@ def generate_ui():
         add_file_button,
     ) = outputDataSettingsFrame()
 
-
+    (
+        graph_frame, graphwidget_cap, 
+    ) = graphFrame()
     
     # 
 
@@ -207,6 +209,7 @@ def generate_ui():
     layout.addWidget(voltage_settings_frame, 3, 1)
     layout.addWidget(temperature_settings_frame, 4, 0, 1, 2)
     layout.addWidget(output_settings_frame, 5, 0, 1, 2)
+    layout.addWidget(graph_frame,0,2,7,1)
     
 
     go_button = QPushButton("Start")
@@ -241,6 +244,7 @@ def generate_ui():
             "freq_list_widget"        : freq_list_widget,
             "volt_list_widget"        : volt_list_widget,
             "temp_list_widget"        : temp_list_widget,
+            "graphwidget_Cap"         : graphwidget_cap,
             
         }
     )
@@ -496,26 +500,18 @@ def outputDataSettingsFrame() -> tuple[QGroupBox, QLineEdit, QPushButton]:
     return (output_settings_frame, output_file_input, add_file_button)
 
 
-# def graphFrame():
+def graphFrame():
 
-#     graph_frame = QFrame()
-#     layout = QGridLayout(graph_frame)
+    graph_frame = QFrame()
+    layout = QGridLayout(graph_frame)
 
-#     graphWidget_Cap = pg.PlotWidget()
-#     layout.addWidget(graphWidget_Cap, 0, 0)
-#     graphWidget_Cap.setBackground(None)
-#     graphWidget_Cap.setLabel("left", "Capacitance", "F")
-#     graphWidget_Cap.setLabel("bottom", "Frequency", "Hz")
-#     graphWidget_Cap.
+    graphWidget_Cap = pg.PlotWidget()
+    layout.addWidget(graphWidget_Cap, 0, 0)
+    graphWidget_Cap.setBackground(None)
+    graphWidget_Cap.setLabel("left", "Capacitance", "F")
+    graphWidget_Cap.setLabel("bottom", "Frequency", "Hz")
     
-#     pen = pg.mkPen(color=(255, 0, 0))
-#     data_line_cap = graphWidget_Cap.plot(
-#         [], [], pen=pen
-#     )
-
-#     data_line_cap.setLogMode(True, False)
-   
-#     return graph_frame, graphWidget_Cap, data_line_cap
+    return graph_frame, graphWidget_Cap
 
 # def graphFrame():
 #     graph_frame = QFrame()
