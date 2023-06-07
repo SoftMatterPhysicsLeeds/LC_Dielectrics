@@ -10,7 +10,14 @@ import pyqtgraph as pg
 ## TODO: User could easily bypass maximum number of points -
 #       need to check length of listboxes after population
 
+GROUP_STYLESHEET = """
+QGroupBox { border: 1px solid black;}
 
+QGroupBox::title {
+        top: -16px 
+        left: 7px;
+    }
+"""
 
 
 class ValueSelectorWindow(QWidget):
@@ -345,6 +352,7 @@ def instrumentSettingsFrame() -> tuple[
 
 def measurementSettingsFrame() -> tuple[QGroupBox, QComboBox, QLineEdit, QComboBox]:
     measurement_settings_frame = QGroupBox()
+    measurement_settings_frame.setStyleSheet(GROUP_STYLESHEET)
     layout = QGridLayout(measurement_settings_frame)
     measurement_settings_frame.setFrame = True  # type: ignore
     measurement_settings_frame.setTitle("Measurement Settings")
@@ -427,6 +435,7 @@ def populateVariableFrame(
 
 def frequencySettingsFrame() -> tuple[QGroupBox, QListWidget]:
     freq_settings_frame = QGroupBox()
+    freq_settings_frame.setStyleSheet(GROUP_STYLESHEET)
     freq_settings_frame.setTitle("Frequency List")
     freq_list_widget = QListWidget()
 
@@ -436,6 +445,7 @@ def frequencySettingsFrame() -> tuple[QGroupBox, QListWidget]:
 
 def voltageSettingsFrame() -> tuple[QGroupBox, QListWidget]:
     voltage_settings_frame = QGroupBox()
+    voltage_settings_frame.setStyleSheet(GROUP_STYLESHEET)
     voltage_settings_frame.setTitle("Voltage List")
     volt_list_widget = QListWidget()
 
@@ -448,6 +458,7 @@ def temperatureSettingsFrame() -> tuple[
     QGroupBox, QPushButton, QLineEdit, QLineEdit, QLineEdit, QListWidget
 ]:
     temperature_settings_frame = QGroupBox()
+    temperature_settings_frame.setStyleSheet(GROUP_STYLESHEET)
     temperature_settings_frame.setTitle("Temperature List (°C)")
     temp_list_widget = QListWidget()
 
@@ -487,6 +498,7 @@ def temperatureSettingsFrame() -> tuple[
 
 def outputDataSettingsFrame() -> tuple[QGroupBox, QLineEdit, QPushButton]:
     output_settings_frame = QGroupBox()
+    output_settings_frame.setStyleSheet(GROUP_STYLESHEET)
     layout = QGridLayout(output_settings_frame)
     output_settings_frame.setFrame = True  # type: ignore
     output_settings_frame.setTitle("Output Data Settings")
