@@ -10,14 +10,7 @@ import pyqtgraph as pg
 ## TODO: User could easily bypass maximum number of points -
 #       need to check length of listboxes after population
 
-GROUP_STYLESHEET = """
-QGroupBox { border: 1px solid black;}
-
-QGroupBox::title {
-        top: -16px 
-        left: 7px;
-    }
-"""
+GROUP_STYLESHEET = ""
 
 
 class ValueSelectorWindow(QWidget):
