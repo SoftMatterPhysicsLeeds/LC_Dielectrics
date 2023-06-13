@@ -1,9 +1,21 @@
 import numpy as np
 import pyvisa
-from qtpy.QtWidgets import (QAbstractItemView, QComboBox, QFrame, QGridLayout,
-                            QGroupBox, QLabel, QLineEdit, QListWidget,
-                            QListWidgetItem, QPushButton, QWidget)
+from qtpy.QtWidgets import (
+    QAbstractItemView,
+    QComboBox,
+    QFrame,
+    QGridLayout,
+    QGroupBox,
+    QLabel,
+    QLineEdit,
+    QListWidget,
+    QListWidgetItem,
+    QPushButton,
+    QWidget,
+)
 import pyqtgraph as pg
+from dataclasses import dataclass
+from pyqtgraph import PlotWidget
 
 
 ## TODO: Need docs everywhere
@@ -11,6 +23,33 @@ import pyqtgraph as pg
 #       need to check length of listboxes after population
 
 GROUP_STYLESHEET = ""
+
+
+@dataclass
+class Widgets:
+    measurement_status_label: QLabel
+    linkam_status_label: QLabel
+    agilent_status_label: QLabel
+    com_selector: QComboBox
+    usb_selector: QComboBox
+    init_linkam_button: QPushButton
+    init_agilent_button: QPushButton
+    delay_time: QLineEdit
+    time_selector: QComboBox
+    averaging_factor: QLineEdit
+    bias_voltage_selector: QComboBox
+    go_to_temp_button: QPushButton
+    go_to_temp: QPushButton
+    temp_rate: QLineEdit
+    stab_time: QLineEdit
+    output_file_input: QLineEdit
+    add_file_button: QPushButton
+    go_button: QPushButton
+    stop_button: QPushButton
+    freq_list_widget: QListWidget
+    volt_list_widget: QListWidget
+    temp_list_widget: QListWidget
+    graphwidget_cap: PlotWidget
 
 
 class ValueSelectorWindow(QWidget):
@@ -197,11 +236,11 @@ def generate_ui():
     ) = outputDataSettingsFrame()
 
     (
-        graph_frame, graphwidget_cap, 
+        graph_frame,
+        graphwidget_cap,
     ) = graphFrame()
-    
-    # 
 
+    
     layout.addWidget(status_frame, 0, 0, 1, 2)
     layout.addWidget(instrument_settings_frame, 1, 0, 1, 2)
     layout.addWidget(measurement_settings_frame, 2, 0, 1, 2)
@@ -209,8 +248,7 @@ def generate_ui():
     layout.addWidget(voltage_settings_frame, 3, 1)
     layout.addWidget(temperature_settings_frame, 4, 0, 1, 2)
     layout.addWidget(output_settings_frame, 5, 0, 1, 2)
-    layout.addWidget(graph_frame,0,2,7,1)
-    
+    layout.addWidget(graph_frame, 0, 2, 7, 1)
 
     go_button = QPushButton("Start")
     layout.addWidget(go_button, 6, 0, 1, 1)
@@ -220,33 +258,31 @@ def generate_ui():
     layout.addWidget(stop_button, 6, 1, 1, 1)
     set_button_style(stop_button, "red")
 
-    widgets.update(
-        {
-            "measurement_status_label": measurement_status_label,
-            "linkam_status_label"     : linkam_status_label,
-            "agilent_status_label"    : agilent_status_label,
-            "com_selector"            : com_selector,
-            "usb_selector"            : usb_selector,
-            "init_linkam_button"      : init_linkam_button,
-            "init_agilent_button"     : init_agilent_button,
-            "delay_time"              : delay_time,
-            "time_selector"           : time_selector,
-            "averaging_factor"        : averaging_factor,
-            "bias_voltage_selector"   : bias_voltage_selector,
-            "go_to_temp_button"       : go_to_temp_button,
-            "go_to_temp"              : go_to_temp,
-            "temp_rate"               : temp_rate,
-            "stab_time"               : stab_time,
-            "output_file_input"       : output_file_input,
-            "add_file_button"         : add_file_button,
-            "go_button"               : go_button,
-            "stop_button"             : stop_button,
-            "freq_list_widget"        : freq_list_widget,
-            "volt_list_widget"        : volt_list_widget,
-            "temp_list_widget"        : temp_list_widget,
-            "graphwidget_cap"         : graphwidget_cap,
-            
-        }
+    
+    widgets = Widgets(
+        measurement_status_label,
+        linkam_status_label,
+        agilent_status_label,
+        com_selector,
+        usb_selector,
+        init_linkam_button,
+        init_agilent_button,
+        delay_time,
+        time_selector,
+        averaging_factor,
+        bias_voltage_selector,
+        go_to_temp_button,
+        go_to_temp,
+        temp_rate,
+        stab_time,
+        output_file_input,
+        add_file_button,
+        go_button,
+        stop_button,
+        freq_list_widget,
+        volt_list_widget,
+        temp_list_widget,
+        graphwidget_cap,
     )
 
     return layout, widgets
@@ -295,9 +331,9 @@ def statusFrame() -> tuple[QFrame, QLabel]:
     )
 
 
-def instrumentSettingsFrame() -> tuple[
-    QFrame, QComboBox, QComboBox, QPushButton, QPushButton, QLabel, QLabel
-]:
+def instrumentSettingsFrame() -> (
+    tuple[QFrame, QComboBox, QComboBox, QPushButton, QPushButton, QLabel, QLabel]
+):
     instrument_settings_frame = QFrame()
     layout = QGridLayout(instrument_settings_frame)
     instrument_settings_frame.setFrameStyle(QFrame.Box)
@@ -350,7 +386,7 @@ def measurementSettingsFrame() -> tuple[QGroupBox, QComboBox, QLineEdit, QComboB
     measurement_settings_frame.setFrame = True  # type: ignore
     measurement_settings_frame.setTitle("Measurement Settings")
 
-    layout.addWidget(QLabel("Delay time (s):"), 0, 0)    
+    layout.addWidget(QLabel("Delay time (s):"), 0, 0)
     delay_time = QLineEdit("0.5")
     layout.addWidget(delay_time, 0, 1)
     delay_time.editingFinished.connect(lambda: limits(delay_time, 9999, 0.5))
@@ -447,9 +483,9 @@ def voltageSettingsFrame() -> tuple[QGroupBox, QListWidget]:
     return voltage_settings_frame, volt_list_widget
 
 
-def temperatureSettingsFrame() -> tuple[
-    QGroupBox, QPushButton, QLineEdit, QLineEdit, QLineEdit, QListWidget
-]:
+def temperatureSettingsFrame() -> (
+    tuple[QGroupBox, QPushButton, QLineEdit, QLineEdit, QLineEdit, QListWidget]
+):
     temperature_settings_frame = QGroupBox()
     temperature_settings_frame.setStyleSheet(GROUP_STYLESHEET)
     temperature_settings_frame.setTitle("Temperature List (°C)")
@@ -506,7 +542,6 @@ def outputDataSettingsFrame() -> tuple[QGroupBox, QLineEdit, QPushButton]:
 
 
 def graphFrame():
-
     graph_frame = QFrame()
     layout = QGridLayout(graph_frame)
 
@@ -515,8 +550,9 @@ def graphFrame():
     graphWidget_Cap.setBackground(None)
     graphWidget_Cap.setLabel("left", "Capacitance", "F")
     graphWidget_Cap.setLabel("bottom", "Frequency", "Hz")
-    
+
     return graph_frame, graphWidget_Cap
+
 
 # def graphFrame():
 #     graph_frame = QFrame()
@@ -524,7 +560,7 @@ def graphFrame():
 
 #     cap_canvas = MplCanvas()
 #     layout.addWidget(cap_canvas, 0, 0)
-    
+
 #     data_line_cap,  = cap_canvas.axes.plot([1,1,1,1,1],[1,1,1,1,1], 'ro')
 #     cap_canvas.draw()
 

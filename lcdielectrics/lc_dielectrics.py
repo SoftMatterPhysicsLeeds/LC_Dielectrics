@@ -9,7 +9,7 @@ from qtpy.QtWidgets import QApplication, QFileDialog, QMainWindow, QWidget
 from lcdielectrics import icon_qrc
 from lcdielectrics.excel_writer import make_excel
 from lcdielectrics.instruments import AgilentSpectrometer, LinkamHotstage
-from lcdielectrics.ui import generate_ui
+from lcdielectrics.ui import generate_ui, Widgets
 
 
 # build command:
@@ -57,31 +57,31 @@ class MainWindow(QMainWindow):
         self.voltage_list_mode = False
 
         self.layout, self.widgets = generate_ui()
-
+        
         self.xdata = []
         self.ydata = []
         self.datalines = []
 
-        self._plot_ref = None
+
         self.update_plot()
 
         widget = QWidget()
         widget.setLayout(self.layout)
         self.setCentralWidget(widget)
 
-        self.widgets["init_linkam_button"].clicked.connect(self.init_linkam)
-        self.widgets["init_agilent_button"].clicked.connect(self.init_agilent)
-        self.widgets["add_file_button"].clicked.connect(self.add_file_dialogue)
+        self.widgets.init_linkam_button.clicked.connect(self.init_linkam)
+        self.widgets.init_agilent_button.clicked.connect(self.init_agilent)
+        self.widgets.add_file_button.clicked.connect(self.add_file_dialogue)
 
-        self.widgets["go_to_temp_button"].clicked.connect(
+        self.widgets.go_to_temp_button.clicked.connect(
             lambda: self.linkam.set_temperature(
-                float(self.widgets["go_to_temp"].text()),
-                float(self.widgets["temp_rate"].text()),
+                float(self.widgets.go_to_temp.text()),
+                float(self.widgets.temp_rate.text()),
             )
         )
 
-        self.widgets["go_button"].clicked.connect(self.start_measurement)
-        self.widgets["stop_button"].clicked.connect(self.stop_measurement)
+        self.widgets.go_button.clicked.connect(self.start_measurement)
+        self.widgets.stop_button.clicked.connect(self.stop_measurement)
 
         # UI update loop
         self.timer = QtCore.QTimer()
@@ -94,19 +94,19 @@ class MainWindow(QMainWindow):
     ###################### Control Logic ################################
 
     def init_agilent(self) -> None:
-        self.agilent = AgilentSpectrometer(self.widgets["usb_selector"].currentText())
+        self.agilent = AgilentSpectrometer(self.widgets.usb_selector.currentText())
         self.agilent_status = "Connected"
-        self.widgets["init_agilent_button"].setText("Connected")
-        self.widgets["init_agilent_button"].setEnabled(False)
+        self.widgets.init_agilent_button.setText("Connected")
+        self.widgets.init_agilent_button.setEnabled(False)
         self.update_ui()
 
     def init_linkam(self) -> None:
-        self.linkam = LinkamHotstage(self.widgets["com_selector"].currentText())
+        self.linkam = LinkamHotstage(self.widgets.com_selector.currentText())
         try:
             self.linkam.current_temperature()
             self.linkam_status = "Connected"
-            self.widgets["init_linkam_button"].setText("Connected")
-            self.widgets["init_linkam_button"].setEnabled(False)
+            self.widgets.init_linkam_button.setText("Connected")
+            self.widgets.init_linkam_button.setEnabled(False)
         except pyvisa.errors.VisaIOError:
             self.linkam_status = self.linkam_status
 
@@ -116,19 +116,19 @@ class MainWindow(QMainWindow):
         filename, _ = QFileDialog.getSaveFileName(
             self, "Output File", "", "JSON Files (*.json)"
         )
-        self.widgets["output_file_input"].setText(filename)
+        self.widgets.output_file_input.setText(filename)
 
     def update_ui(self) -> None:
-        self.widgets["agilent_status_label"].setText(self.agilent_status)
+        self.widgets.agilent_status_label.setText(self.agilent_status)
 
         # if Linkam is connected, show real-time temperature
         if self.linkam_status == "Connected":
             self.current_T, self.linkam_action = self.linkam.current_temperature()
-            self.widgets["linkam_status_label"].setText(
+            self.widgets.linkam_status_label.setText(
                 f"{self.linkam_status}, {self.linkam_action}, T: {self.current_T}"
             )
         else:
-            self.widgets["linkam_status_label"].setText(f"{self.linkam_status}")
+            self.widgets.linkam_status_label.setText(f"{self.linkam_status}")
 
         # control measurement loop - see if this is better than threading?
         if self.measurement_status == "Idle":
@@ -145,14 +145,14 @@ class MainWindow(QMainWindow):
             self.measurement_status == f"Going to T: {self.T_list[self.T_step]}"
             and self.linkam_action == "Holding"
         ):
-            self.measurement_status = f"Stabilising temperature for {float(self.widgets['stab_time'].text())}s"
+            self.measurement_status = f"Stabilising temperature for {float(self.widgets.stab_time.text())}s"
         elif (
             self.measurement_status
-            == f"Stabilising temperature for {float(self.widgets['stab_time'].text())}s"
+            == f"Stabilising temperature for {float(self.widgets.stab_time.text())}s"
         ):
             self.t_stable_count += 1
 
-            if self.t_stable_count * 0.15 >= float(self.widgets["stab_time"].text()):
+            if self.t_stable_count * 0.15 >= float(self.widgets.stab_time.text()):
                 self.measurement_status = "Temperature Stabilised"
                 self.t_stable_count = 0
 
@@ -168,39 +168,39 @@ class MainWindow(QMainWindow):
             self.agilent.reset_and_clear()
             self.measurement_status = "Idle"
 
-        self.widgets["measurement_status_label"].setText(self.measurement_status)
+        self.widgets.measurement_status_label.setText(self.measurement_status)
 
     def start_measurement(self) -> None:
         self.resultsDict = dict()
         self.freq_list = [
-            float(self.widgets["freq_list_widget"].item(x).text())
-            for x in range(self.widgets["freq_list_widget"].count())
+            float(self.widgets.freq_list_widget.item(x).text())
+            for x in range(self.widgets.freq_list_widget.count())
         ]
         self.voltage_list = [
-            float(self.widgets["volt_list_widget"].item(x).text())
-            for x in range(self.widgets["volt_list_widget"].count())
+            float(self.widgets.volt_list_widget.item(x).text())
+            for x in range(self.widgets.volt_list_widget.count())
         ]
 
         self.T_list = [
-            float(self.widgets["temp_list_widget"].item(x).text())
-            for x in range(self.widgets["temp_list_widget"].count())
+            float(self.widgets.temp_list_widget.item(x).text())
+            for x in range(self.widgets.temp_list_widget.count())
         ]
         self.T_list = [round(x, 2) for x in self.T_list]
 
         self.agilent.set_aperture_mode(
-            self.widgets["time_selector"].currentText(),
-            int(self.widgets["averaging_factor"].text()),
+            self.widgets.time_selector.currentText(),
+            int(self.widgets.averaging_factor.text()),
         )
 
         if (
-            self.widgets["bias_voltage_selector"].currentText() == "1.5"
-            or self.widgets["bias_voltage_selector"].currentText() == "2"
+            self.widgets.bias_voltage_selector.currentText() == "1.5"
+            or self.widgets.bias_voltage_selector.currentText() == "2"
         ):
             self.agilent.set_DC_bias(
-                float(self.widgets["bias_voltage_selector"].currentText())
+                float(self.widgets.bias_voltage_selector.currentText())
             )
 
-        self.T_rate = float(self.widgets["temp_rate"].text())
+        self.T_rate = float(self.widgets.temp_rate.text())
         self.T_step = 0
         self.freq_step = 0
         self.volt_step = 0
@@ -226,7 +226,7 @@ class MainWindow(QMainWindow):
 
     def run_spectrometer(self) -> None:
         self.thread = QThread()
-        self.worker = Experiment(self.agilent, float(self.widgets["delay_time"].text()))
+        self.worker = Experiment(self.agilent, float(self.widgets.delay_time.text()))
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run_spectrometer)
         self.worker.finished.connect(self.thread.quit)
@@ -245,17 +245,17 @@ class MainWindow(QMainWindow):
             if len(self.voltage_list) == 1:
                 make_excel(
                     self.resultsDict,
-                    self.widgets["output_file_input"].text(),
+                    self.widgets.output_file_input.text(),
                     True,
                 )
             else:
                 make_excel(
                     self.resultsDict,
-                    self.widgets["output_file_input"].text(),
+                    self.widgets.output_file_input.text(),
                     False,
                 )
 
-            with open(self.widgets["output_file_input"].text(), "w") as write_file:
+            with open(self.widgets.output_file_input.text(), "w") as write_file:
                 json.dump(self.resultsDict, write_file, indent=4)
             if (
                 self.T_step == len(self.T_list) - 1
@@ -327,7 +327,7 @@ class MainWindow(QMainWindow):
             pen = pg.mkPen(color=(0, 0, 0))
 
             self.datalines.append(
-                self.widgets["graphwidget_cap"].plot(
+                self.widgets.graphwidget_cap.plot(
                     self.xdata,
                     self.ydata,
                     pen=None,
