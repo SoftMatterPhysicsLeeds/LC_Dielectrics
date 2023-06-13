@@ -11,6 +11,7 @@ from lcdielectrics.excel_writer import make_excel
 from lcdielectrics.instruments import AgilentSpectrometer, LinkamHotstage
 from lcdielectrics.ui import generate_ui, Widgets
 
+#TODO: add option to run without temperature control
 
 # build command:
 # pyinstaller -i .\LCD_icon.ico --onefile .\lc_dielectrics.py
@@ -69,6 +70,14 @@ class MainWindow(QMainWindow):
         widget.setLayout(self.layout)
         self.setCentralWidget(widget)
 
+        try:
+            with open("address.dat", "r") as f:
+                self.widgets["com_selector"].setCurrentText(f.read())
+        except FileNotFoundError:
+            pass
+        except Exception as err:
+            print(f"Error: {err}")
+
         self.widgets.init_linkam_button.clicked.connect(self.init_linkam)
         self.widgets.init_agilent_button.clicked.connect(self.init_agilent)
         self.widgets.add_file_button.clicked.connect(self.add_file_dialogue)
@@ -107,6 +116,10 @@ class MainWindow(QMainWindow):
             self.linkam_status = "Connected"
             self.widgets.init_linkam_button.setText("Connected")
             self.widgets.init_linkam_button.setEnabled(False)
+            
+            with open("address.dat", "w") as f:
+                f.write(self.widgets["com_selector"].currentText())
+
         except pyvisa.errors.VisaIOError:
             self.linkam_status = self.linkam_status
 
