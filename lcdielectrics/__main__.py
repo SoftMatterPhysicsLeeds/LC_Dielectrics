@@ -1,3 +1,4 @@
-from lcdielectrics.lc_dielectrics import main
+from lcdielectrics.main import main
 
-main()
+if __name__ == "__main__":
+    main()
