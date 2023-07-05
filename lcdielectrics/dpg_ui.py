@@ -67,7 +67,6 @@ class lcd_ui():
                             dpg.add_text("Stab. Time (s)")
                             dpg.add_input_double(default_value=1)
 
-
             with dpg.window(label = "Output Data Settings", pos = [0, 446], width = 600, no_resize=True, no_collapse= True, no_close = True, no_move = True):
                 with dpg.group(horizontal=True):
                     self.output_file_path  = dpg.add_input_text(default_value="results.json")
@@ -80,20 +79,26 @@ class lcd_ui():
 def file_saveas_callback(sender, app_data, output_file_path):
     dpg.set_value(output_file_path, app_data["file_path_name"])
 
+
 def add_value_to_list_callback(sender, app_data, user_data):
     current_list = dpg.get_item_configuration(user_data["listbox_handle"])["items"]
-    new_item_number = int(current_list[-1].split(":")[0]) + 1
+    if len(current_list) == 0:
+        new_item_number = 1
+    else:    
+        new_item_number = int(current_list[-1].split(":")[0]) + 1
     current_list.append(f"{new_item_number}:\t" + str(dpg.get_value(user_data["add_text"])))
     dpg.configure_item(user_data["listbox_handle"], items = current_list )
 
+
 def del_value_from_list_callback(sender, app_data, user_data):
     current_list = dpg.get_item_configuration(user_data["listbox_handle"])["items"]
+    if len(current_list) == 0:
+        return
     selected_item = dpg.get_value(user_data["listbox_handle"])
     current_list.remove(selected_item)
     new_list = [f"{i+1}:{x.split(':')[1]}" for i,x in enumerate(current_list)]
     dpg.configure_item(user_data["listbox_handle"], items = new_list)
     
-
 
 def make_variable_list_frame(default_val):
     with dpg.group(horizontal=True):
