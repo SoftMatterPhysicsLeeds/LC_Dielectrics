@@ -14,21 +14,6 @@ def main():
     frontend = lcd_ui()
 
     com_selector = [x.__str__() for x  in list_ports.comports()]
-
-
-     # get all visa resources:
-    # rm = pyvisa.ResourceManager()
-    # resource_list = rm.list_resources()
-    # com_selector = []
-    # usb_selector = []
-
-    # for resource in resource_list:
-    #     if resource.split("::")[0][0:4] == "ASRL":
-    #         com_selector.append(resource)
-    #     elif resource.split("::")[0][0:3] == "USB":
-    #         usb_selector.append(resource)
-    #     else:
-    #         print(f"Unknown resource: {resource} ")
     
     dpg.configure_item(frontend.linkam_com_selector, items = com_selector)
     # dpg.configure_item(frontend.agilent_com_selector, items = usb_selector)
