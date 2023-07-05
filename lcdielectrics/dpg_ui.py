@@ -82,12 +82,17 @@ def file_saveas_callback(sender, app_data, output_file_path):
 
 def add_value_to_list_callback(sender, app_data, user_data):
     current_list = dpg.get_item_configuration(user_data["listbox_handle"])["items"]
-    
-    current_list.append(str(dpg.get_value(user_data["add_text"])))
-    dpg.configure_item(user_data["listbox_handle"],items = current_list )
+    new_item_number = int(current_list[-1].split(":")[0]) + 1
+    current_list.append(f"{new_item_number}:\t" + str(dpg.get_value(user_data["add_text"])))
+    dpg.configure_item(user_data["listbox_handle"], items = current_list )
 
 def del_value_from_list_callback(sender, app_data, user_data):
-    pass
+    current_list = dpg.get_item_configuration(user_data["listbox_handle"])["items"]
+    selected_item = dpg.get_value(user_data["listbox_handle"])
+    current_list.remove(selected_item)
+    new_list = [f"{i+1}:{x.split(':')[1]}" for i,x in enumerate(current_list)]
+    dpg.configure_item(user_data["listbox_handle"], items = new_list)
+    
 
 
 def make_variable_list_frame(default_val):
@@ -97,7 +102,7 @@ def make_variable_list_frame(default_val):
             add_text = dpg.add_input_float(default_value = default_val, width = 100)
             add_button = dpg.add_button(label = "Add",  callback=add_value_to_list_callback, user_data={"listbox_handle": listbox_handle, "add_text": add_text})
             add_range_button = dpg.add_button(label = "Add Range")
-            delete_button = dpg.add_button(label = "Delete")
+            delete_button = dpg.add_button(label = "Delete", callback=del_value_from_list_callback, user_data={"listbox_handle": listbox_handle, "add_text": add_text} )
         
 
     return listbox_handle, add_text, add_button, add_range_button, delete_button
