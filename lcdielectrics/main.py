@@ -2,12 +2,24 @@ import dearpygui.dearpygui as dpg
 from lcdielectrics.lcd_ui import lcd_ui
 # from serial.tools import list_ports
 import threading 
+import ctypes
+ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
 from lcdielectrics.lcd_utils import find_instruments
 
 
 def main():
     dpg.create_context()
+
+    FONT_SCALE = 1
+    with dpg.font_registry():
+        font_regular = dpg.add_font('consola.ttf', 14*FONT_SCALE)
+    
+    dpg.set_global_font_scale(1/FONT_SCALE)    
+    dpg.bind_font(font_regular)
+
+
+
     dpg.create_viewport(
         title = "LC Dielectrics",
     
