@@ -1,3 +1,4 @@
+from lcdielectrics.lcd_utils import find_instruments
 import dearpygui.dearpygui as dpg
 from lcdielectrics.lcd_ui import lcd_ui
 # from serial.tools import list_ports
@@ -5,7 +6,6 @@ import threading
 import ctypes
 ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
-from lcdielectrics.lcd_utils import find_instruments
 
 
 def main():
