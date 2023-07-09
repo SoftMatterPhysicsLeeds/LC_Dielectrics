@@ -1,5 +1,20 @@
+import numpy as np
 import dearpygui.dearpygui as dpg
 from dataclasses import dataclass
+
+# TODO: implement 'Add Range' for variable listboxes
+# TODO: implement graph
+# TODO: make UI scalable in some way (need to see what it looks like on lab PCs)
+
+
+@dataclass
+class range_selector_window:
+    window_tag: str | int
+    spacing_combo: str | int
+    spacing_input: str | int  # number of points or spacing depending on the spacing combo value
+    min_value_input: str | int
+    max_value_input: str | int
+
 
 @dataclass
 class variable_list:
@@ -8,6 +23,7 @@ class variable_list:
     add_button_handle: str | int
     add_range_handle: str | int
     del_button_handle: str | int
+    range_selector: range_selector_window
 
 
 class lcd_ui:
@@ -37,23 +53,16 @@ class lcd_ui:
                         f"Linkam: {self.linkam_status}", tag="linkam_status_display"
                     )
 
-                    
-                
-                    self.linkam_com_selector = dpg.add_combo(width=200
-                    )
+                    self.linkam_com_selector = dpg.add_combo(width=200)
                     self.linkam_initialise = dpg.add_button(label="Initialise")
 
                 with dpg.group(horizontal=True):
-
                     self.agilent_status = dpg.add_text(
                         f"Agilent: {self.agilent_status}", tag="agilent_status_display"
                     )
-                
+
                     self.agilent_com_selector = dpg.add_combo(width=200)
                     self.agilent_initialise = dpg.add_button(label="Initialise")
-
-                
-
 
             with dpg.window(
                 label="Measurement Settings",
@@ -89,7 +98,9 @@ class lcd_ui:
                 no_close=True,
                 no_move=True,
             ):
-                self.freq_list = variable_list(*make_variable_list_frame(20.0))
+                self.freq_list = variable_list(
+                    *make_variable_list_frame(20.0, 20.0, 2e5)
+                )
 
             with dpg.window(
                 label="Voltage List",
@@ -100,7 +111,7 @@ class lcd_ui:
                 no_close=True,
                 no_move=True,
             ):
-                self.volt_list = variable_list(*make_variable_list_frame(1.0))
+                self.volt_list = variable_list(*make_variable_list_frame(1.0, 0.01, 20))
 
             with dpg.window(
                 label="Temperature List",
@@ -113,7 +124,7 @@ class lcd_ui:
             ):
                 with dpg.group(horizontal=True):
                     self.temperature_list = variable_list(
-                        *make_variable_list_frame(25.0)
+                        *make_variable_list_frame(25.0, -40, 250)
                     )
                     with dpg.group():
                         with dpg.group(horizontal=True):
@@ -157,10 +168,14 @@ class lcd_ui:
             ):
                 dpg.add_file_extension(".json")
 
-            with dpg.window(pos = [0, 546], no_title_bar= True, width = 600):
+            with dpg.window(pos=[0, 546], no_title_bar=True, width=600):
                 with dpg.group(horizontal=True):
-                    self.start_button = dpg.add_button(label = "Start", pos = [10, 0],  width = 285, height = 50)
-                    self.stop_button = dpg.add_button(label = "Stop", pos = [305, 0] , width = 285, height = 50 )
+                    self.start_button = dpg.add_button(
+                        label="Start", pos=[10, 0], width=285, height=50
+                    )
+                    self.stop_button = dpg.add_button(
+                        label="Stop", pos=[305, 0], width=285, height=50
+                    )
 
 
 def file_saveas_callback(sender, app_data, output_file_path):
@@ -189,7 +204,54 @@ def del_value_from_list_callback(sender, app_data, user_data):
     dpg.configure_item(user_data["listbox_handle"], items=new_list)
 
 
-def make_variable_list_frame(default_val):
+def append_range_to_list_callback(sender, app_data, user_data):
+    current_list = dpg.get_item_configuration(user_data["listbox_handle"])["items"]
+    values_to_add = list(
+        np.linspace(
+            dpg.get_value(user_data["range_selector"].min_value_input),
+            dpg.get_value(user_data["range_selector"].max_value_input),
+            dpg.get_value(user_data["range_selector"].spacing_input),
+        )
+    )
+
+    new_list = current_list + [
+        f"{i+1+len(current_list)}:\t{x}" for i, x in enumerate(values_to_add)
+    ]
+
+    dpg.configure_item(user_data["listbox_handle"], items=new_list)
+
+
+def replace_list_callback(sender, app_data, user_data):
+    new_list = list(
+        np.linspace(
+            dpg.get_value(user_data["range_selector"].min_value_input),
+            dpg.get_value(user_data["range_selector"].max_value_input),
+            dpg.get_value(user_data["range_selector"].spacing_input),
+        )
+    )
+
+    dpg.configure_item(user_data["listbox_handle"], items=new_list)
+
+
+def make_variable_list_frame(default_val, min_val, max_val, logspace=False):
+    with dpg.window(
+        label="Range Selector", height=250, width=250, modal=True
+    ) as window_tag:
+        with dpg.group() as range_selector_group:
+            spacing_combo = dpg.add_combo(["Step Size", "Number of Points"])
+            spacing_input = dpg.add_input_int(default_value=10)
+            min_value_input = dpg.add_input_double(default_value=min_val)
+            max_value_input = dpg.add_input_double(default_value=max_val)
+            range_selector = range_selector_window(
+                window_tag,
+                spacing_combo,
+                spacing_input,
+                min_value_input,
+                max_value_input,
+            )
+
+    dpg.hide_item(window_tag)
+
     with dpg.group(horizontal=True):
         listbox_handle = dpg.add_listbox(["1:\t" + str(default_val)], width=150)
         with dpg.group():
@@ -199,11 +261,33 @@ def make_variable_list_frame(default_val):
                 callback=add_value_to_list_callback,
                 user_data={"listbox_handle": listbox_handle, "add_text": add_text},
             )
-            add_range_button = dpg.add_button(label="Add Range")
+            add_range_button = dpg.add_button(
+                label="Add Range", callback=lambda: dpg.show_item(window_tag)
+            )
             delete_button = dpg.add_button(
                 label="Delete",
                 callback=del_value_from_list_callback,
                 user_data={"listbox_handle": listbox_handle, "add_text": add_text},
             )
 
-    return listbox_handle, add_text, add_button, add_range_button, delete_button
+    append_button = dpg.add_button(
+        label="Append",
+        callback=append_range_to_list_callback,
+        user_data={"range_selector": range_selector, "listbox_handle": listbox_handle},
+        parent=range_selector_group,
+    )
+    replace_button = dpg.add_button(
+        label="Replace",
+        callback=replace_list_callback,
+        user_data={"range_selector": range_selector, "listbox_handle": listbox_handle},
+        parent=range_selector_group,
+    )
+
+    return (
+        listbox_handle,
+        add_text,
+        add_button,
+        add_range_button,
+        delete_button,
+        range_selector,
+    )

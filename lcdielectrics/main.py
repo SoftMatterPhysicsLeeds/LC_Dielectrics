@@ -6,7 +6,7 @@ import threading
 import ctypes
 ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
-
+#TODO: hook up UI to functions that actually run the experiment. State class perhaps? 
 
 def main():
     dpg.create_context()
