@@ -191,7 +191,7 @@ def del_value_from_list_callback(sender, app_data, user_data):
 
 def make_variable_list_frame(default_val):
     with dpg.group(horizontal=True):
-        listbox_handle = dpg.add_listbox(["1:\t" + str(default_val)], width=200)
+        listbox_handle = dpg.add_listbox(["1:\t" + str(default_val)], width=150)
         with dpg.group():
             add_text = dpg.add_input_float(default_value=default_val, width=100)
             add_button = dpg.add_button(
