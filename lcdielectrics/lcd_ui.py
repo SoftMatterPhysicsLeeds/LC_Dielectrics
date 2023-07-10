@@ -7,7 +7,8 @@ from dataclasses import dataclass
 # TODO: make UI scalable in some way (need to see what it looks like on lab PCs)
 
 VIEWPORT_WIDTH = 1280
-VIEWPORT_HEIGHT = 800
+DRAW_HEIGHT = 640 # titlebar is approximately 40px 
+VIEWPORT_HEIGHT = 600
 
 
 @dataclass
@@ -246,13 +247,19 @@ def replace_list_callback(sender, app_data, user_data):
 
 
 def make_variable_list_frame(default_val, min_val, max_val, logspace=False):
+    window_height = 300
+    window_width = 250
     with dpg.window(
-        label="Range Selector", height=250, width=250, modal=True
+        label="Range Selector", height=window_height, width=window_width, modal=True, pos = [(VIEWPORT_WIDTH - window_width)/2, (VIEWPORT_HEIGHT-window_height)/2]
     ) as window_tag:
         with dpg.group() as range_selector_group:
+            dpg.add_text("Mode:")
             spacing_combo = dpg.add_combo(["Step Size", "Number of Points"])
+            dpg.add_text("Number of Points")
             spacing_input = dpg.add_input_int(default_value=10)
+            dpg.add_text("Minimum Value")
             min_value_input = dpg.add_input_double(default_value=min_val)
+            dpg.add_text("Maximum Value")
             max_value_input = dpg.add_input_double(default_value=max_val)
             range_selector = range_selector_window(
                 window_tag,
@@ -282,18 +289,17 @@ def make_variable_list_frame(default_val, min_val, max_val, logspace=False):
                 user_data={"listbox_handle": listbox_handle, "add_text": add_text},
             )
 
-    append_button = dpg.add_button(
-        label="Append",
-        callback=append_range_to_list_callback,
-        user_data={"range_selector": range_selector, "listbox_handle": listbox_handle},
-        parent=range_selector_group,
-    )
-    replace_button = dpg.add_button(
-        label="Replace",
-        callback=replace_list_callback,
-        user_data={"range_selector": range_selector, "listbox_handle": listbox_handle},
-        parent=range_selector_group,
-    )
+    with dpg.group(parent = range_selector_group, horizontal=True):
+        dpg.add_button(
+            label="Append",
+            callback=append_range_to_list_callback,
+            user_data={"range_selector": range_selector, "listbox_handle": listbox_handle},
+        )
+        dpg.add_button(
+            label="Replace",
+            callback=replace_list_callback,
+            user_data={"range_selector": range_selector, "listbox_handle": listbox_handle},
+        )
 
     return (
         listbox_handle,

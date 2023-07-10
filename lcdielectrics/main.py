@@ -1,6 +1,6 @@
 from lcdielectrics.lcd_utils import find_instruments
 import dearpygui.dearpygui as dpg
-from lcdielectrics.lcd_ui import lcd_ui, VIEWPORT_HEIGHT, VIEWPORT_WIDTH
+from lcdielectrics.lcd_ui import lcd_ui, VIEWPORT_HEIGHT, VIEWPORT_WIDTH, DRAW_HEIGHT
 # from serial.tools import list_ports
 import threading 
 import ctypes
@@ -24,7 +24,7 @@ def main():
     dpg.create_viewport(
         title = "LC Dielectrics",
         width = VIEWPORT_WIDTH,
-        height= VIEWPORT_HEIGHT
+        height= DRAW_HEIGHT
     
     )
     dpg.setup_dearpygui()
