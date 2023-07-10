@@ -1,17 +1,18 @@
 from lcdielectrics.lcd_utils import find_instruments
 import dearpygui.dearpygui as dpg
-from lcdielectrics.lcd_ui import lcd_ui
+from lcdielectrics.lcd_ui import lcd_ui, VIEWPORT_HEIGHT, VIEWPORT_WIDTH
 # from serial.tools import list_ports
 import threading 
 import ctypes
 ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
 #TODO: hook up UI to functions that actually run the experiment. State class perhaps? 
+FONT_SCALE = 1
+
 
 def main():
     dpg.create_context()
 
-    FONT_SCALE = 1
     with dpg.font_registry():
         font_regular = dpg.add_font('consola.ttf', 14*FONT_SCALE)
     
@@ -22,6 +23,8 @@ def main():
 
     dpg.create_viewport(
         title = "LC Dielectrics",
+        width = VIEWPORT_WIDTH,
+        height= VIEWPORT_HEIGHT
     
     )
     dpg.setup_dearpygui()
