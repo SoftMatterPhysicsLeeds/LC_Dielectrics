@@ -6,6 +6,9 @@ from dataclasses import dataclass
 # TODO: implement graph
 # TODO: make UI scalable in some way (need to see what it looks like on lab PCs)
 
+VIEWPORT_WIDTH = 1280
+VIEWPORT_HEIGHT = 800
+
 
 @dataclass
 class range_selector_window:
@@ -37,8 +40,8 @@ class lcd_ui:
         with dpg.window(
             label="Status",
             pos=[0, 0],
-            width=600,
-            no_resize=True,
+            width=VIEWPORT_WIDTH/2,
+            height = VIEWPORT_HEIGHT/6,
             no_collapse=True,
             no_close=True,
         ) as self.control_window:
@@ -65,9 +68,11 @@ class lcd_ui:
 
             with dpg.window(
                 label="Measurement Settings",
-                pos=[0, 100],
-                width=600,
-                no_resize=True,
+                
+                pos=[0, VIEWPORT_HEIGHT/6],
+                width=VIEWPORT_WIDTH/2,
+                height = VIEWPORT_HEIGHT/6,
+               
                 no_collapse=True,
                 no_close=True,
             ):
@@ -89,12 +94,11 @@ class lcd_ui:
 
             with dpg.window(
                 label="Frequency List",
-                width=300,
-                pos=[0, 200],
-                no_resize=True,
+                width=VIEWPORT_WIDTH / 4,
+                pos=[0, VIEWPORT_HEIGHT / 6 * 2],
+                height=VIEWPORT_HEIGHT / 6,
                 no_collapse=True,
                 no_close=True,
-                no_move=True,
             ):
                 self.freq_list = variable_list(
                     *make_variable_list_frame(20.0, 20.0, 2e5)
@@ -102,9 +106,9 @@ class lcd_ui:
 
             with dpg.window(
                 label="Voltage List",
-                width=300,
-                pos=[300, 200],
-                no_resize=True,
+                width=VIEWPORT_WIDTH / 4,
+                pos=[VIEWPORT_WIDTH / 4, VIEWPORT_HEIGHT / 6 * 2],
+                height=VIEWPORT_HEIGHT / 6,
                 no_collapse=True,
                 no_close=True,
             ):
@@ -112,9 +116,9 @@ class lcd_ui:
 
             with dpg.window(
                 label="Temperature List",
-                width=600,
-                pos=[0, 323],
-                no_resize=True,
+                width=VIEWPORT_WIDTH / 2,
+                height=VIEWPORT_HEIGHT / 6,
+                pos=[0, VIEWPORT_HEIGHT / 6 * 3],
                 no_collapse=True,
                 no_close=True,
             ):
@@ -138,9 +142,9 @@ class lcd_ui:
 
             with dpg.window(
                 label="Output Data Settings",
-                pos=[0, 446],
-                width=600,
-                no_resize=True,
+                pos=[0, VIEWPORT_HEIGHT / 6 * 4],
+                width=VIEWPORT_WIDTH / 2,
+                height=VIEWPORT_HEIGHT / 6,
                 no_collapse=True,
                 no_close=True,
             ):
@@ -163,13 +167,24 @@ class lcd_ui:
             ):
                 dpg.add_file_extension(".json")
 
-            with dpg.window(pos=[0, 546], no_title_bar=True, width=600):
+            with dpg.window(
+                pos=[0, VIEWPORT_HEIGHT / 6 * 5],
+                no_title_bar=True,
+                width=VIEWPORT_WIDTH / 2,
+                height=VIEWPORT_HEIGHT / 6,
+            ):
                 with dpg.group(horizontal=True):
                     self.start_button = dpg.add_button(
-                        label="Start", pos=[10, 0], width=285, height=50
+                        label="Start",
+                        pos=[10, VIEWPORT_HEIGHT / 6 * 0.13],
+                        width=285,
+                        height=50,
                     )
                     self.stop_button = dpg.add_button(
-                        label="Stop", pos=[305, 0], width=285, height=50
+                        label="Stop",
+                        pos=[VIEWPORT_WIDTH / 4 + 10, VIEWPORT_HEIGHT / 6 * 0.13],
+                        width=285,
+                        height=50,
                     )
 
 
