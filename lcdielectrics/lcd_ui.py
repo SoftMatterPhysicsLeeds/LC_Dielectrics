@@ -2,7 +2,6 @@ import numpy as np
 import dearpygui.dearpygui as dpg
 from dataclasses import dataclass
 
-# TODO: implement 'Add Range' for variable listboxes
 # TODO: implement graph
 # TODO: make UI scalable in some way (need to see what it looks like on lab PCs)
 
