@@ -6,15 +6,18 @@ from lcdielectrics.lcd_utils import (
 import dearpygui.dearpygui as dpg
 from lcdielectrics.lcd_ui import lcd_ui, VIEWPORT_HEIGHT, VIEWPORT_WIDTH, DRAW_HEIGHT
 from dataclasses import dataclass, field
+
 # from serial.tools import list_ports
 import threading
 import ctypes
+
 ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
 # TODO: hook up UI to functions that actually run the experiment. State class perhaps?
 FONT_SCALE = 1
 
-@dataclass 
+
+@dataclass
 class lcd_state:
     results: dict = field(default_factory=dict)
     measurement_status: str = "Idle"
@@ -47,7 +50,7 @@ def main():
         frontend.agilent_initialise,
         callback=connect_to_instrument_callback,
         user_data={
-            "instrument": 'agilent',
+            "instrument": "agilent",
             "frontend": frontend,
             "instruments": instruments,
         },
@@ -57,7 +60,7 @@ def main():
         frontend.linkam_initialise,
         callback=connect_to_instrument_callback,
         user_data={
-            "instrument": 'linkam',
+            "instrument": "linkam",
             "frontend": frontend,
             "instruments": instruments,
         },
@@ -71,6 +74,8 @@ def main():
     thread.start()
 
     while dpg.is_dearpygui_running():
+        # check if linkam is connected. If it is, start thread to poll temperature.
+
         dpg.render_dearpygui_frame()
 
     dpg.destroy_context()
