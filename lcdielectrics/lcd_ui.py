@@ -137,10 +137,10 @@ class lcd_ui:
                             dpg.add_text("°C")
                         with dpg.group(horizontal=True):
                             dpg.add_text("Rate (°C/min): ")
-                            dpg.add_input_double(default_value=10)
+                            self.T_rate = dpg.add_input_double(default_value=10)
                         with dpg.group(horizontal=True):
                             dpg.add_text("Stab. Time (s)")
-                            dpg.add_input_double(default_value=1)
+                            self.stab_time = dpg.add_input_double(default_value=1)
 
             with dpg.window(
                 label="Output Data Settings",
@@ -219,7 +219,10 @@ def del_value_from_list_callback(sender, app_data, user_data):
 def append_range_to_list_callback(sender, app_data, user_data):
     current_list = dpg.get_item_configuration(user_data["listbox_handle"])["items"]
 
-    if dpg.get_value(user_data["range_selector"].spacing_combo) == "Number of Points (Linear)":
+    if (
+        dpg.get_value(user_data["range_selector"].spacing_combo)
+        == "Number of Points (Linear)"
+    ):
         values_to_add = list(
             np.linspace(
                 dpg.get_value(user_data["range_selector"].min_value_input),
@@ -227,16 +230,19 @@ def append_range_to_list_callback(sender, app_data, user_data):
                 dpg.get_value(user_data["range_selector"].number_of_points_input),
             )
         )
-    
-    elif dpg.get_value(user_data["range_selector"].spacing_combo) == "Number of Points (Log)":
-         values_to_add = list(
+
+    elif (
+        dpg.get_value(user_data["range_selector"].spacing_combo)
+        == "Number of Points (Log)"
+    ):
+        values_to_add = list(
             np.logspace(
                 np.log10(dpg.get_value(user_data["range_selector"].min_value_input)),
                 np.log10(dpg.get_value(user_data["range_selector"].max_value_input)),
                 dpg.get_value(user_data["range_selector"].number_of_points_input),
             )
         )
-    
+
     else:
         values_to_add = list(
             np.arange(
@@ -245,7 +251,6 @@ def append_range_to_list_callback(sender, app_data, user_data):
                 dpg.get_value(user_data["range_selector"].spacing_input),
             )
         )
-
 
     new_list = current_list + [
         f"{i+1+len(current_list)}:\t{x}" for i, x in enumerate(values_to_add)
@@ -255,8 +260,10 @@ def append_range_to_list_callback(sender, app_data, user_data):
 
 
 def replace_list_callback(sender, app_data, user_data):
-    
-    if dpg.get_value(user_data["range_selector"].spacing_combo) == "Number of Points (Linear)":
+    if (
+        dpg.get_value(user_data["range_selector"].spacing_combo)
+        == "Number of Points (Linear)"
+    ):
         values_to_add = list(
             np.linspace(
                 dpg.get_value(user_data["range_selector"].min_value_input),
@@ -265,8 +272,11 @@ def replace_list_callback(sender, app_data, user_data):
             )
         )
 
-    elif dpg.get_value(user_data["range_selector"].spacing_combo) == "Number of Points (Log)":
-         values_to_add = list(
+    elif (
+        dpg.get_value(user_data["range_selector"].spacing_combo)
+        == "Number of Points (Log)"
+    ):
+        values_to_add = list(
             np.logspace(
                 np.log10(dpg.get_value(user_data["range_selector"].min_value_input)),
                 np.log10(dpg.get_value(user_data["range_selector"].max_value_input)),
@@ -281,7 +291,6 @@ def replace_list_callback(sender, app_data, user_data):
                 dpg.get_value(user_data["range_selector"].spacing_input),
             )
         )
-
 
     new_list_numbered = [f"{i+1}:\t{x}" for i, x in enumerate(values_to_add)]
 
@@ -294,7 +303,10 @@ def change_spacing_callback(sender, app_data, user_data):
         dpg.show_item(user_data["spacing_input"])
         dpg.hide_item(user_data["number_of_points_input"])
 
-    elif dpg.get_value(sender) == "Number of Points (Linear)" or dpg.get_value(sender) == "Number of Points (Log)":
+    elif (
+        dpg.get_value(sender) == "Number of Points (Linear)"
+        or dpg.get_value(sender) == "Number of Points (Log)"
+    ):
         dpg.set_value(user_data["spacing_label"], "Number of Points:")
         dpg.hide_item(user_data["spacing_input"])
         dpg.show_item(user_data["number_of_points_input"])

@@ -11,7 +11,7 @@ from lcdielectrics.excel_writer import make_excel
 from lcdielectrics.instruments import AgilentSpectrometer, LinkamHotstage
 from lcdielectrics.ui import generate_ui, Widgets
 
-#TODO: add option to run without temperature control
+# TODO: add option to run without temperature control
 
 # build command:
 # pyinstaller -i .\LCD_icon.ico --onefile .\lc_dielectrics.py
@@ -58,11 +58,10 @@ class MainWindow(QMainWindow):
         self.voltage_list_mode = False
 
         self.layout, self.widgets = generate_ui()
-        
+
         self.xdata = []
         self.ydata = []
         self.datalines = []
-
 
         self.update_plot()
 
@@ -116,7 +115,7 @@ class MainWindow(QMainWindow):
             self.linkam_status = "Connected"
             self.widgets.init_linkam_button.setText("Connected")
             self.widgets.init_linkam_button.setEnabled(False)
-            
+
             with open("address.dat", "w") as f:
                 f.write(self.widgets["com_selector"].currentText())
 
@@ -158,7 +157,9 @@ class MainWindow(QMainWindow):
             self.measurement_status == f"Going to T: {self.T_list[self.T_step]}"
             and self.linkam_action == "Holding"
         ):
-            self.measurement_status = f"Stabilising temperature for {float(self.widgets.stab_time.text())}s"
+            self.measurement_status = (
+                f"Stabilising temperature for {float(self.widgets.stab_time.text())}s"
+            )
         elif (
             self.measurement_status
             == f"Stabilising temperature for {float(self.widgets.stab_time.text())}s"

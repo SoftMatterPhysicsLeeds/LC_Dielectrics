@@ -1,6 +1,8 @@
 import dearpygui.dearpygui as dpg
 from lcdielectrics.lcd_ui import lcd_ui
 from lcdielectrics.instruments import LinkamHotstage, AgilentSpectrometer
+from lcdielectrics.excel_writer import make_excel
+import json
 import pyvisa
 import time
 from dataclasses import dataclass, field
@@ -11,12 +13,21 @@ import threading
 
 @dataclass
 class lcd_state:
-    results: dict = field(default_factory=dict)
+    resultsDict: dict = field(default_factory=dict)
     measurement_status: str = "Idle"
     t_stable_count: float = 0
     voltage_list_mode: bool = False
     linkam_connection_status: str = "Disconnected"
     agilent_connection_status: str = "Disconnected"
+    linkam_action: str = "Idle"
+    T_list: list = field(default_factory=list)
+    freq_list: list = field(default_factory=list)
+    voltage_list: list = field(default_factory=list)
+    xdata: list = field(default_factory=list)
+    ydata: list = field(default_factory=list)
+    T_step: int = 0
+    freq_step: int = 0
+    volt_step: int = 0
 
 
 @dataclass
@@ -43,7 +54,6 @@ def find_instruments(frontend: lcd_ui):
 
 
 def connect_to_instrument_callback(sender, app_data, user_data):
-    print(user_data["instrument"])
     if user_data["instrument"] == "linkam":
         thread = threading.Thread(
             target=init_linkam,
@@ -59,12 +69,24 @@ def connect_to_instrument_callback(sender, app_data, user_data):
     thread.start()
 
 
-def run_experiment(frontend: lcd_ui):
-    frontend.result = dict()
-    frontend.result["CPD"] = frontend.agilent.measure("CPD")
+def run_spectrometer(
+    frontend: lcd_ui, instruments: lcd_instruments, state: lcd_state
+) -> None:
+    thread = threading.Thread(
+        target=run_experiment, args=(frontend, instruments, state)
+    )
+    thread.daemon = True
+    thread.start()
+
+
+def run_experiment(frontend: lcd_ui, instruments: lcd_state, state: lcd_state):
+    result = dict()
+    time.sleep(dpg.get_value(frontend.delay_time))
+    result["CPD"] = instruments.agilent.measure("CPD")
     time.sleep(0.5)
-    frontend.result["GB"] = frontend.agilent.measure("GB")
+    result["GB"] = instruments.agilent.measure("GB")
     time.sleep(0.5)
+    get_result(result, state, frontend, instruments)
 
 
 def init_agilent(
@@ -94,7 +116,144 @@ def init_linkam(
         dpg.set_value(frontend.linkam_status, "Couldn't connect")
 
 
-def read_temperature(frontend: lcd_ui, instruments: lcd_instruments):
-    dpg.set_value(
-        frontend.linkam_status, str(instruments.linkam.current_temperature()[0])
+def read_temperature(frontend: lcd_ui, instruments: lcd_instruments, state: lcd_state):
+    while True:
+        temperature, status = instruments.linkam.current_temperature()
+        dpg.set_value(frontend.linkam_status, f"T: {str(temperature)}, Status: {status}")
+        state.linkam_action = status
+        time.sleep(0.1)
+
+
+def start_measurement(
+    state: lcd_state, frontend: lcd_ui, instruments: lcd_instruments
+) -> None:
+    state.freq_list = [
+        float(x.split("\t")[1])
+        for x in dpg.get_item_configuration(frontend.freq_list.list_handle)["items"]
+    ]
+    state.voltage_list = [
+        float(x.split("\t")[1])
+        for x in dpg.get_item_configuration(frontend.volt_list.list_handle)["items"]
+    ]
+    state.T_list = [
+        float(x.split("\t")[1])
+        for x in dpg.get_item_configuration(frontend.temperature_list.list_handle)[
+            "items"
+        ]
+    ]
+
+    state.T_list = [round(x, 2) for x in state.T_list]
+
+    instruments.agilent.set_aperture_mode(
+        dpg.get_value(frontend.meas_time_mode_selector),
+        dpg.get_value(frontend.averaging_factor),
     )
+
+    bias = dpg.get_value(frontend.bias_level)
+    if bias == 1.5 or 2:
+        instruments.agilent.set_DC_bias(float(bias))
+
+    state.T_step = 0
+    state.freq_step = 0
+    state.volt_step = 0
+
+    T = state.T_list[state.T_step]
+    freq = state.freq_list[state.freq_step]
+
+    state.resultsDict[state.T_list[state.T_step]] = dict()
+    state.resultsDict[T][freq] = dict()
+    state.resultsDict[T][freq]["volt"] = []
+    state.resultsDict[T][freq]["Cp"] = []
+    state.resultsDict[T][freq]["D"] = []
+    state.resultsDict[T][freq]["G"] = []
+    state.resultsDict[T][freq]["B"] = []
+
+    state.measurement_status = "Setting temperature"
+
+
+def get_result(
+    result: dict, state: lcd_state, frontend: lcd_ui, instruments: lcd_instruments
+) -> None:
+    parse_result(result, state)
+
+    if state.measurement_status == "Idle":
+        pass
+
+    else:
+        if len(state.voltage_list) == 1:
+            make_excel(
+                state.resultsDict,
+                dpg.get_value(frontend.output_file_path),
+                True,
+            )
+        else:
+            make_excel(
+                state.resultsDict,
+                dpg.get_value(frontend.output_file_path),
+                False,
+            )
+
+        with open(dpg.get_value(frontend.output_file_path), "w") as write_file:
+            json.dump(state.resultsDict, write_file, indent=4)
+        if (
+            state.T_step == len(state.T_list) - 1
+            and state.volt_step == len(state.voltage_list) - 1
+            and state.freq_step == len(state.freq_list) - 1
+        ):
+            state.measurement_status = "Finished"
+
+        else:
+            if (
+                state.volt_step == len(state.voltage_list) - 1
+                and state.freq_step == len(state.freq_list) - 1
+            ):
+                state.T_step += 1
+                state.freq_step = 0
+                state.volt_step = 0
+
+                T = state.T_list[state.T_step]
+                freq = state.freq_list[state.freq_step]
+
+                state.resultsDict[state.T_list[state.T_step]] = dict()
+                state.resultsDict[T][freq] = dict()
+                state.resultsDict[T][freq]["volt"] = []
+                state.resultsDict[T][freq]["Cp"] = []
+                state.resultsDict[T][freq]["D"] = []
+                state.resultsDict[T][freq]["G"] = []
+                state.resultsDict[T][freq]["B"] = []
+
+                instruments.agilent.set_voltage(0)
+                state.measurement_status = "Setting temperature"
+
+            elif state.volt_step == len(state.voltage_list) - 1:
+                state.freq_step += 1
+                state.volt_step = 0
+
+                T = state.T_list[state.T_step]
+                freq = state.freq_list[state.freq_step]
+
+                state.resultsDict[T][freq] = dict()
+                state.resultsDict[T][freq]["volt"] = []
+                state.resultsDict[T][freq]["Cp"] = []
+                state.resultsDict[T][freq]["D"] = []
+                state.resultsDict[T][freq]["G"] = []
+                state.resultsDict[T][freq]["B"] = []
+
+                state.measurement_status = "Temperature Stabilised"
+            else:
+                state.volt_step += 1
+                state.measurement_status = "Temperature Stabilised"
+
+
+def parse_result(result: dict, state: lcd_state) -> None:
+    T = state.T_list[state.T_step]
+    freq = state.freq_list[state.freq_step]
+    volt = state.voltage_list[state.volt_step]
+    state.resultsDict[T][freq]["volt"].append(volt)
+    state.resultsDict[T][freq]["Cp"].append(result["CPD"][0])
+    state.resultsDict[T][freq]["D"].append(result["CPD"][1])
+    state.resultsDict[T][freq]["G"].append(result["GB"][0])
+    state.resultsDict[T][freq]["B"].append(result["GB"][1])
+    state.xdata = state.resultsDict[T][freq]["volt"]
+    state.ydata = state.resultsDict[T][freq]["Cp"]
+    # self.update_plot()
