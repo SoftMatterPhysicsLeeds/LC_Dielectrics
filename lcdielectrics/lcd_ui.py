@@ -53,16 +53,18 @@ class lcd_ui:
                 )
 
                 with dpg.group(horizontal=True):
+                    dpg.add_text("Linkam: ")
                     self.linkam_status = dpg.add_text(
-                        f"Linkam: {self.linkam_status}", tag="linkam_status_display"
+                        f"{self.linkam_status}", tag="linkam_status_display"
                     )
 
                     self.linkam_com_selector = dpg.add_combo(width=200)
                     self.linkam_initialise = dpg.add_button(label="Initialise")
 
                 with dpg.group(horizontal=True):
+                    dpg.add_text("Agilent: ")
                     self.agilent_status = dpg.add_text(
-                        f"Agilent: {self.agilent_status}", tag="agilent_status_display"
+                        f"{self.agilent_status}", tag="agilent_status_display"
                     )
 
                     self.agilent_com_selector = dpg.add_combo(width=200)
