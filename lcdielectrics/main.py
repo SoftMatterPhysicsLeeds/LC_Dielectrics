@@ -3,6 +3,7 @@ from lcdielectrics.lcd_utils import (
     lcd_instruments,
     connect_to_instrument_callback,
 )
+from lcdielectrics.lcd_themes import generate_global_theme
 import dearpygui.dearpygui as dpg
 from lcdielectrics.lcd_ui import lcd_ui, VIEWPORT_HEIGHT, VIEWPORT_WIDTH, DRAW_HEIGHT
 from dataclasses import dataclass, field
@@ -11,7 +12,7 @@ from dataclasses import dataclass, field
 import threading
 import ctypes
 
-ctypes.windll.shcore.SetProcessDpiAwareness(2)
+ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 # TODO: hook up UI to functions that actually run the experiment. State class perhaps?
 FONT_SCALE = 1
@@ -31,7 +32,7 @@ def main():
     dpg.create_context()
 
     with dpg.font_registry():
-        font_regular = dpg.add_font("consola.ttf", 14 * FONT_SCALE)
+        font_regular = dpg.add_font("consola.ttf", 18 * FONT_SCALE)
 
     dpg.set_global_font_scale(1 / FONT_SCALE)
     dpg.bind_font(font_regular)
@@ -65,9 +66,10 @@ def main():
             "instruments": instruments,
         },
     )
-
+    dpg.bind_theme(generate_global_theme())
     # dpg.show_item_registry()
-
+    dpg.show_style_editor()
+    
     # Search for instruments using a thread so GUI isn't blocked.
     thread = threading.Thread(target=find_instruments, args=(frontend,))
     thread.daemon = True
