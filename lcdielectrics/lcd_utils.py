@@ -4,7 +4,9 @@ from lcdielectrics.instruments import LinkamHotstage, AgilentSpectrometer
 import pyvisa
 import time
 from dataclasses import dataclass
+import threading
 
+#TODO: find a way to handle exceptions in instrument threads?
 
 @dataclass
 class lcd_instruments:
@@ -28,6 +30,15 @@ def find_instruments(frontend: lcd_ui):
     dpg.set_value(frontend.measurement_status, "Found instruments!")
     dpg.set_value(frontend.measurement_status, "Idle")
 
+def connect_to_instrument_callback(sender, app_data, user_data):
+    print(user_data["instrument"])
+    if user_data["instrument"] == "linkam":
+        thread = threading.Thread(target = init_linkam, args=(user_data["frontend"], user_data["instruments"]))
+    elif user_data["instrument"] == "agilent":
+        thread = threading.Thread(target = init_agilent, args=(user_data["frontend"], user_data["instruments"]))
+
+    thread.daemon = True
+    thread.start()
 
 def run_experiment(frontend: lcd_ui):
     frontend.result = dict()
@@ -55,4 +66,5 @@ def init_linkam(frontend: lcd_ui, instruments: lcd_instruments) -> None:
             f.write(dpg.get_value(frontend.linkam_com_selector))
 
     except pyvisa.errors.VisaIOError:
+        
         dpg.set_value(frontend.linkam_status, "Couldn't connect")

@@ -1,15 +1,27 @@
-from lcdielectrics.lcd_utils import find_instruments, lcd_instruments
+from lcdielectrics.lcd_utils import (
+    find_instruments,
+    lcd_instruments,
+    connect_to_instrument_callback,
+)
 import dearpygui.dearpygui as dpg
 from lcdielectrics.lcd_ui import lcd_ui, VIEWPORT_HEIGHT, VIEWPORT_WIDTH, DRAW_HEIGHT
-
+from dataclasses import dataclass, field
 # from serial.tools import list_ports
 import threading
 import ctypes
-
 ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
 # TODO: hook up UI to functions that actually run the experiment. State class perhaps?
 FONT_SCALE = 1
+
+@dataclass 
+class lcd_state:
+    results: dict = field(default_factory=dict)
+    measurement_status: str = "Idle"
+    t_stable_count: float = 0
+    voltage_list_mode: bool = False
+    linkam_connected: bool = False
+    agilent_connected: bool = False
 
 
 def main():
@@ -27,8 +39,29 @@ def main():
     dpg.setup_dearpygui()
     dpg.show_viewport()
 
+    state = lcd_state()
     frontend = lcd_ui()
     instruments = lcd_instruments()
+
+    dpg.configure_item(
+        frontend.agilent_initialise,
+        callback=connect_to_instrument_callback,
+        user_data={
+            "instrument": 'agilent',
+            "frontend": frontend,
+            "instruments": instruments,
+        },
+    )
+
+    dpg.configure_item(
+        frontend.linkam_initialise,
+        callback=connect_to_instrument_callback,
+        user_data={
+            "instrument": 'linkam',
+            "frontend": frontend,
+            "instruments": instruments,
+        },
+    )
 
     # dpg.show_item_registry()
 
