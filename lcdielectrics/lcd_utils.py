@@ -119,7 +119,9 @@ def init_linkam(
 def read_temperature(frontend: lcd_ui, instruments: lcd_instruments, state: lcd_state):
     while True:
         temperature, status = instruments.linkam.current_temperature()
-        dpg.set_value(frontend.linkam_status, f"T: {str(temperature)}, Status: {status}")
+        dpg.set_value(
+            frontend.linkam_status, f"T: {str(temperature)}, Status: {status}"
+        )
         state.linkam_action = status
         time.sleep(0.1)
 
@@ -257,3 +259,9 @@ def parse_result(result: dict, state: lcd_state) -> None:
     state.xdata = state.resultsDict[T][freq]["volt"]
     state.ydata = state.resultsDict[T][freq]["Cp"]
     # self.update_plot()
+
+
+def stop_measurement(instruments: lcd_instruments, state: lcd_state) -> None:
+    instruments.linkam.stop()
+    instruments.agilent.reset_and_clear()
+    state.measurement_status = "Idle"

@@ -6,6 +6,7 @@ from lcdielectrics.lcd_utils import (
     read_temperature,
     run_spectrometer,
     start_measurement,
+    stop_measurement,
 )
 from lcdielectrics.lcd_themes import generate_global_theme
 import dearpygui.dearpygui as dpg
@@ -67,6 +68,12 @@ def main():
         frontend.start_button,
         callback=lambda: start_measurement(state, frontend, instruments),
     )
+
+    dpg.configure_item(
+        frontend.stop_button,
+        callback = lambda: stop_measurement(instruments, state)
+    )
+
     dpg.bind_theme(generate_global_theme())
     # dpg.show_item_registry()
     # dpg.show_style_editor()
