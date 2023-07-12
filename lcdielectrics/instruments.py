@@ -46,7 +46,6 @@ class LinkamHotstage:
             self.link.write(f"L1{int(T*10)}")  # type: ignore
             self.link.read()  # type: ignore
             self.link.write("S")  # type: ignore
-            self.link.read()  # type: ignore
 
             self.init = True
 
@@ -57,7 +56,10 @@ class LinkamHotstage:
 
     def current_temperature(self) -> tuple[float, str]:
         self.link.write("T")  # type: ignore
-        raw_string = self.link.read_raw()  # type: ignore
+        try:
+            raw_string = self.link.read_raw()  # type: ignore
+        except UnicodeDecodeError:
+            return 0.0, 0.0
         status_byte = int(raw_string[0])
 
         if status_byte == 1:
@@ -70,8 +72,10 @@ class LinkamHotstage:
             status = "Holding"
         else:
             status = "Dunno"
-
-        temperature = int(raw_string[6:10], 16) / 10.0
+        try:
+            temperature = int(raw_string[6:10], 16) / 10.0
+        except ValueError:
+            return 0.0, 0.0 
         return temperature, status
 
 

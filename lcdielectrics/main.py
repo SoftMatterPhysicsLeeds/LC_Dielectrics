@@ -144,6 +144,8 @@ def main():
         dpg.render_dearpygui_frame()
 
     dpg.destroy_context()
+    instruments.linkam.stop()
+    instruments.agilent.reset_and_clear()
 
 
 if __name__ == "__main__":
