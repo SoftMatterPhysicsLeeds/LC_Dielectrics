@@ -74,6 +74,11 @@ def main():
         callback = lambda: stop_measurement(instruments, state)
     )
 
+    dpg.configure_item(
+        frontend.go_to_temp_button,
+        callback = lambda: instruments.linkam.set_temperature(dpg.get_value(frontend.go_to_temp_input), dpg.get_value(frontend.T_rate))
+    )
+
     dpg.bind_theme(generate_global_theme())
     # dpg.show_item_registry()
     # dpg.show_style_editor()
