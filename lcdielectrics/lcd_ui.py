@@ -83,7 +83,7 @@ class lcd_ui:
                     self.delay_time = dpg.add_input_double(default_value=0.5, width=100)
                     dpg.add_text("Meas. Time Mode: ")
                     self.meas_time_mode_selector = dpg.add_combo(
-                        ["SHOR", "MED", "LONG"], width=100
+                        ["SHOR", "MED", "LONG"], width=100, default_value="SHOR"
                     )
 
                 with dpg.group(horizontal=True):
@@ -92,7 +92,7 @@ class lcd_ui:
                         default_value=1, width=100
                     )
                     dpg.add_text("Bias Level (V)")
-                    self.bias_level = dpg.add_combo([0, 1.5, 2], width=100)
+                    self.bias_level = dpg.add_combo([0, 1.5, 2], width=100, default_value=0)
 
             with dpg.window(
                 label="Frequency List",
