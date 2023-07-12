@@ -37,6 +37,40 @@ class lcd_ui:
         self.linkam_status = "Not Connected"
         self.agilent_status = "Not Connected"
         self._make_control_window()
+        self._make_graph_windows()
+
+    def _make_graph_windows(self):
+        with dpg.window(
+            label="Results",
+            pos=[VIEWPORT_WIDTH / 2, 0],
+            width=VIEWPORT_WIDTH / 2,
+            height=VIEWPORT_HEIGHT / 2,
+            no_collapse=True,
+            no_close=True,
+        ):
+            with dpg.plot(height=VIEWPORT_HEIGHT/2 - 50, width=VIEWPORT_WIDTH/2 - 35):
+                dpg.add_plot_axis(dpg.mvXAxis, label="V (volts)", tag="V_axis")
+                dpg.add_plot_axis(dpg.mvYAxis, label="C_p", tag="Cp_axis")
+                # series belong to a y axis. Note the tag name is used in the update
+                # function update_data
+                self.results_plot = dpg.add_line_series(
+                    x=[], y=[], label="Temp", parent="Cp_axis", tag="results_plot"
+                )
+        with dpg.window(
+            label="Temperature Log",
+            pos=[VIEWPORT_WIDTH / 2, VIEWPORT_HEIGHT / 2],
+            width=VIEWPORT_WIDTH / 2,
+            height=VIEWPORT_HEIGHT / 2,
+            no_collapse=True,
+            no_close=True,
+        ):
+            with dpg.plot(height=VIEWPORT_HEIGHT/2 - 50, width=VIEWPORT_WIDTH/2 - 35):
+                self.temperature_log_time_axis = dpg.add_plot_axis(dpg.mvXAxis, label="time (s)", tag="time_axis")
+                self.temperature_log_T_axis = dpg.add_plot_axis(dpg.mvYAxis, label="T (°C)", tag="T_axis")
+                # series belong to a y axis. Note the tag name is used in the update
+                # function update_data
+                self.temperature_log = dpg.add_line_series(
+                    x=[], y=[], label="Temp", parent="T_axis", tag="temperature_log")
 
     def _make_control_window(self):
         with dpg.window(
@@ -48,9 +82,11 @@ class lcd_ui:
             no_close=True,
         ) as self.control_window:
             with dpg.group(tag="status_window"):
-                self.measurement_status = dpg.add_text(
-                    f"{self.status}", tag="status_display"
-                )
+                with dpg.group(horizontal=True):
+                    dpg.add_text("Status: ")
+                    self.measurement_status = dpg.add_text(
+                        f"{self.status}", tag="status_display"
+                    )
 
                 with dpg.group(horizontal=True):
                     dpg.add_text("Linkam: ")
@@ -92,7 +128,9 @@ class lcd_ui:
                         default_value=1, width=100
                     )
                     dpg.add_text("Bias Level (V)")
-                    self.bias_level = dpg.add_combo([0, 1.5, 2], width=100, default_value=0)
+                    self.bias_level = dpg.add_combo(
+                        [0, 1.5, 2], width=100, default_value=0
+                    )
 
             with dpg.window(
                 label="Frequency List",
@@ -407,3 +445,4 @@ def make_variable_list_frame(default_val, min_val, max_val, logspace=False):
         delete_button,
         range_selector,
     )
+

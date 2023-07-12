@@ -28,7 +28,8 @@ class lcd_state:
     T_step: int = 0
     freq_step: int = 0
     volt_step: int = 0
-
+    T_log_time: list = field(default_factory=list)
+    T_log_T: list = field(default_factory=list)
 
 @dataclass
 class lcd_instruments:
@@ -117,13 +118,26 @@ def init_linkam(
 
 
 def read_temperature(frontend: lcd_ui, instruments: lcd_instruments, state: lcd_state):
+    log_time = 0
     while True:
         temperature, status = instruments.linkam.current_temperature()
         dpg.set_value(
             frontend.linkam_status, f"T: {str(temperature)}, Status: {status}"
         )
+        state.T_log_time.append(log_time)
+        state.T_log_T.append(temperature)
+
+        if len(state.T_log_T) == 1000:
+            state.T_log_T = state.T_log_T[1:]
+            state.T_log_time = state.T_log_time[1:]
+
+        dpg.set_value(frontend.temperature_log, [state.T_log_time, state.T_log_T])
+        dpg.fit_axis_data(frontend.temperature_log_time_axis)
+        dpg.fit_axis_data(frontend.temperature_log_T_axis)
+
         state.linkam_action = status
-        time.sleep(0.1)
+        time.sleep(0.01)
+        log_time+=0.1
 
 
 def start_measurement(
@@ -265,3 +279,6 @@ def stop_measurement(instruments: lcd_instruments, state: lcd_state) -> None:
     instruments.linkam.stop()
     instruments.agilent.reset_and_clear()
     state.measurement_status = "Idle"
+
+def update_temperature_log():
+    pass
