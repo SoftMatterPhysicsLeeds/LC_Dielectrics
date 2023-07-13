@@ -10,7 +10,7 @@ from lcdielectrics.lcd_utils import (
 )
 from lcdielectrics.lcd_themes import generate_global_theme
 import dearpygui.dearpygui as dpg
-from lcdielectrics.lcd_ui import lcd_ui, VIEWPORT_HEIGHT, VIEWPORT_WIDTH, DRAW_HEIGHT
+from lcdielectrics.lcd_ui import lcd_ui, VIEWPORT_WIDTH, DRAW_HEIGHT
 
 
 # from serial.tools import list_ports
@@ -70,13 +70,14 @@ def main():
     )
 
     dpg.configure_item(
-        frontend.stop_button,
-        callback = lambda: stop_measurement(instruments, state)
+        frontend.stop_button, callback=lambda: stop_measurement(instruments, state)
     )
 
     dpg.configure_item(
         frontend.go_to_temp_button,
-        callback = lambda: instruments.linkam.set_temperature(dpg.get_value(frontend.go_to_temp_input), dpg.get_value(frontend.T_rate))
+        callback=lambda: instruments.linkam.set_temperature(
+            dpg.get_value(frontend.go_to_temp_input), dpg.get_value(frontend.T_rate)
+        ),
     )
 
     dpg.bind_theme(generate_global_theme())
@@ -144,6 +145,8 @@ def main():
         dpg.render_dearpygui_frame()
 
     dpg.destroy_context()
+    instruments.linkam.stop()
+    instruments.agilent.reset_and_clear()
 
 
 if __name__ == "__main__":

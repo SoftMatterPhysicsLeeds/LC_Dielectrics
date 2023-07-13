@@ -121,6 +121,8 @@ def read_temperature(frontend: lcd_ui, instruments: lcd_instruments, state: lcd_
     log_time = 0
     while True:
         temperature, status = instruments.linkam.current_temperature()
+        if temperature == 0.0:
+            continue
         dpg.set_value(
             frontend.linkam_status, f"T: {str(temperature)}, Status: {status}"
         )
@@ -132,8 +134,11 @@ def read_temperature(frontend: lcd_ui, instruments: lcd_instruments, state: lcd_
             state.T_log_time = state.T_log_time[1:]
 
         dpg.set_value(frontend.temperature_log, [state.T_log_time, state.T_log_T])
-        dpg.fit_axis_data(frontend.temperature_log_time_axis)
-        dpg.fit_axis_data(frontend.temperature_log_T_axis)
+
+        dpg.set_axis_limits(frontend.temperature_log_time_axis, min(state.T_log_time) - 0.1*min(state.T_log_time), max(state.T_log_time) + 0.1*max(state.T_log_time))
+        dpg.set_axis_limits(frontend.temperature_log_T_axis, min(state.T_log_T) - 0.5, max(state.T_log_T) + 0.5)
+        # dpg.fit_axis_data(frontend.temperature_log_time_axis)
+        # dpg.fit_axis_data(frontend.temperature_log_T_axis)
 
         state.linkam_action = status
         time.sleep(0.01)
