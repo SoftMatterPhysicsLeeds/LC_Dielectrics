@@ -1,7 +1,7 @@
 import dearpygui.dearpygui as dpg
 from lcdielectrics.lcd_ui import lcd_ui
-from lcdielectrics.instruments import LinkamHotstage, AgilentSpectrometer
-from lcdielectrics.excel_writer import make_excel
+from lcdielectrics.lcd_instruments import LinkamHotstage, AgilentSpectrometer
+from lcdielectrics.lcd_excel_writer import make_excel
 import json
 import pyvisa
 import time
