@@ -8,6 +8,8 @@ from dataclasses import dataclass
 VIEWPORT_WIDTH = 1280
 DRAW_HEIGHT = 800  # titlebar is approximately 40px
 VIEWPORT_HEIGHT = DRAW_HEIGHT - 40
+VERTICAL_WIDGET_NUMBER = 6
+HEIGHT_DISCREPANCY = int(VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER)
 
 
 @dataclass
@@ -48,12 +50,19 @@ class lcd_ui:
             no_collapse=True,
             no_close=True,
         ):
-            with dpg.plot(height=VIEWPORT_HEIGHT/2 - 50, width=VIEWPORT_WIDTH/2 - 35):
-                dpg.add_plot_axis(dpg.mvXAxis, label="V (volts)", tag="V_axis")
-                dpg.add_plot_axis(dpg.mvYAxis, label="C_p", tag="Cp_axis")
+            with dpg.plot(
+                height=VIEWPORT_HEIGHT / 2 - 50, width=VIEWPORT_WIDTH / 2 - 35
+            ):
+                self.results_V_axis = dpg.add_plot_axis(
+                    dpg.mvXAxis, label="V (volts)", tag="V_axis"
+                )
+                self.results_Cp_axis = dpg.add_plot_axis(
+                    dpg.mvYAxis, label="C_p", tag="Cp_axis"
+                )
                 # series belong to a y axis. Note the tag name is used in the update
                 # function update_data
-                self.results_plot = dpg.add_line_series(
+
+                self.results_plot = dpg.add_scatter_series(
                     x=[], y=[], label="Temp", parent="Cp_axis", tag="results_plot"
                 )
         with dpg.window(
@@ -64,20 +73,27 @@ class lcd_ui:
             no_collapse=True,
             no_close=True,
         ):
-            with dpg.plot(height=VIEWPORT_HEIGHT/2 - 50, width=VIEWPORT_WIDTH/2 - 35):
-                self.temperature_log_time_axis = dpg.add_plot_axis(dpg.mvXAxis, label="time (s)", tag="time_axis")
-                self.temperature_log_T_axis = dpg.add_plot_axis(dpg.mvYAxis, label="T (°C)", tag="T_axis")
+            with dpg.plot(
+                height=VIEWPORT_HEIGHT / 2 - 50, width=VIEWPORT_WIDTH / 2 - 35
+            ):
+                self.temperature_log_time_axis = dpg.add_plot_axis(
+                    dpg.mvXAxis, label="time (s)", tag="time_axis"
+                )
+                self.temperature_log_T_axis = dpg.add_plot_axis(
+                    dpg.mvYAxis, label="T (°C)", tag="T_axis"
+                )
                 # series belong to a y axis. Note the tag name is used in the update
                 # function update_data
                 self.temperature_log = dpg.add_line_series(
-                    x=[], y=[], label="Temp", parent="T_axis", tag="temperature_log")
+                    x=[], y=[], label="Temp", parent="T_axis", tag="temperature_log"
+                )
 
     def _make_control_window(self):
         with dpg.window(
             label="Status",
             pos=[0, 0],
             width=VIEWPORT_WIDTH / 2,
-            height=VIEWPORT_HEIGHT / 6,
+            height=VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER,
             no_collapse=True,
             no_close=True,
         ) as self.control_window:
@@ -108,9 +124,9 @@ class lcd_ui:
 
             with dpg.window(
                 label="Measurement Settings",
-                pos=[0, VIEWPORT_HEIGHT / 6],
+                pos=[0, VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER],
                 width=VIEWPORT_WIDTH / 2,
-                height=VIEWPORT_HEIGHT / 6,
+                height=VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER,
                 no_collapse=True,
                 no_close=True,
             ):
@@ -135,8 +151,8 @@ class lcd_ui:
             with dpg.window(
                 label="Frequency List",
                 width=VIEWPORT_WIDTH / 4,
-                pos=[0, VIEWPORT_HEIGHT / 6 * 2],
-                height=VIEWPORT_HEIGHT / 6,
+                pos=[0, VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER * 2],
+                height=VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER,
                 no_collapse=True,
                 no_close=True,
             ):
@@ -147,8 +163,8 @@ class lcd_ui:
             with dpg.window(
                 label="Voltage List",
                 width=VIEWPORT_WIDTH / 4,
-                pos=[VIEWPORT_WIDTH / 4, VIEWPORT_HEIGHT / 6 * 2],
-                height=VIEWPORT_HEIGHT / 6,
+                pos=[VIEWPORT_WIDTH / 4, VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER * 2],
+                height=VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER,
                 no_collapse=True,
                 no_close=True,
             ):
@@ -157,8 +173,8 @@ class lcd_ui:
             with dpg.window(
                 label="Temperature List",
                 width=VIEWPORT_WIDTH / 2,
-                height=VIEWPORT_HEIGHT / 6,
-                pos=[0, VIEWPORT_HEIGHT / 6 * 3],
+                height=VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER,
+                pos=[0, VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER * 3],
                 no_collapse=True,
                 no_close=True,
             ):
@@ -182,9 +198,9 @@ class lcd_ui:
 
             with dpg.window(
                 label="Output Data Settings",
-                pos=[0, VIEWPORT_HEIGHT / 6 * 4],
+                pos=[0, VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER * 4],
                 width=VIEWPORT_WIDTH / 2,
-                height=VIEWPORT_HEIGHT / 6,
+                height=VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER,
                 no_collapse=True,
                 no_close=True,
             ):
@@ -208,21 +224,24 @@ class lcd_ui:
                 dpg.add_file_extension(".json")
 
             with dpg.window(
-                pos=[0, VIEWPORT_HEIGHT / 6 * 5],
+                pos=[0, VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER * 5],
                 no_title_bar=True,
                 width=VIEWPORT_WIDTH / 2,
-                height=VIEWPORT_HEIGHT / 6,
+                height=(VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER) + HEIGHT_DISCREPANCY,
             ):
                 with dpg.group(horizontal=True):
                     self.start_button = dpg.add_button(
                         label="Start",
-                        pos=[10, VIEWPORT_HEIGHT / 6 * 0.13],
+                        pos=[10, VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER * 0.13],
                         width=285,
                         height=50,
                     )
                     self.stop_button = dpg.add_button(
                         label="Stop",
-                        pos=[VIEWPORT_WIDTH / 4 + 10, VIEWPORT_HEIGHT / 6 * 0.13],
+                        pos=[
+                            VIEWPORT_WIDTH / 4 + 10,
+                            VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER * 0.13,
+                        ],
                         width=285,
                         height=50,
                     )
@@ -445,4 +464,3 @@ def make_variable_list_frame(default_val, min_val, max_val, logspace=False):
         delete_button,
         range_selector,
     )
-

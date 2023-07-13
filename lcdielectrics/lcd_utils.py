@@ -31,6 +31,7 @@ class lcd_state:
     T_log_time: list = field(default_factory=list)
     T_log_T: list = field(default_factory=list)
 
+
 @dataclass
 class lcd_instruments:
     linkam: LinkamHotstage | None = None
@@ -135,14 +136,22 @@ def read_temperature(frontend: lcd_ui, instruments: lcd_instruments, state: lcd_
 
         dpg.set_value(frontend.temperature_log, [state.T_log_time, state.T_log_T])
 
-        dpg.set_axis_limits(frontend.temperature_log_time_axis, min(state.T_log_time) - 0.1*min(state.T_log_time), max(state.T_log_time) + 0.1*max(state.T_log_time))
-        dpg.set_axis_limits(frontend.temperature_log_T_axis, min(state.T_log_T) - 0.5, max(state.T_log_T) + 0.5)
+        dpg.set_axis_limits(
+            frontend.temperature_log_time_axis,
+            min(state.T_log_time) - 0.1 * min(state.T_log_time),
+            max(state.T_log_time) + 0.1 * max(state.T_log_time),
+        )
+        dpg.set_axis_limits(
+            frontend.temperature_log_T_axis,
+            min(state.T_log_T) - 0.5,
+            max(state.T_log_T) + 0.5,
+        )
         # dpg.fit_axis_data(frontend.temperature_log_time_axis)
         # dpg.fit_axis_data(frontend.temperature_log_T_axis)
 
         state.linkam_action = status
         time.sleep(0.01)
-        log_time+=0.1
+        log_time += 0.1
 
 
 def start_measurement(
@@ -195,7 +204,7 @@ def start_measurement(
 def get_result(
     result: dict, state: lcd_state, frontend: lcd_ui, instruments: lcd_instruments
 ) -> None:
-    parse_result(result, state)
+    parse_result(result, state, frontend)
 
     if state.measurement_status == "Idle":
         pass
@@ -266,7 +275,7 @@ def get_result(
                 state.measurement_status = "Temperature Stabilised"
 
 
-def parse_result(result: dict, state: lcd_state) -> None:
+def parse_result(result: dict, state: lcd_state, frontend: lcd_ui) -> None:
     T = state.T_list[state.T_step]
     freq = state.freq_list[state.freq_step]
     volt = state.voltage_list[state.volt_step]
@@ -277,6 +286,21 @@ def parse_result(result: dict, state: lcd_state) -> None:
     state.resultsDict[T][freq]["B"].append(result["GB"][1])
     state.xdata = state.resultsDict[T][freq]["volt"]
     state.ydata = state.resultsDict[T][freq]["Cp"]
+
+    dpg.set_value(frontend.results_plot, [state.xdata, state.ydata])
+
+    dpg.set_axis_limits(
+        frontend.results_Cp_axis,
+        min(state.ydata) - 0.1 * min(state.ydata),
+        max(state.ydata) + 0.1 * max(state.ydata),
+    )
+    dpg.set_axis_limits(
+        frontend.results_V_axis,
+        min(state.xdata) - 0.1,
+        max(state.xdata) + 0.1,
+    )
+
+
     # self.update_plot()
 
 
@@ -285,5 +309,4 @@ def stop_measurement(instruments: lcd_instruments, state: lcd_state) -> None:
     instruments.agilent.reset_and_clear()
     state.measurement_status = "Idle"
 
-def update_temperature_log():
-    pass
+
