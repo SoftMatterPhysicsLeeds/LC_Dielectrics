@@ -1,7 +1,9 @@
 ## LC Dielectrics
 
 
-## License
-Copyright (c) University of Leeds. All rights reserved.
 
-Licensed under the [GPL-3.0](LICENSE) license
+
+## License
+Copyright (c) 2023 University of Leeds and Daniel Baker
+
+Licensed under the [MIT](LICENSE) license
