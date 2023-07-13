@@ -17,7 +17,7 @@ from lcdielectrics.lcd_ui import lcd_ui, VIEWPORT_WIDTH, DRAW_HEIGHT
 import threading
 import ctypes
 
-ctypes.windll.shcore.SetProcessDpiAwareness(1)
+#ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 # TODO: hook up UI to functions that actually run the experiment. State class perhaps?
 FONT_SCALE = 1
@@ -26,11 +26,11 @@ FONT_SCALE = 1
 def main():
     dpg.create_context()
 
-    with dpg.font_registry():
-        font_regular = dpg.add_font("consola.ttf", 16 * FONT_SCALE)
+    # with dpg.font_registry():
+    #     font_regular = dpg.add_font(r"lcdielectrics\font\consola.ttf", 14 * FONT_SCALE)
 
-    dpg.set_global_font_scale(1 / FONT_SCALE)
-    dpg.bind_font(font_regular)
+    # dpg.set_global_font_scale(1 / FONT_SCALE)
+    # dpg.bind_font(font_regular)
 
     dpg.create_viewport(
         title="LC Dielectrics", width=VIEWPORT_WIDTH, height=DRAW_HEIGHT

@@ -16,12 +16,10 @@ classifiers = [
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)"
 ]
 dependencies = [
+    "dearpygui",
     "numpy",
     "pandas",
-    "pyqtgraph",
-    "pyside6",
     "pyvisa",
-    "qtpy",
     "xlsxwriter",
     "pyvisa-py",
     "pyusb",
@@ -35,4 +33,4 @@ dependencies = [
 "Bug Tracker" = "https://github.com/SoftMatterPhysicsLeeds/LC_Dielectrics/issues"
 
 [project.gui-scripts]
-lcdielectrics = "lcdielectrics.lc_dielectrics:main"
+lcdielectrics = "lcdielectrics.lcd_main:main"
