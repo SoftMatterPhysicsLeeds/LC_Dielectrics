@@ -51,7 +51,9 @@ class lcd_ui:
             no_close=True,
         ):
             with dpg.plot(
-                height=VIEWPORT_HEIGHT / 2 - 50, width=VIEWPORT_WIDTH / 2 - 35
+                height=VIEWPORT_HEIGHT / 2 - 50,
+                width=VIEWPORT_WIDTH / 2 - 35,
+                anti_aliased=True,
             ):
                 self.results_V_axis = dpg.add_plot_axis(
                     dpg.mvXAxis, label="V (volts)", tag="V_axis"
@@ -74,7 +76,9 @@ class lcd_ui:
             no_close=True,
         ):
             with dpg.plot(
-                height=VIEWPORT_HEIGHT / 2 - 50, width=VIEWPORT_WIDTH / 2 - 35
+                height=VIEWPORT_HEIGHT / 2 - 50,
+                width=VIEWPORT_WIDTH / 2 - 35,
+                anti_aliased=True,
             ):
                 self.temperature_log_time_axis = dpg.add_plot_axis(
                     dpg.mvXAxis, label="time (s)", tag="time_axis"
@@ -344,7 +348,10 @@ def replace_list_callback(sender, app_data, user_data):
         values_to_add = list(
             np.arange(
                 dpg.get_value(user_data["range_selector"].min_value_input),
-                dpg.get_value(user_data["range_selector"].max_value_input),
+                dpg.get_value(
+                    user_data["range_selector"].max_value_input
+                    + user_data["range_selector"].spacing_input
+                ),
                 dpg.get_value(user_data["range_selector"].spacing_input),
             )
         )

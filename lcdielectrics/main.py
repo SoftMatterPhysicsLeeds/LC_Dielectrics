@@ -148,8 +148,10 @@ def main():
 
     if instruments.linkam:
         instruments.linkam.stop()
+        instruments.linkam.close()
     if instruments.agilent:
         instruments.agilent.reset_and_clear()
+        instruments.agilent.close()
 
 
 if __name__ == "__main__":

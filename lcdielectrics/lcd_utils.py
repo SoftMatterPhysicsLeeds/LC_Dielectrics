@@ -7,6 +7,7 @@ import pyvisa
 import time
 from dataclasses import dataclass, field
 import threading
+import numpy as np
 
 # TODO: find a way to handle exceptions in instrument threads?
 
@@ -120,6 +121,7 @@ def init_linkam(
 
 def read_temperature(frontend: lcd_ui, instruments: lcd_instruments, state: lcd_state):
     log_time = 0
+    time_step = 0.05
     while True:
         temperature, status = instruments.linkam.current_temperature()
         if temperature == 0.0:
@@ -136,22 +138,22 @@ def read_temperature(frontend: lcd_ui, instruments: lcd_instruments, state: lcd_
 
         dpg.set_value(frontend.temperature_log, [state.T_log_time, state.T_log_T])
 
-        dpg.set_axis_limits(
-            frontend.temperature_log_time_axis,
-            min(state.T_log_time) - 0.1 * min(state.T_log_time),
-            max(state.T_log_time) + 0.1 * max(state.T_log_time),
-        )
+        # dpg.set_axis_limits(
+        #     frontend.temperature_log_time_axis,
+        #     min(state.T_log_time) - 0.01 * min(state.T_log_time),
+        #     max(state.T_log_time) + 0.01 * max(state.T_log_time),
+        # )
         dpg.set_axis_limits(
             frontend.temperature_log_T_axis,
-            min(state.T_log_T) - 0.5,
-            max(state.T_log_T) + 0.5,
+            min(state.T_log_T) - 0.2,
+            max(state.T_log_T) + 0.2,
         )
-        # dpg.fit_axis_data(frontend.temperature_log_time_axis)
+        dpg.fit_axis_data(frontend.temperature_log_time_axis)
         # dpg.fit_axis_data(frontend.temperature_log_T_axis)
 
         state.linkam_action = status
-        time.sleep(0.01)
-        log_time += 0.1
+        time.sleep(time_step)
+        log_time += time_step
 
 
 def start_measurement(
@@ -301,12 +303,7 @@ def parse_result(result: dict, state: lcd_state, frontend: lcd_ui) -> None:
     )
 
 
-    # self.update_plot()
-
-
 def stop_measurement(instruments: lcd_instruments, state: lcd_state) -> None:
     instruments.linkam.stop()
     instruments.agilent.reset_and_clear()
     state.measurement_status = "Idle"
-
-

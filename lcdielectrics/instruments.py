@@ -1,11 +1,12 @@
 from typing import Any
 import pyvisa
-
+import threading
 
 class LinkamHotstage:
     def __init__(self, address: str) -> None:
 
         self.address = address
+        self.lock = threading.Lock()
         self.initialise_linkam()
 
     def initialise_linkam(self) -> None:
@@ -36,18 +37,22 @@ class LinkamHotstage:
     def set_temperature(self, T: float, rate: float = 20.0) -> None:
 
         if self.init:
-            self.link.write(f"R1{int(rate*100)}")  # type: ignore
-            self.link.read()  # type: ignore
-            self.link.write(f"L1{int(T*10)}")  # type: ignore
-            self.link.read()  # type: ignore
+            with self.lock:
+                self.link.write(f"R1{int(rate*100)}")  # type: ignore
+                self.link.read()  # type: ignore
+                self.link.write(f"L1{int(T*10)}")  # type: ignore
+                self.link.read()  # type: ignore
         else:
-            self.link.write(f"R1{int(rate*100)}")  # type: ignore
-            self.link.read()  # type: ignore
-            self.link.write(f"L1{int(T*10)}")  # type: ignore
-            self.link.read()  # type: ignore
-            self.link.write("S")  # type: ignore
+            with self.lock:
+                self.link.write(f"R1{int(rate*100)}")  # type: ignore
+                self.link.read()  # type: ignore
+                self.link.write(f"L1{int(T*10)}")  # type: ignore
+                self.link.read()  # type: ignore
+                self.link.write("S")  # type: ignore
+                self.link.read()
 
-            self.init = True
+                self.init = True
+            
 
     def stop(self) -> None:
         self.link.write("E")  # type: ignore
@@ -55,11 +60,12 @@ class LinkamHotstage:
         self.init = False
 
     def current_temperature(self) -> tuple[float, str]:
-        self.link.write("T")  # type: ignore
-        try:
-            raw_string = self.link.read_raw()  # type: ignore
-        except UnicodeDecodeError:
-            return 0.0, 0.0
+        with self.lock:
+            try:
+                self.link.write("T")  # type: ignore
+                raw_string = self.link.read_raw()  # type: ignore
+            except UnicodeDecodeError:
+                return 0.0, 0.0
         status_byte = int(raw_string[0])
 
         if status_byte == 1:
@@ -77,6 +83,9 @@ class LinkamHotstage:
         except ValueError:
             return 0.0, 0.0 
         return temperature, status
+
+    def close(self):
+        self.link.close()
 
 
 class AgilentSpectrometer:
@@ -164,3 +173,6 @@ class AgilentSpectrometer:
 
     def turn_off_DC_bias(self) -> None:
         self.spectrometer.write(":BIAS:STATE OFF")  # type: ignore
+
+    def close(self):
+        self.spectrometer.close()
