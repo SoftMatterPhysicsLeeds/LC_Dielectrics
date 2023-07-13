@@ -190,15 +190,16 @@ class lcd_ui:
                         with dpg.group(horizontal=True):
                             self.go_to_temp_button = dpg.add_button(label="Go to:")
                             self.go_to_temp_input = dpg.add_input_float(
-                                default_value=25
+                                default_value=25,
+                                width = 150
                             )
                             dpg.add_text("°C")
                         with dpg.group(horizontal=True):
                             dpg.add_text("Rate (°C/min): ")
-                            self.T_rate = dpg.add_input_double(default_value=10)
+                            self.T_rate = dpg.add_input_double(default_value=10, width=150)
                         with dpg.group(horizontal=True):
                             dpg.add_text("Stab. Time (s)")
-                            self.stab_time = dpg.add_input_double(default_value=1)
+                            self.stab_time = dpg.add_input_double(default_value=1, width = 150)
 
             with dpg.window(
                 label="Output Data Settings",
@@ -428,9 +429,9 @@ def make_variable_list_frame(default_val, min_val, max_val, logspace=False):
     dpg.hide_item(window_tag)
 
     with dpg.group(horizontal=True):
-        listbox_handle = dpg.add_listbox(["1:\t" + str(default_val)], width=150)
+        listbox_handle = dpg.add_listbox(["1:\t" + str(default_val)], width=150, num_items=10)
         with dpg.group():
-            add_text = dpg.add_input_float(default_value=default_val, width=100)
+            add_text = dpg.add_input_float(default_value=default_val, width=150)
             add_button = dpg.add_button(
                 label="Add",
                 callback=add_value_to_list_callback,
