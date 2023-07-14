@@ -1,5 +1,6 @@
 import pandas as pd
 
+#TODO remove pandas dependency
 
 def make_excel(results: dict, output: str, single_volt: bool) -> None:
     with pd.ExcelWriter(output.split(".json")[0] + ".xlsx") as writer:
