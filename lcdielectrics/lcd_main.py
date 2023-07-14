@@ -2,35 +2,17 @@ from lcdielectrics.lcd_utils import (
     find_instruments,
     lcd_instruments,
     lcd_state,
-    connect_to_instrument_callback,
     read_temperature,
     run_spectrometer,
-    start_measurement,
-    stop_measurement,
 )
 from lcdielectrics.lcd_themes import generate_global_theme
 import dearpygui.dearpygui as dpg
 from lcdielectrics.lcd_ui import lcd_ui, VIEWPORT_WIDTH, DRAW_HEIGHT
-
-
-# from serial.tools import list_ports
 import threading
-import ctypes
-
-#ctypes.windll.shcore.SetProcessDpiAwareness(1)
-
-# TODO: hook up UI to functions that actually run the experiment. State class perhaps?
-FONT_SCALE = 1
 
 
 def main():
     dpg.create_context()
-
-    # with dpg.font_registry():
-    #     font_regular = dpg.add_font(r"lcdielectrics\font\consola.ttf", 14 * FONT_SCALE)
-
-    # dpg.set_global_font_scale(1 / FONT_SCALE)
-    # dpg.bind_font(font_regular)
 
     dpg.create_viewport(
         title="LC Dielectrics", width=VIEWPORT_WIDTH, height=DRAW_HEIGHT
@@ -42,47 +24,9 @@ def main():
     frontend = lcd_ui()
     instruments = lcd_instruments()
 
-    dpg.configure_item(
-        frontend.agilent_initialise,
-        callback=connect_to_instrument_callback,
-        user_data={
-            "instrument": "agilent",
-            "frontend": frontend,
-            "instruments": instruments,
-            "state": state,
-        },
-    )
-
-    dpg.configure_item(
-        frontend.linkam_initialise,
-        callback=connect_to_instrument_callback,
-        user_data={
-            "instrument": "linkam",
-            "frontend": frontend,
-            "instruments": instruments,
-            "state": state,
-        },
-    )
-
-    dpg.configure_item(
-        frontend.start_button,
-        callback=lambda: start_measurement(state, frontend, instruments),
-    )
-
-    dpg.configure_item(
-        frontend.stop_button, callback=lambda: stop_measurement(instruments, state)
-    )
-
-    dpg.configure_item(
-        frontend.go_to_temp_button,
-        callback=lambda: instruments.linkam.set_temperature(
-            dpg.get_value(frontend.go_to_temp_input), dpg.get_value(frontend.T_rate)
-        ),
-    )
+    frontend.extra_config(instruments, frontend)
 
     dpg.bind_theme(generate_global_theme())
-    # dpg.show_item_registry()
-    # dpg.show_style_editor()
 
     # Search for instruments using a thread so GUI isn't blocked.
     thread = threading.Thread(target=find_instruments, args=(frontend,))

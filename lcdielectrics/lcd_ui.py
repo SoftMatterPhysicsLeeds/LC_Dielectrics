@@ -1,6 +1,15 @@
 import numpy as np
 import dearpygui.dearpygui as dpg
-from dataclasses import dataclass
+from lcdielectrics.lcd_dataclasses import (
+    range_selector_window,
+    variable_list,
+    lcd_state,
+    lcd_instruments,
+)
+import threading
+from lcdielectrics.lcd_instruments import LinkamHotstage, AgilentSpectrometer
+import pyvisa
+
 
 # TODO: implement graph
 # TODO: make UI scalable in some way (need to see what it looks like on lab PCs)
@@ -10,27 +19,6 @@ DRAW_HEIGHT = 800  # titlebar is approximately 40px
 VIEWPORT_HEIGHT = DRAW_HEIGHT - 40
 VERTICAL_WIDGET_NUMBER = 6
 HEIGHT_DISCREPANCY = int(VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER)
-
-
-@dataclass
-class range_selector_window:
-    window_tag: str | int
-    spacing_combo: str | int
-    number_of_points_input: str | int
-    spacing_input: str | int  # number of points or spacing depending on the spacing combo value
-    spacing_label: str | int
-    min_value_input: str | int
-    max_value_input: str | int
-
-
-@dataclass
-class variable_list:
-    list_handle: str | int
-    add_text_handle: str | int
-    add_button_handle: str | int
-    add_range_handle: str | int
-    del_button_handle: str | int
-    range_selector: range_selector_window
 
 
 class lcd_ui:
@@ -253,6 +241,143 @@ class lcd_ui:
                         width=285,
                         height=50,
                     )
+
+    def extra_config(self, instruments: lcd_instruments, state: lcd_state):
+        dpg.configure_item(
+            self.agilent_initialise,
+            callback=connect_to_instrument_callback,
+            user_data={
+                "instrument": "agilent",
+                "frontend": self,
+                "instruments": instruments,
+                "state": state,
+            },
+        )
+
+        dpg.configure_item(
+            self.linkam_initialise,
+            callback=connect_to_instrument_callback,
+            user_data={
+                "instrument": "linkam",
+                "frontend": self,
+                "instruments": instruments,
+                "state": state,
+            },
+        )
+
+        dpg.configure_item(
+            self.start_button,
+            callback=lambda: start_measurement(state, self, instruments),
+        )
+
+        dpg.configure_item(
+            self.stop_button,
+            callback=lambda: stop_measurement(instruments, state),
+        )
+
+        dpg.configure_item(
+            self.go_to_temp_button,
+            callback=lambda: instruments.linkam.set_temperature(
+                dpg.get_value(self.go_to_temp_input),
+                dpg.get_value(self.T_rate),
+            ),
+        )
+
+
+def start_measurement(
+    state: lcd_state, frontend: lcd_ui, instruments: lcd_instruments
+) -> None:
+    state.freq_list = [
+        float(x.split("\t")[1])
+        for x in dpg.get_item_configuration(frontend.freq_list.list_handle)["items"]
+    ]
+    state.voltage_list = [
+        float(x.split("\t")[1])
+        for x in dpg.get_item_configuration(frontend.volt_list.list_handle)["items"]
+    ]
+    state.T_list = [
+        float(x.split("\t")[1])
+        for x in dpg.get_item_configuration(frontend.temperature_list.list_handle)[
+            "items"
+        ]
+    ]
+
+    state.T_list = [round(x, 2) for x in state.T_list]
+
+    instruments.agilent.set_aperture_mode(
+        dpg.get_value(frontend.meas_time_mode_selector),
+        dpg.get_value(frontend.averaging_factor),
+    )
+
+    bias = dpg.get_value(frontend.bias_level)
+    if bias == 1.5 or 2:
+        instruments.agilent.set_DC_bias(float(bias))
+
+    state.T_step = 0
+    state.freq_step = 0
+    state.volt_step = 0
+
+    T = state.T_list[state.T_step]
+    freq = state.freq_list[state.freq_step]
+
+    state.resultsDict[state.T_list[state.T_step]] = dict()
+    state.resultsDict[T][freq] = dict()
+    state.resultsDict[T][freq]["volt"] = []
+    state.resultsDict[T][freq]["Cp"] = []
+    state.resultsDict[T][freq]["D"] = []
+    state.resultsDict[T][freq]["G"] = []
+    state.resultsDict[T][freq]["B"] = []
+
+    state.measurement_status = "Setting temperature"
+
+
+def stop_measurement(instruments: lcd_instruments, state: lcd_state) -> None:
+    instruments.linkam.stop()
+    instruments.agilent.reset_and_clear()
+    state.measurement_status = "Idle"
+
+
+def init_agilent(
+    frontend: lcd_ui, instruments: lcd_instruments, state: lcd_state
+) -> None:
+    agilent = AgilentSpectrometer(dpg.get_value(frontend.agilent_com_selector))
+    dpg.set_value(frontend.agilent_status, "Connected")
+    dpg.hide_item(frontend.agilent_initialise)
+    instruments.agilent = agilent
+    state.agilent_connection_status = "Connected"
+
+
+def init_linkam(
+    frontend: lcd_ui, instruments: lcd_instruments, state: lcd_state
+) -> None:
+    linkam = LinkamHotstage(dpg.get_value(frontend.linkam_com_selector))
+    try:
+        linkam.current_temperature()
+        dpg.set_value(frontend.linkam_status, "Connected")
+        dpg.hide_item(frontend.linkam_initialise)
+        instruments.linkam = linkam
+        state.linkam_connection_status = "Connected"
+        with open("address.dat", "w") as f:
+            f.write(dpg.get_value(frontend.linkam_com_selector))
+
+    except pyvisa.errors.VisaIOError:
+        dpg.set_value(frontend.linkam_status, "Couldn't connect")
+
+
+def connect_to_instrument_callback(sender, app_data, user_data):
+    if user_data["instrument"] == "linkam":
+        thread = threading.Thread(
+            target=init_linkam,
+            args=(user_data["frontend"], user_data["instruments"], user_data["state"]),
+        )
+    elif user_data["instrument"] == "agilent":
+        thread = threading.Thread(
+            target=init_agilent,
+            args=(user_data["frontend"], user_data["instruments"], user_data["state"]),
+        )
+
+    thread.daemon = True
+    thread.start()
 
 
 def file_saveas_callback(sender, app_data, output_file_path):
