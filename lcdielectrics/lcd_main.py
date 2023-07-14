@@ -24,7 +24,7 @@ def main():
     frontend = lcd_ui()
     instruments = lcd_instruments()
 
-    frontend.extra_config(instruments, frontend)
+    frontend.extra_config(instruments, state)
 
     dpg.bind_theme(generate_global_theme())
 
@@ -40,6 +40,7 @@ def main():
 
     while dpg.is_dearpygui_running():
         # check if linkam is connected. If it is, start thread to poll temperature.
+
         if state.linkam_connection_status == "Connected":
             linkam_thread.start()
             state.linkam_connection_status = "Reading"
