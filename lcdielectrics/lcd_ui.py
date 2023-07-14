@@ -313,9 +313,9 @@ def append_range_to_list_callback(sender, app_data, user_data):
             np.arange(
                 dpg.get_value(user_data["range_selector"].min_value_input),
                 dpg.get_value(
-                    user_data["range_selector"].max_value_input)
+                    user_data["range_selector"].max_value_input
                     + dpg.get_value(user_data["range_selector"].spacing_input)
-                ,
+                ),
                 dpg.get_value(user_data["range_selector"].spacing_input),
             )
         )
@@ -356,9 +356,9 @@ def replace_list_callback(sender, app_data, user_data):
             np.arange(
                 dpg.get_value(user_data["range_selector"].min_value_input),
                 dpg.get_value(
-                    user_data["range_selector"].max_value_input)
+                    user_data["range_selector"].max_value_input
                     + dpg.get_value(user_data["range_selector"].spacing_input)
-                ,
+                ),
                 dpg.get_value(user_data["range_selector"].spacing_input),
             )
         )
