@@ -1,5 +1,7 @@
 from dataclasses import dataclass, field
 from lcdielectrics.lcd_instruments import LinkamHotstage, AgilentSpectrometer
+
+
 @dataclass
 class range_selector_window:
     window_tag: str | int
@@ -19,7 +21,6 @@ class variable_list:
     add_range_handle: str | int
     del_button_handle: str | int
     range_selector: range_selector_window
-
 
 
 @dataclass

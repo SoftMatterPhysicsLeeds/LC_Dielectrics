@@ -1,6 +1,5 @@
 import dearpygui.dearpygui as dpg
 from lcdielectrics.lcd_ui import lcd_ui
-from lcdielectrics.lcd_instruments import LinkamHotstage, AgilentSpectrometer
 from lcdielectrics.lcd_excel_writer import make_excel
 from lcdielectrics.lcd_dataclasses import lcd_instruments, lcd_state
 import json
@@ -28,7 +27,6 @@ def find_instruments(frontend: lcd_ui):
     dpg.set_value(frontend.measurement_status, "Idle")
 
 
-
 def run_spectrometer(
     frontend: lcd_ui, instruments: lcd_instruments, state: lcd_state
 ) -> None:
@@ -49,8 +47,6 @@ def run_experiment(frontend: lcd_ui, instruments: lcd_state, state: lcd_state):
     get_result(result, state, frontend, instruments)
 
 
-
-
 def read_temperature(frontend: lcd_ui, instruments: lcd_instruments, state: lcd_state):
     log_time = 0
     time_step = 0.05
@@ -69,26 +65,16 @@ def read_temperature(frontend: lcd_ui, instruments: lcd_instruments, state: lcd_
             state.T_log_time = state.T_log_time[1:]
 
         dpg.set_value(frontend.temperature_log, [state.T_log_time, state.T_log_T])
-
-        # dpg.set_axis_limits(
-        #     frontend.temperature_log_time_axis,
-        #     min(state.T_log_time) - 0.01 * min(state.T_log_time),
-        #     max(state.T_log_time) + 0.01 * max(state.T_log_time),
-        # )
         dpg.set_axis_limits(
             frontend.temperature_log_T_axis,
             min(state.T_log_T) - 0.2,
             max(state.T_log_T) + 0.2,
         )
         dpg.fit_axis_data(frontend.temperature_log_time_axis)
-        # dpg.fit_axis_data(frontend.temperature_log_T_axis)
 
         state.linkam_action = status
         time.sleep(time_step)
         log_time += time_step
-
-
-
 
 
 def get_result(

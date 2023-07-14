@@ -2,15 +2,14 @@ from typing import Any
 import pyvisa
 import threading
 
+
 class LinkamHotstage:
     def __init__(self, address: str) -> None:
-
         self.address = address
         self.lock = threading.Lock()
         self.initialise_linkam()
 
     def initialise_linkam(self) -> None:
-
         rm = pyvisa.ResourceManager()
 
         self.link = rm.open_resource(self.address)
@@ -26,7 +25,6 @@ class LinkamHotstage:
         try:
             self.current_temperature()
             print("Linkam Connected!")
-            
 
         except pyvisa.errors.VisaIOError:
             print(
@@ -35,7 +33,6 @@ class LinkamHotstage:
             )
 
     def set_temperature(self, T: float, rate: float = 20.0) -> None:
-
         if self.init:
             with self.lock:
                 self.link.write(f"R1{int(rate*100)}")  # type: ignore
@@ -52,7 +49,6 @@ class LinkamHotstage:
                 self.link.read()
 
                 self.init = True
-            
 
     def stop(self) -> None:
         self.link.write("E")  # type: ignore
@@ -81,7 +77,7 @@ class LinkamHotstage:
         try:
             temperature = int(raw_string[6:10], 16) / 10.0
         except ValueError:
-            return 0.0, 0.0 
+            return 0.0, 0.0
         return temperature, status
 
     def close(self):
@@ -90,12 +86,10 @@ class LinkamHotstage:
 
 class AgilentSpectrometer:
     def __init__(self, address: str) -> None:
-
         self.address = address
         self.initialise(self.address)
 
     def initialise(self, address: str) -> None:
-
         rm = pyvisa.ResourceManager()
         self.spectrometer = rm.open_resource(
             address
@@ -112,7 +106,6 @@ class AgilentSpectrometer:
             self.spectrometer_id = self.spectrometer.read()  # type: ignore
             print(self.spectrometer_id)
             self.reset_and_clear()
-            
 
         except pyvisa.errors.VisaIOError:
             print("Could not connect to E4980A. Check address is correct.")
