@@ -1,6 +1,6 @@
 ## LC Dielectrics
 
-GUI frontend for performing capacitance measurements as a function of voltage/frquency using an Agilent E4980A LCR meter and a Linkam hotstage (works with T91-95) to control temperature. Communication with the instruments is achieved using [PyVisa](https://github.com/pyvisa/pyvisa) and the frontend is built using [DearPyGUI](https://github.com/hoffstadt/DearPyGui). This incredibly esoteric software solution has been designed to solve a problem in a particular lab in a particular building at the University of Leeds; I can't guarantee that it will work anywhere else!
+Software for performing capacitance measurements as a function of voltage/frquency using an Agilent E4980A LCR meter and a Linkam hotstage (works with T91-95) to control temperature. Communication with the instruments is achieved using [PyVisa](https://github.com/pyvisa/pyvisa) and the frontend is built using [DearPyGUI](https://github.com/hoffstadt/DearPyGui). This incredibly esoteric software solution has been designed to solve a particular problem in a particular lab in a particular building at the University of Leeds; I can't guarantee that it will work anywhere else!
 
 ## What it looks like
 
