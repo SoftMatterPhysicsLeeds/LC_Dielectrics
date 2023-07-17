@@ -5,7 +5,7 @@ def make_excel(results: dict, output: str, single_volt: bool) -> None:
     workbook = xlsxwriter.Workbook(output.split(".json")[0] + ".xlsx")
 
     for T in results.keys():
-        worksheet = workbook.add_worksheet(name=T)
+        worksheet = workbook.add_worksheet(name=str(T))
         if single_volt:
             col_headings = list(results[T][list(results[T].keys())[0]].keys())
             col_headings.remove("volt")
