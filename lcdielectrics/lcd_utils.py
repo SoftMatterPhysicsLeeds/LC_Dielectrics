@@ -107,7 +107,6 @@ def get_result(
             and state.freq_step == len(state.freq_list) - 1
         ):
             state.measurement_status = "Finished"
-            print(state.resultsDict)
 
         else:
             if (
