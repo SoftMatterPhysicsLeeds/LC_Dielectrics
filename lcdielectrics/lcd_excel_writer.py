@@ -10,7 +10,7 @@ def make_excel(results: dict, output: str, single_volt: bool) -> None:
             for i, freq in enumerate(results[T].keys()):
                 col_headings = list(results[T][freq].keys())
                 col_headings.remove("volt")
-                volt = results[T][freq]["volt"]
+                volt = results[T][freq]["volt"][0]
                 worksheet.write(0, 0, "Voltage (V)")
                 worksheet.write(0, 1, float(volt))
                 worksheet.write(1, 0, "Freq (Hz)")
