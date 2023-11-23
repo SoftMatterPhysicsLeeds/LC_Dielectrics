@@ -1,5 +1,16 @@
 from dataclasses import dataclass, field
 from lcdielectrics.lcd_instruments import LinkamHotstage, AgilentSpectrometer
+from enum import Enum
+
+
+class Status(Enum):
+    IDLE = 1
+    SET_TEMPERATURE = 2
+    GOING_TO_TEMPERATURE = 3
+    STABILISING_TEMPERATURE = 4
+    TEMPERATURE_STABILISED = 5
+    COLLECTING_DATA = 6
+    FINISHED = 7
 
 
 @dataclass
@@ -26,7 +37,7 @@ class variable_list:
 @dataclass
 class lcd_state:
     resultsDict: dict = field(default_factory=dict)
-    measurement_status: str = "Idle"
+    measurement_status: Status = Status.IDLE
     t_stable_start: float = 0
     voltage_list_mode: bool = False
     linkam_connection_status: str = "Disconnected"

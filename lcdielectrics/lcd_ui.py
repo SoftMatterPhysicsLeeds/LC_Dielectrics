@@ -8,6 +8,7 @@ from lcdielectrics.lcd_dataclasses import (
 )
 import threading
 from lcdielectrics.lcd_instruments import LinkamHotstage, AgilentSpectrometer
+from lcdielectrics.lcd_dataclasses import Status
 import pyvisa
 
 
@@ -328,13 +329,13 @@ def start_measurement(
     state.resultsDict[T][freq]["G"] = []
     state.resultsDict[T][freq]["B"] = []
 
-    state.measurement_status = "Setting temperature"
+    state.measurement_status = Status.SET_TEMPERATURE
 
 
 def stop_measurement(instruments: lcd_instruments, state: lcd_state) -> None:
     instruments.linkam.stop()
     instruments.agilent.reset_and_clear()
-    state.measurement_status = "Idle"
+    state.measurement_status = Status.IDLE
 
 
 def init_agilent(

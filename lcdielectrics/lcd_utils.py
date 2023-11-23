@@ -1,7 +1,7 @@
 import dearpygui.dearpygui as dpg
 from lcdielectrics.lcd_ui import lcd_ui
 from lcdielectrics.lcd_excel_writer import make_excel
-from lcdielectrics.lcd_dataclasses import lcd_instruments, lcd_state
+from lcdielectrics.lcd_dataclasses import lcd_instruments, lcd_state, Status
 import json
 import pyvisa
 import time
@@ -82,7 +82,7 @@ def get_result(
 ) -> None:
     parse_result(result, state, frontend)
 
-    if state.measurement_status == "Idle":
+    if state.measurement_status == Status.IDLE:
         pass
 
     else:
@@ -106,7 +106,7 @@ def get_result(
             and state.volt_step == len(state.voltage_list) - 1
             and state.freq_step == len(state.freq_list) - 1
         ):
-            state.measurement_status = "Finished"
+            state.measurement_status = Status.FINISHED 
 
         else:
             if (
@@ -129,7 +129,7 @@ def get_result(
                 state.resultsDict[T][freq]["B"] = []
 
                 instruments.agilent.set_voltage(0)
-                state.measurement_status = "Setting temperature"
+                state.measurement_status = Status.SET_TEMPERATURE
 
             elif state.volt_step == len(state.voltage_list) - 1:
                 state.freq_step += 1
@@ -145,10 +145,10 @@ def get_result(
                 state.resultsDict[T][freq]["G"] = []
                 state.resultsDict[T][freq]["B"] = []
 
-                state.measurement_status = "Temperature Stabilised"
+                state.measurement_status = Status.TEMPERATURE_STABILISED
             else:
                 state.volt_step += 1
-                state.measurement_status = "Temperature Stabilised"
+                state.measurement_status = Status.TEMPERATURE_STABILISED
 
 
 def parse_result(result: dict, state: lcd_state, frontend: lcd_ui) -> None:

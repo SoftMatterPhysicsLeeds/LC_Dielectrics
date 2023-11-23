@@ -8,6 +8,7 @@ from lcdielectrics.lcd_utils import (
 from lcdielectrics.lcd_themes import generate_global_theme
 import dearpygui.dearpygui as dpg
 from lcdielectrics.lcd_ui import lcd_ui, VIEWPORT_WIDTH, DRAW_HEIGHT
+from lcdielectrics.lcd_dataclasses import Status
 import threading
 import time
 
@@ -38,7 +39,6 @@ def main():
         target=read_temperature, args=(frontend, instruments, state)
     )
     linkam_thread.daemon = True
-   
 
     while dpg.is_dearpygui_running():
         # check if linkam is connected. If it is, start thread to poll temperature.
@@ -47,51 +47,51 @@ def main():
             linkam_thread.start()
             state.linkam_connection_status = "Reading"
 
-        if state.measurement_status == "Idle":
+        if state.measurement_status == Status.IDLE or Status.COLLECTING_DATA:
             pass
-        elif state.measurement_status == "Setting temperature" and (
+        elif state.measurement_status == Status.SET_TEMPERATURE and (
             state.linkam_action == "Stopped" or state.linkam_action == "Holding"
         ):
             instruments.linkam.set_temperature(
                 state.T_list[state.T_step], dpg.get_value(frontend.T_rate)
             )
-
+            state.measurement_status = Status.GOING_TO_TEMPERATURE
             state.measurement_status = f"Going to T: {state.T_list[state.T_step]}"
 
         elif (
-            state.measurement_status == f"Going to T: {state.T_list[state.T_step]}"
+            state.measurement_status == Status.GOING_TO_TEMPERATURE
             and state.linkam_action == "Holding"
         ):
-
             state.t_stable_start = time.time()
-            state.measurement_status = (
-                f"Stabilising temperature for {dpg.get_value(frontend.stab_time)}s"
-            )
-        elif (
-            state.measurement_status
-            == f"Stabilising temperature for {dpg.get_value(frontend.stab_time)}s"
-        ):
+            state.measurement_status = Status.STABILISING_TEMPERATURE
+
+        elif Status.STABILISING_TEMPERATURE:
             current_wait = time.time() - state.t_stable_start
+            dpg.set_value(
+                frontend.measurement_status,
+                f"Waiting for {current_wait}/{dpg.get_value(frontend.stab_time)}s",
+            )
             if current_wait >= dpg.get_value(frontend.stab_time):
-                state.measurement_status = "Temperature Stabilised"
+                state.measurement_status = Status.TEMPERATURE_STABILISED
 
-
-        elif state.measurement_status == "Temperature Stabilised":
-            state.measurement_status = "Collecting data"
+        elif state.measurement_status == Status.TEMPERATURE_STABILISED:
+            state.measurement_status = Status.COLLECTING_DATA
             instruments.agilent.set_frequency(state.freq_list[state.freq_step])
             instruments.agilent.set_voltage(state.voltage_list[state.volt_step])
 
             run_spectrometer(frontend, instruments, state)
 
-        elif state.measurement_status == "Finished":
+        elif state.measurement_status == Status.COLLECTING_DATA:
+            dpg.set_value(
+                frontend.measurement_status,
+                f"Measuring f = {state.freq_list[state.freq_step]}, V = {state.voltage_list[state.volt_step]}",
+            )
+
+        elif state.measurement_status == Status.FINISHED:
             instruments.linkam.stop()
             instruments.agilent.reset_and_clear()
-            state.measurement_status = "Idle"
-
-        if state.measurement_status == f"Stabilising temperature for {dpg.get_value(frontend.stab_time)}s":
-            dpg.set_value(frontend.measurement_status, state.measurement_status + f" | Current wait: {current_wait}")
-        else:
-            dpg.set_value(frontend.measurement_status, state.measurement_status)
+            state.measurement_status = Status.IDLE
+            dpg.set_value(frontend.measurement_status, "Idle")
 
 
         dpg.render_dearpygui_frame()
