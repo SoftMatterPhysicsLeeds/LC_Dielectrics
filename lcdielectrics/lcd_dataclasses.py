@@ -27,7 +27,7 @@ class variable_list:
 class lcd_state:
     resultsDict: dict = field(default_factory=dict)
     measurement_status: str = "Idle"
-    t_stable_count: float = 0
+    t_stable_start: float = 0
     voltage_list_mode: bool = False
     linkam_connection_status: str = "Disconnected"
     agilent_connection_status: str = "Disconnected"

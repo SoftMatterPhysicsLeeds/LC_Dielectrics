@@ -9,6 +9,7 @@ from lcdielectrics.lcd_themes import generate_global_theme
 import dearpygui.dearpygui as dpg
 from lcdielectrics.lcd_ui import lcd_ui, VIEWPORT_WIDTH, DRAW_HEIGHT
 import threading
+import time
 
 
 def main():
@@ -37,6 +38,7 @@ def main():
         target=read_temperature, args=(frontend, instruments, state)
     )
     linkam_thread.daemon = True
+   
 
     while dpg.is_dearpygui_running():
         # check if linkam is connected. If it is, start thread to poll temperature.
@@ -60,6 +62,8 @@ def main():
             state.measurement_status == f"Going to T: {state.T_list[state.T_step]}"
             and state.linkam_action == "Holding"
         ):
+
+            state.t_stable_start = time.time()
             state.measurement_status = (
                 f"Stabilising temperature for {dpg.get_value(frontend.stab_time)}s"
             )
@@ -67,11 +71,10 @@ def main():
             state.measurement_status
             == f"Stabilising temperature for {dpg.get_value(frontend.stab_time)}s"
         ):
-            state.t_stable_count += 1
-
-            if state.t_stable_count * 0.15 >= dpg.get_value(frontend.stab_time):
+            current_wait = time.time() - state.t_stable_start
+            if current_wait >= dpg.get_value(frontend.stab_time):
                 state.measurement_status = "Temperature Stabilised"
-                state.t_stable_count = 0
+
 
         elif state.measurement_status == "Temperature Stabilised":
             state.measurement_status = "Collecting data"
