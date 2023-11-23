@@ -42,7 +42,7 @@ def main():
 
     while dpg.is_dearpygui_running():
         # check if linkam is connected. If it is, start thread to poll temperature.
-
+        current_wait = 0
         if state.linkam_connection_status == "Connected":
             linkam_thread.start()
             state.linkam_connection_status = "Reading"
@@ -88,7 +88,11 @@ def main():
             instruments.agilent.reset_and_clear()
             state.measurement_status = "Idle"
 
-        dpg.set_value(frontend.measurement_status, state.measurement_status)
+        if state.measurement_status == f"Stabilising temperature for {dpg.get_value(frontend.stab_time)}s":
+            dpg.set_value(frontend.measurement_status, state.measurement_status + f" | Current wait: {current_wait}")
+        else:
+            dpg.set_value(frontend.measurement_status, state.measurement_status)
+
 
         dpg.render_dearpygui_frame()
 
