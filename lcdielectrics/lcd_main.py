@@ -8,7 +8,6 @@ from lcdielectrics.lcd_utils import (
 from lcdielectrics.lcd_themes import generate_global_theme
 import dearpygui.dearpygui as dpg
 from lcdielectrics.lcd_ui import lcd_ui, VIEWPORT_WIDTH, DRAW_HEIGHT
-from lcdielectrics.lcd_dataclasses import Status
 import threading
 
 
