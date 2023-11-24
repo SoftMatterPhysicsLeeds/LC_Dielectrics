@@ -330,7 +330,7 @@ def start_measurement(
     state.resultsDict[T][freq]["B"] = []
 
     state.measurement_status = Status.SET_TEMPERATURE
-
+    print(state.measurement_status)
 
 def stop_measurement(instruments: lcd_instruments, state: lcd_state) -> None:
     instruments.linkam.stop()

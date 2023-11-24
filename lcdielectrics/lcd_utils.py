@@ -12,7 +12,7 @@ import threading
 
 def handle_measurement_status(state: lcd_state, frontend: lcd_ui, instruments: lcd_instruments):
     current_wait = 0
-    if state.measurement_status == Status.IDLE or Status.COLLECTING_DATA:
+    if state.measurement_status == Status.IDLE:
         pass
     elif state.measurement_status == Status.SET_TEMPERATURE and (
         state.linkam_action == "Stopped" or state.linkam_action == "Holding"
