@@ -47,7 +47,6 @@ def main():
             state.linkam_connection_status = "Reading"
 
         handle_measurement_status(state, frontend, instruments)
-        print(state.measurement_status)
 
 
         dpg.render_dearpygui_frame()
