@@ -28,6 +28,7 @@ def handle_measurement_status(state: lcd_state, frontend: lcd_ui, instruments: l
         and state.linkam_action == "Holding"
     ):
         state.t_stable_start = time.time()
+        print(f"starting time is {state.t_stable_start}")
         state.measurement_status = Status.STABILISING_TEMPERATURE
 
     elif Status.STABILISING_TEMPERATURE:

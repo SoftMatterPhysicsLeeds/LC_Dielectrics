@@ -3,7 +3,6 @@ from lcdielectrics.lcd_utils import (
     lcd_instruments,
     lcd_state,
     read_temperature,
-    run_spectrometer,
     handle_measurement_status
 )
 from lcdielectrics.lcd_themes import generate_global_theme
@@ -11,7 +10,6 @@ import dearpygui.dearpygui as dpg
 from lcdielectrics.lcd_ui import lcd_ui, VIEWPORT_WIDTH, DRAW_HEIGHT
 from lcdielectrics.lcd_dataclasses import Status
 import threading
-import time
 
 
 def main():
@@ -49,6 +47,7 @@ def main():
             state.linkam_connection_status = "Reading"
 
         handle_measurement_status(state, frontend, instruments)
+        print(state.measurement_status)
 
 
         dpg.render_dearpygui_frame()
