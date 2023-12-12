@@ -25,7 +25,7 @@ def handle_measurement_status(state: lcd_state, frontend: lcd_ui, instruments: l
 
     elif (
         state.measurement_status == Status.GOING_TO_TEMPERATURE
-        and state.linkam_action == "Holding"
+        and (state.linkam_temperature > state.T_list[state.T_step] - 0.1 and  state.linkam_temperature < state.T_list[state.T_step] + 0.1)
     ):
         state.t_stable_start = time.time()
         state.measurement_status = Status.STABILISING_TEMPERATURE
@@ -103,6 +103,7 @@ def read_temperature(frontend: lcd_ui, instruments: lcd_instruments, state: lcd_
         temperature, status = instruments.linkam.current_temperature()
         if temperature == 0.0:
             continue
+        state.linkam_temperature = temperature
         dpg.set_value(
             frontend.linkam_status, f"T: {str(temperature)}, Status: {status}"
         )

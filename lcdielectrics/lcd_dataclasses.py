@@ -43,6 +43,7 @@ class lcd_state:
     linkam_connection_status: str = "Disconnected"
     agilent_connection_status: str = "Disconnected"
     linkam_action: str = "Idle"
+    linkam_temperature: float = 25.0
     T_list: list = field(default_factory=list)
     freq_list: list = field(default_factory=list)
     voltage_list: list = field(default_factory=list)

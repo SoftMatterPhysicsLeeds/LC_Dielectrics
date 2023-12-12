@@ -29,6 +29,7 @@ class lcd_ui:
         self.agilent_status = "Not Connected"
         self._make_control_window()
         self._make_graph_windows()
+        
 
     def _make_graph_windows(self):
         with dpg.window(
