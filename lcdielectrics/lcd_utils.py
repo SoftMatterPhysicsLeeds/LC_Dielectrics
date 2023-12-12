@@ -12,8 +12,8 @@ import threading
 
 def handle_measurement_status(state: lcd_state, frontend: lcd_ui, instruments: lcd_instruments):
     current_wait = 0
-    if state.measurement_status == Status.IDLE or Status.COLLECTING_DATA:
-        pass
+    if state.measurement_status == Status.IDLE:
+        dpg.set_value(frontend.measurement_status, "Idle")
     elif state.measurement_status == Status.SET_TEMPERATURE and (
         state.linkam_action == "Stopped" or state.linkam_action == "Holding"
     ):
@@ -21,8 +21,7 @@ def handle_measurement_status(state: lcd_state, frontend: lcd_ui, instruments: l
             state.T_list[state.T_step], dpg.get_value(frontend.T_rate)
         )
         state.measurement_status = Status.GOING_TO_TEMPERATURE
-        state.measurement_status = f"Going to T: {state.T_list[state.T_step]}"
-
+        dpg.set_value(frontend.measurement_status, f"Going to {state.T_list[state.T_step]} C") 
     elif (
         state.measurement_status == Status.GOING_TO_TEMPERATURE
         and (state.linkam_temperature > state.T_list[state.T_step] - 0.1 and  state.linkam_temperature < state.T_list[state.T_step] + 0.1)
@@ -30,11 +29,11 @@ def handle_measurement_status(state: lcd_state, frontend: lcd_ui, instruments: l
         state.t_stable_start = time.time()
         state.measurement_status = Status.STABILISING_TEMPERATURE
 
-    elif Status.STABILISING_TEMPERATURE:
+    elif state.measurement_status == Status.STABILISING_TEMPERATURE:
         current_wait = time.time() - state.t_stable_start
         dpg.set_value(
             frontend.measurement_status,
-            f"Waiting for {current_wait}/{dpg.get_value(frontend.stab_time)}s",
+            f"Stabilising temperature for {current_wait:.2f}/{dpg.get_value(frontend.stab_time)}s",
         )
         if current_wait >= dpg.get_value(frontend.stab_time):
             state.measurement_status = Status.TEMPERATURE_STABILISED

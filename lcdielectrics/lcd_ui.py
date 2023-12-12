@@ -332,7 +332,6 @@ def start_measurement(
 
     state.measurement_status = Status.SET_TEMPERATURE
 
-
 def stop_measurement(instruments: lcd_instruments, state: lcd_state) -> None:
     instruments.linkam.stop()
     instruments.agilent.reset_and_clear()
