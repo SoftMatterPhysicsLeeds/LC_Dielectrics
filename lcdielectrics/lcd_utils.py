@@ -174,15 +174,17 @@ def get_result(
 
                 T = state.T_list[state.T_step]
                 freq = state.freq_list[state.freq_step]
+                T_str =f"{state.T_step + 1}: {state.T_list[state.T_step]}"
 
-                state.resultsDict[f"{state.T_step + 1}: {state.T_list[state.T_step]}"] = dict()
+                 
                 freq_str = f"{state.freq_step+1}: {freq}"
-                state.resultsDict[T][freq_str] = dict()
-                state.resultsDict[T][freq_str]["volt"] = []
-                state.resultsDict[T][freq_str]["Cp"] = []
-                state.resultsDict[T][freq_str]["D"] = []
-                state.resultsDict[T][freq_str]["G"] = []
-                state.resultsDict[T][freq_str]["B"] = []
+                state.resultsDict[T_str] = dict()
+                state.resultsDict[T_str][freq_str] = dict()
+                state.resultsDict[T_str][freq_str]["volt"] = []
+                state.resultsDict[T_str][freq_str]["Cp"] = []
+                state.resultsDict[T_str][freq_str]["D"] = []
+                state.resultsDict[T_str][freq_str]["G"] = []
+                state.resultsDict[T_str][freq_str]["B"] = []
 
                 instruments.agilent.set_voltage(0)
                 state.measurement_status = Status.SET_TEMPERATURE
@@ -194,12 +196,15 @@ def get_result(
                 T = state.T_list[state.T_step]
                 freq = state.freq_list[state.freq_step]
 
-                state.resultsDict[T][freq] = dict()
-                state.resultsDict[T][freq]["volt"] = []
-                state.resultsDict[T][freq]["Cp"] = []
-                state.resultsDict[T][freq]["D"] = []
-                state.resultsDict[T][freq]["G"] = []
-                state.resultsDict[T][freq]["B"] = []
+                T_str =f"{state.T_step + 1}: {state.T_list[state.T_step]}"
+                freq_str = f"{state.freq_step+1}: {freq}"
+
+                state.resultsDict[T_str][freq_str] = dict()
+                state.resultsDict[T_str][freq_str]["volt"] = []
+                state.resultsDict[T_str][freq_str]["Cp"] = []
+                state.resultsDict[T_str][freq_str]["D"] = []
+                state.resultsDict[T_str][freq_str]["G"] = []
+                state.resultsDict[T_str][freq_str]["B"] = []
 
                 state.measurement_status = Status.TEMPERATURE_STABILISED
             else:
@@ -210,14 +215,18 @@ def get_result(
 def parse_result(result: dict, state: lcd_state, frontend: lcd_ui) -> None:
     T = state.T_list[state.T_step]
     freq = state.freq_list[state.freq_step]
+    T_str =f"{state.T_step + 1}: {state.T_list[state.T_step]}"
+    freq_str = f"{state.freq_step+1}: {freq}"
+
     volt = state.voltage_list[state.volt_step]
-    state.resultsDict[T][freq]["volt"].append(volt)
-    state.resultsDict[T][freq]["Cp"].append(result["CPD"][0])
-    state.resultsDict[T][freq]["D"].append(result["CPD"][1])
-    state.resultsDict[T][freq]["G"].append(result["GB"][0])
-    state.resultsDict[T][freq]["B"].append(result["GB"][1])
-    state.xdata = state.resultsDict[T][freq]["volt"]
-    state.ydata = state.resultsDict[T][freq]["Cp"]
+    
+    state.resultsDict[T_str][freq_str]["volt"].append(volt)
+    state.resultsDict[T_str][freq_str]["Cp"].append(result["CPD"][0])
+    state.resultsDict[T_str][freq_str]["D"].append(result["CPD"][1])
+    state.resultsDict[T_str][freq_str]["G"].append(result["GB"][0])
+    state.resultsDict[T_str][freq_str]["B"].append(result["GB"][1])
+    state.xdata = state.resultsDict[T_str][freq_str]["volt"]
+    state.ydata = state.resultsDict[T_str][freq_str]["Cp"]
 
     dpg.set_value(frontend.results_plot, [state.xdata, state.ydata])
 

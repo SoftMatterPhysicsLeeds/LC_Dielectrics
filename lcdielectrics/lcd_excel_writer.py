@@ -45,10 +45,10 @@ def make_excel(results: dict, output: str, output_type: OutputType) -> None:
             freq = list(results[T].keys())[0]
             col_headings = list(results[T][freq].keys())
             worksheet.write_row(0, 2, col_headings)
-            worksheet.write(1,0, float(T))
-            worksheet.write(1,1, float(freq))
+            worksheet.write(1+t,0, float(T.split(":")[1]))
+            worksheet.write(1+t,1, float(freq.split(":")[1]))
             for i, heading in enumerate(col_headings):
-                worksheet.write_column(1, 2+i, results[T][freq][heading])
+                worksheet.write_column(1+t, 2+i, results[T][freq][heading])
                 
 
     workbook.close()
