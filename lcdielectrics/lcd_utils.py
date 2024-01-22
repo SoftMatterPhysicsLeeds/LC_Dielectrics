@@ -1,7 +1,7 @@
 import dearpygui.dearpygui as dpg
 from lcdielectrics.lcd_ui import lcd_ui
 from lcdielectrics.lcd_excel_writer import make_excel
-from lcdielectrics.lcd_dataclasses import lcd_instruments, lcd_state, Status
+from lcdielectrics.lcd_dataclasses import lcd_instruments, lcd_state, Status, OutputType
 import json
 import pyvisa
 import time
@@ -135,17 +135,23 @@ def get_result(
         pass
 
     else:
-        if len(state.voltage_list) == 1:
+        if len(state.voltage_list) == 1 and len(state.freq_list) == 1:
             make_excel(
                 state.resultsDict,
                 dpg.get_value(frontend.output_file_path),
-                True,
+                OutputType.SINGLE_VOLT_FREQ
             )
-        else:
+        elif len(state.voltage_list) == 1:
             make_excel(
                 state.resultsDict,
                 dpg.get_value(frontend.output_file_path),
-                False,
+                OutputType.SINGLE_VOLT,
+            )
+        elif len(state.freq_list_list) == 1:
+            make_excel(
+                state.resultsDict,
+                dpg.get_value(frontend.output_file_path),
+                OutputType.SINGLE_FREQ,
             )
 
         with open(dpg.get_value(frontend.output_file_path), "w") as write_file:

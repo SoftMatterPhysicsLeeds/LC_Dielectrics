@@ -1,12 +1,12 @@
 import xlsxwriter
+from lcdielectrics.lcd_dataclasses import OutputType
 
-
-def make_excel(results: dict, output: str, single_volt: bool) -> None:
+def make_excel(results: dict, output: str, output_type: OutputType) -> None:
     workbook = xlsxwriter.Workbook(output.split(".json")[0] + ".xlsx")
 
     for T in results.keys():
         worksheet = workbook.add_worksheet(name=str(T))
-        if single_volt:
+        if output_type == OutputType.SINGLE_VOLT:
             for i, freq in enumerate(results[T].keys()):
                 col_headings = list(results[T][freq].keys())
                 col_headings.remove("volt")
@@ -21,7 +21,7 @@ def make_excel(results: dict, output: str, single_volt: bool) -> None:
                     worksheet.write_row(
                         i + 2, j+1, results[T][freq][heading]
                     )
-        else:
+        elif output_type == OutputType.SINGLE_FREQ:
             for i, freq in enumerate(results[T].keys()):
                 col_headings = list(results[T][freq].keys())
                 start_row = len(results[T][freq][col_headings[0]]) + 3
@@ -33,5 +33,8 @@ def make_excel(results: dict, output: str, single_volt: bool) -> None:
                     worksheet.write_column(
                         start_row * i + 2, j, results[T][freq][heading]
                     )
+
+        elif output_type == OutputType.SINGLE_VOLT_FREQ:
+            pass
 
     workbook.close()

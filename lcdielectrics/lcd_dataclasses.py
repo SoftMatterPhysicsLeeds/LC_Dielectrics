@@ -3,6 +3,11 @@ from lcdielectrics.lcd_instruments import LinkamHotstage, AgilentSpectrometer
 from enum import Enum
 
 
+class OutputType(Enum):
+    SINGLE_VOLT = 1
+    SINGLE_FREQ = 2
+    SINGLE_VOLT_FREQ = 3
+
 class Status(Enum):
     IDLE = 1
     SET_TEMPERATURE = 2
