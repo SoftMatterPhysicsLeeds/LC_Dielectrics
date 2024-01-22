@@ -175,13 +175,14 @@ def get_result(
                 T = state.T_list[state.T_step]
                 freq = state.freq_list[state.freq_step]
 
-                state.resultsDict[state.T_list[state.T_step]] = dict()
-                state.resultsDict[T][freq] = dict()
-                state.resultsDict[T][freq]["volt"] = []
-                state.resultsDict[T][freq]["Cp"] = []
-                state.resultsDict[T][freq]["D"] = []
-                state.resultsDict[T][freq]["G"] = []
-                state.resultsDict[T][freq]["B"] = []
+                state.resultsDict[f"{state.T_step + 1}: {state.T_list[state.T_step]}"] = dict()
+                freq_str = f"{state.freq_step+1}: {freq}"
+                state.resultsDict[T][freq_str] = dict()
+                state.resultsDict[T][freq_str]["volt"] = []
+                state.resultsDict[T][freq_str]["Cp"] = []
+                state.resultsDict[T][freq_str]["D"] = []
+                state.resultsDict[T][freq_str]["G"] = []
+                state.resultsDict[T][freq_str]["B"] = []
 
                 instruments.agilent.set_voltage(0)
                 state.measurement_status = Status.SET_TEMPERATURE

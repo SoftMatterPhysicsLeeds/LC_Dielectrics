@@ -4,9 +4,13 @@ from lcdielectrics.lcd_dataclasses import OutputType
 def make_excel(results: dict, output: str, output_type: OutputType) -> None:
     workbook = xlsxwriter.Workbook(output.split(".json")[0] + ".xlsx")
 
-    for T in results.keys():
-        worksheet = workbook.add_worksheet(name=str(T))
+    if output_type == OutputType.SINGLE_VOLT_FREQ:
+        
+        worksheet = workbook.add_worksheet(name="Multi T")
+
+    for t, T in enumerate(results.keys()):
         if output_type == OutputType.SINGLE_VOLT:
+            worksheet = workbook.add_worksheet(name=str(T))
             for i, freq in enumerate(results[T].keys()):
                 col_headings = list(results[T][freq].keys())
                 col_headings.remove("volt")
@@ -22,6 +26,7 @@ def make_excel(results: dict, output: str, output_type: OutputType) -> None:
                         i + 2, j+1, results[T][freq][heading]
                     )
         elif output_type == OutputType.SINGLE_FREQ:
+            worksheet = workbook.add_worksheet(name=str(T))
             for i, freq in enumerate(results[T].keys()):
                 col_headings = list(results[T][freq].keys())
                 start_row = len(results[T][freq][col_headings[0]]) + 3
@@ -35,6 +40,15 @@ def make_excel(results: dict, output: str, output_type: OutputType) -> None:
                     )
 
         elif output_type == OutputType.SINGLE_VOLT_FREQ:
-            pass
+            worksheet.write(0,0, "Temperature (C)")
+            worksheet.write(0,1, "Frequency (Hz)")
+            freq = list(results[T].keys())[0]
+            col_headings = list(results[T][freq].keys())
+            worksheet.write_row(0, 2, col_headings)
+            worksheet.write(1,0, float(T))
+            worksheet.write(1,1, float(freq))
+            for i, heading in enumerate(col_headings):
+                worksheet.write_column(1, 2+i, results[T][freq][heading])
+                
 
     workbook.close()
