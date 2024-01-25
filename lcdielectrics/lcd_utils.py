@@ -100,7 +100,7 @@ def read_temperature(frontend: lcd_ui, instruments: lcd_instruments, state: lcd_
     time_step = 0.05
     while True:
         temperature, status = instruments.linkam.current_temperature()
-        if temperature == 0.0:
+        if status == "ERROR STATE":
             continue
         state.linkam_temperature = temperature
         dpg.set_value(
@@ -135,24 +135,24 @@ def get_result(
         pass
 
     else:
-        if len(state.voltage_list) == 1 and len(state.freq_list) == 1:
-            make_excel(
-                state.resultsDict,
-                dpg.get_value(frontend.output_file_path),
-                OutputType.SINGLE_VOLT_FREQ
-            )
-        elif len(state.voltage_list) == 1:
-            make_excel(
-                state.resultsDict,
-                dpg.get_value(frontend.output_file_path),
-                OutputType.SINGLE_VOLT,
-            )
-        elif len(state.freq_list_list) == 1:
-            make_excel(
-                state.resultsDict,
-                dpg.get_value(frontend.output_file_path),
-                OutputType.SINGLE_FREQ,
-            )
+        # if len(state.voltage_list) == 1 and len(state.freq_list) == 1:
+        #     make_excel(
+        #         state.resultsDict,
+        #         dpg.get_value(frontend.output_file_path),
+        #         OutputType.SINGLE_VOLT_FREQ
+        #     )
+        # elif len(state.voltage_list) == 1:
+        #     make_excel(
+        #         state.resultsDict,
+        #         dpg.get_value(frontend.output_file_path),
+        #         OutputType.SINGLE_VOLT,
+        #     )
+        # elif len(state.freq_list_list) == 1:
+        #     make_excel(
+        #         state.resultsDict,
+        #         dpg.get_value(frontend.output_file_path),
+        #         OutputType.SINGLE_FREQ,
+        #     )
 
         with open(dpg.get_value(frontend.output_file_path), "w") as write_file:
             json.dump(state.resultsDict, write_file, indent=4)

@@ -77,7 +77,7 @@ class LinkamHotstage:
         try:
             temperature = int(raw_string[6:10], 16) / 10.0
         except ValueError:
-            return 0.0, 0.0
+            return 0.0, "ERROR STATE"
         return temperature, status
 
     def close(self):

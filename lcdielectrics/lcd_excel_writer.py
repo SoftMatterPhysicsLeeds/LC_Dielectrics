@@ -10,8 +10,9 @@ def make_excel(results: dict, output: str, output_type: OutputType) -> None:
 
     for t, T in enumerate(results.keys()):
         if output_type == OutputType.SINGLE_VOLT:
-            worksheet = workbook.add_worksheet(name=str(T))
+            worksheet = workbook.add_worksheet(name=str(f"{T.split(':')[0]} - {T.split(':')[1]}"))
             for i, freq in enumerate(results[T].keys()):
+                
                 col_headings = list(results[T][freq].keys())
                 col_headings.remove("volt")
                 volt = results[T][freq]["volt"][0]
@@ -26,7 +27,7 @@ def make_excel(results: dict, output: str, output_type: OutputType) -> None:
                         i + 2, j+1, results[T][freq][heading]
                     )
         elif output_type == OutputType.SINGLE_FREQ:
-            worksheet = workbook.add_worksheet(name=str(T))
+            worksheet = workbook.add_worksheet(name=str(f"{T.split(':')[0]} - {T.split(':')[1]}"))
             for i, freq in enumerate(results[T].keys()):
                 col_headings = list(results[T][freq].keys())
                 start_row = len(results[T][freq][col_headings[0]]) + 3
