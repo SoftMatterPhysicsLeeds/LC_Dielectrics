@@ -37,10 +37,20 @@ def main():
         target=read_temperature, args=(frontend, instruments, state)
     )
     linkam_thread.daemon = True
-
+    viewport_width = dpg.get_viewport_client_width()
+    viewport_height = dpg.get_viewport_client_height()
     while dpg.is_dearpygui_running():
         # check if linkam is connected. If it is, start thread to poll temperature.
-        
+        if (
+            viewport_width != dpg.get_viewport_client_width()
+            or viewport_height != dpg.get_viewport_client_height()
+        ):
+            # redraw_windows.
+            viewport_width = dpg.get_viewport_client_width()
+            viewport_height = dpg.get_viewport_client_height()
+            frontend.draw_children(viewport_width, viewport_height) 
+
+
         if state.linkam_connection_status == "Connected":
             linkam_thread.start()
             state.linkam_connection_status = "Reading"
