@@ -32,7 +32,60 @@ class lcd_ui:
 
     def draw_children(self, width, height):
 
-        dpg.configure_item()        
+        dpg.configure_item(
+            self.results_graph, pos=[width / 2, 0], width=width / 2, height=height / 2
+        )
+        dpg.configure_item(
+            self.temperature_log_graph,
+            pos=[width / 2, height / 2],
+            width=width / 2,
+            height=height / 2,
+        )
+        dpg.configure_item(
+            self.control_window,
+            pos=[0, 0],
+            width=width / 2,
+            height=height / VERTICAL_WIDGET_NUMBER,
+        )
+        dpg.configure_item(
+            self.measurement_settings_window,
+            pos=[0, height / VERTICAL_WIDGET_NUMBER],
+            width=width / 2,
+            height=height / VERTICAL_WIDGET_NUMBER,
+        )
+        dpg.configure_item(
+            self.frequency_list_window,
+            width=width / 4,
+            pos=[0, height / VERTICAL_WIDGET_NUMBER * 2],
+            height=height / VERTICAL_WIDGET_NUMBER,
+        )
+        dpg.configure_item(
+            self.voltage_list_window,
+            width=width / 4,
+            pos=[width / 4, height / VERTICAL_WIDGET_NUMBER * 2],
+            height=height / VERTICAL_WIDGET_NUMBER,
+        )
+        dpg.configure_item(
+            self.temperature_list_window,
+            width=width / 2,
+            height=height / VERTICAL_WIDGET_NUMBER,
+            pos=[0, height / VERTICAL_WIDGET_NUMBER * 3],
+        )
+        dpg.configure_item(
+            self.output_data_settings_window,
+            pos=[0, height / VERTICAL_WIDGET_NUMBER * 4],
+            width=width / 2,
+            height=height / VERTICAL_WIDGET_NUMBER,
+        )
+        dpg.configure_item(
+            self.start_stop_button_window,
+            pos=[0, height / VERTICAL_WIDGET_NUMBER * 5],
+            width=width / 2,
+            height=(height / VERTICAL_WIDGET_NUMBER) + HEIGHT_DISCREPANCY,
+        )
+
+        dpg.configure_item(self.start_button, pos = [10, height/VERTICAL_WIDGET_NUMBER*0.13], width = width/4 - 10)
+        dpg.configure_item(self.stop_button, pos = [width/4 + 10, height/VERTICAL_WIDGET_NUMBER*0.13], width = width/4 - 10)
 
     def _make_graph_windows(self):
         with dpg.window(
@@ -42,7 +95,7 @@ class lcd_ui:
             height=VIEWPORT_HEIGHT / 2,
             no_collapse=True,
             no_close=True,
-        ):
+        ) as self.results_graph:
             with dpg.plot(
                 height=VIEWPORT_HEIGHT / 2 - 50,
                 width=VIEWPORT_WIDTH / 2 - 35,
@@ -67,7 +120,7 @@ class lcd_ui:
             height=VIEWPORT_HEIGHT / 2,
             no_collapse=True,
             no_close=True,
-        ):
+        ) as self.temperature_log_graph:
             with dpg.plot(
                 height=VIEWPORT_HEIGHT / 2 - 50,
                 width=VIEWPORT_WIDTH / 2 - 35,
@@ -126,7 +179,7 @@ class lcd_ui:
                 height=VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER,
                 no_collapse=True,
                 no_close=True,
-            ):
+            ) as self.measurement_settings_window:
                 with dpg.group(horizontal=True):
                     dpg.add_text("Delay time (s): ")
                     self.delay_time = dpg.add_input_double(default_value=0.5, width=100)
@@ -152,7 +205,7 @@ class lcd_ui:
                 height=VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER,
                 no_collapse=True,
                 no_close=True,
-            ):
+            ) as self.frequency_list_window:
                 self.freq_list = variable_list(
                     *make_variable_list_frame(20.0, 20.0, 2e5)
                 )
@@ -164,7 +217,7 @@ class lcd_ui:
                 height=VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER,
                 no_collapse=True,
                 no_close=True,
-            ):
+            ) as self.voltage_list_window:
                 self.volt_list = variable_list(*make_variable_list_frame(1.0, 0.01, 20))
 
             with dpg.window(
@@ -174,7 +227,7 @@ class lcd_ui:
                 pos=[0, VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER * 3],
                 no_collapse=True,
                 no_close=True,
-            ):
+            ) as self.temperature_list_window:
                 with dpg.group(horizontal=True):
                     self.temperature_list = variable_list(
                         *make_variable_list_frame(25.0, -40, 250)
@@ -204,7 +257,7 @@ class lcd_ui:
                 height=VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER,
                 no_collapse=True,
                 no_close=True,
-            ):
+            ) as self.output_data_settings_window:
                 with dpg.group(horizontal=True):
                     self.output_file_path = dpg.add_input_text(
                         default_value="results.json"
@@ -229,7 +282,7 @@ class lcd_ui:
                 no_title_bar=True,
                 width=VIEWPORT_WIDTH / 2,
                 height=(VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER) + HEIGHT_DISCREPANCY,
-            ):
+            ) as self.start_stop_button_window:
                 with dpg.group(horizontal=True):
                     self.start_button = dpg.add_button(
                         label="Start",
@@ -334,6 +387,7 @@ def start_measurement(
     state.resultsDict[T][freq]["B"] = []
 
     state.measurement_status = Status.SET_TEMPERATURE
+
 
 def stop_measurement(instruments: lcd_instruments, state: lcd_state) -> None:
     instruments.linkam.stop()
@@ -441,10 +495,8 @@ def append_range_to_list_callback(sender, app_data, user_data):
         values_to_add = list(
             np.arange(
                 dpg.get_value(user_data["range_selector"].min_value_input),
-                dpg.get_value(
-                    user_data["range_selector"].max_value_input)
-                    + dpg.get_value(user_data["range_selector"].spacing_input)
-                ,
+                dpg.get_value(user_data["range_selector"].max_value_input)
+                + dpg.get_value(user_data["range_selector"].spacing_input),
                 dpg.get_value(user_data["range_selector"].spacing_input),
             )
         )
@@ -484,10 +536,8 @@ def replace_list_callback(sender, app_data, user_data):
         values_to_add = list(
             np.arange(
                 dpg.get_value(user_data["range_selector"].min_value_input),
-                dpg.get_value(
-                    user_data["range_selector"].max_value_input)
-                    + dpg.get_value(user_data["range_selector"].spacing_input)
-                ,
+                dpg.get_value(user_data["range_selector"].max_value_input)
+                + dpg.get_value(user_data["range_selector"].spacing_input),
                 dpg.get_value(user_data["range_selector"].spacing_input),
             )
         )
