@@ -10,10 +10,9 @@ import threading
 from lcdielectrics.lcd_instruments import LinkamHotstage, AgilentSpectrometer
 from lcdielectrics.lcd_dataclasses import Status
 import pyvisa
+import tkinter as tk
+from tkinter import filedialog
 
-
-# TODO: implement graph
-# TODO: make UI scalable in some way (need to see what it looks like on lab PCs)
 
 VIEWPORT_WIDTH = 1280
 DRAW_HEIGHT = 800  # titlebar is approximately 40px
@@ -147,10 +146,11 @@ class lcd_ui:
             height=VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER,
             no_collapse=True,
             no_close=True,
+            no_title_bar=True
         ) as self.control_window:
             with dpg.group(tag="status_window"):
                 with dpg.group(horizontal=True):
-                    dpg.add_text("Status: ")
+                    self.status_label = dpg.add_text("Status: ")
                     self.measurement_status = dpg.add_text(
                         f"{self.status}", tag="status_display"
                     )
@@ -264,19 +264,19 @@ class lcd_ui:
                         default_value="results.json"
                     )
                     self.browse_button = dpg.add_button(
-                        label="Browse", callback=lambda: dpg.show_item("file_dialog_id")
+                        label="Browse", callback=self.open_tkinter_saveas_file_picker
                     )
 
-            with dpg.file_dialog(
-                directory_selector=False,
-                show=False,
-                callback=file_saveas_callback,
-                user_data=self.output_file_path,
-                id="file_dialog_id",
-                width=700,
-                height=400,
-            ):
-                dpg.add_file_extension(".json")
+            # with dpg.file_dialog(
+            #     directory_selector=False,
+            #     show=False,
+            #     callback=file_saveas_callback,
+            #     user_data=self.output_file_path,
+            #     id="file_dialog_id",
+            #     width=700,
+            #     height=400,
+            # ):
+            #     dpg.add_file_extension(".json")
 
             with dpg.window(
                 pos=[0, VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER * 5],
@@ -342,6 +342,16 @@ class lcd_ui:
             ),
         )
 
+    def open_tkinter_saveas_file_picker(self):
+        root = tk.Tk()
+        root.withdraw()
+        filename = filedialog.asksaveasfilename(
+                defaultextension=".json",
+                filetypes=(("JSON Files", "*.json"), ("All files", "*.*")),
+            )
+        
+        root.destroy()
+        dpg.set_value(self.output_file_path, filename)
 
 def start_measurement(
     state: lcd_state, frontend: lcd_ui, instruments: lcd_instruments

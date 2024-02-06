@@ -16,22 +16,33 @@ import ctypes
 
 def main():
     dpg.create_context()
-
+    MODULE_PATH = importlib.resources.files(__package__)
     dpg.create_viewport(
         title="LC Dielectrics", width=VIEWPORT_WIDTH, height=DRAW_HEIGHT
     )
+    
+    dpg.set_viewport_large_icon(MODULE_PATH / "assets/LCD_icon.ico")
+    dpg.set_viewport_small_icon(MODULE_PATH / "assets/LCD_icon.ico")
     dpg.setup_dearpygui()
     dpg.show_viewport()
     user32 = ctypes.windll.user32
     screensize = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
-    MODULE_PATH = importlib.resources.files(__package__)
+    
     font_path = Path(MODULE_PATH / "assets/OpenSans-Regular.ttf")
     with dpg.font_registry():
         default_font = dpg.add_font(font_path, 18 * screensize[1] / 1080)
+        status_font = dpg.add_font(font_path, 36 * screensize[1] / 1080)
+
     dpg.bind_font(default_font)
+    
+    
+
     state = lcd_state()
     frontend = lcd_ui()
     instruments = lcd_instruments()
+
+    dpg.bind_item_font(frontend.measurement_status, status_font)
+    dpg.bind_item_font(frontend.status_label, status_font)
 
     frontend.extra_config(instruments, state)
 
