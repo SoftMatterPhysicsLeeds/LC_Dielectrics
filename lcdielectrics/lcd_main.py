@@ -3,12 +3,15 @@ from lcdielectrics.lcd_utils import (
     lcd_instruments,
     lcd_state,
     read_temperature,
-    handle_measurement_status
+    handle_measurement_status,
 )
 from lcdielectrics.lcd_themes import generate_global_theme
 import dearpygui.dearpygui as dpg
 from lcdielectrics.lcd_ui import lcd_ui, VIEWPORT_WIDTH, DRAW_HEIGHT
 import threading
+from pathlib import Path
+import importlib
+import ctypes
 
 
 def main():
@@ -19,7 +22,13 @@ def main():
     )
     dpg.setup_dearpygui()
     dpg.show_viewport()
-
+    user32 = ctypes.windll.user32
+    screensize = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
+    MODULE_PATH = importlib.resources.files(__package__)
+    font_path = Path(MODULE_PATH / "assets/OpenSans-Regular.ttf")
+    with dpg.font_registry():
+        default_font = dpg.add_font(font_path, 18 * screensize[1] / 1080)
+    dpg.bind_font(default_font)
     state = lcd_state()
     frontend = lcd_ui()
     instruments = lcd_instruments()
@@ -48,15 +57,13 @@ def main():
             # redraw_windows.
             viewport_width = dpg.get_viewport_client_width()
             viewport_height = dpg.get_viewport_client_height()
-            frontend.draw_children(viewport_width, viewport_height) 
-
+            frontend.draw_children(viewport_width, viewport_height)
 
         if state.linkam_connection_status == "Connected":
             linkam_thread.start()
             state.linkam_connection_status = "Reading"
 
         handle_measurement_status(state, frontend, instruments)
-
 
         dpg.render_dearpygui_frame()
 

@@ -86,7 +86,8 @@ class lcd_ui:
 
         dpg.configure_item(self.start_button, pos = [10, height/VERTICAL_WIDGET_NUMBER*0.13], width = width/4 - 10)
         dpg.configure_item(self.stop_button, pos = [width/4 + 10, height/VERTICAL_WIDGET_NUMBER*0.13], width = width/4 - 10)
-
+        dpg.configure_item(self.results_plot_window, height=height / 2 - 50, width=width / 2 - 35)
+        dpg.configure_item(self.temperature_log_plot_window, height=height / 2 - 50, width=width / 2 - 35,)
     def _make_graph_windows(self):
         with dpg.window(
             label="Results",
@@ -100,7 +101,7 @@ class lcd_ui:
                 height=VIEWPORT_HEIGHT / 2 - 50,
                 width=VIEWPORT_WIDTH / 2 - 35,
                 anti_aliased=True,
-            ):
+            ) as self.results_plot_window:
                 self.results_V_axis = dpg.add_plot_axis(
                     dpg.mvXAxis, label="V (volts)", tag="V_axis"
                 )
@@ -125,7 +126,7 @@ class lcd_ui:
                 height=VIEWPORT_HEIGHT / 2 - 50,
                 width=VIEWPORT_WIDTH / 2 - 35,
                 anti_aliased=True,
-            ):
+            ) as self.temperature_log_plot_window:
                 self.temperature_log_time_axis = dpg.add_plot_axis(
                     dpg.mvXAxis, label="time (s)", tag="time_axis"
                 )
