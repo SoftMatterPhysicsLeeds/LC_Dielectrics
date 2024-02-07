@@ -14,6 +14,8 @@ import threading
 def start_measurement(
     state: lcd_state, frontend: lcd_ui, instruments: lcd_instruments
 ) -> None:
+
+    dpg.configure_item(frontend.start_button, enabled = False)
     state.freq_list = [
         float(x.split("\t")[-1])
         for x in dpg.get_item_configuration(frontend.freq_list.list_handle)["items"]
@@ -115,6 +117,7 @@ def handle_measurement_status(
     current_wait = 0
     if state.measurement_status == Status.IDLE:
         dpg.set_value(frontend.measurement_status, "Idle")
+        dpg.configure_item(frontend.start_button, enabled = True)
     elif state.measurement_status == Status.SET_TEMPERATURE and (
         state.linkam_action == "Stopped" or state.linkam_action == "Holding"
     ):
