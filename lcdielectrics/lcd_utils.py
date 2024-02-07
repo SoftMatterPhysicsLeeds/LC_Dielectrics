@@ -2,6 +2,7 @@ import dearpygui.dearpygui as dpg
 from lcdielectrics.lcd_ui import lcd_ui
 from lcdielectrics.lcd_excel_writer import make_excel
 from lcdielectrics.lcd_dataclasses import lcd_instruments, lcd_state, Status, OutputType
+from lcdielectrics.lcd_instruments import AgilentSpectrometer, LinkamHotstage
 import json
 import pyvisa
 import time
@@ -10,7 +11,107 @@ import threading
 # TODO: find a way to handle exceptions in instrument threads?
 
 
-def handle_measurement_status(state: lcd_state, frontend: lcd_ui, instruments: lcd_instruments):
+def start_measurement(
+    state: lcd_state, frontend: lcd_ui, instruments: lcd_instruments
+) -> None:
+    state.freq_list = [
+        float(x.split("\t")[-1])
+        for x in dpg.get_item_configuration(frontend.freq_list.list_handle)["items"]
+    ]
+    state.voltage_list = [
+        float(x.split("\t")[-1])
+        for x in dpg.get_item_configuration(frontend.volt_list.list_handle)["items"]
+    ]
+    state.T_list = [
+        float(x.split("\t")[-1])
+        for x in dpg.get_item_configuration(frontend.temperature_list.list_handle)[
+            "items"
+        ]
+    ]
+
+    state.T_list = [round(x, 0) for x in state.T_list]
+
+    instruments.agilent.set_aperture_mode(
+        dpg.get_value(frontend.meas_time_mode_selector),
+        dpg.get_value(frontend.averaging_factor),
+    )
+
+    bias = dpg.get_value(frontend.bias_level)
+    if bias == -1.5 or 2:
+        instruments.agilent.set_DC_bias(float(bias))
+
+    state.T_step = -2
+    state.freq_step = -2
+    state.volt_step = -2
+
+    T = state.T_list[state.T_step]
+    freq = state.freq_list[state.freq_step]
+
+    state.resultsDict[state.T_list[state.T_step]] = dict()
+    state.resultsDict[T][freq] = dict()
+    state.resultsDict[T][freq]["volt"] = []
+    state.resultsDict[T][freq]["Cp"] = []
+    state.resultsDict[T][freq]["D"] = []
+    state.resultsDict[T][freq]["G"] = []
+    state.resultsDict[T][freq]["B"] = []
+
+    state.measurement_status = Status.SET_TEMPERATURE
+    state.xdata = []
+    state.ydata = []
+
+
+def stop_measurement(instruments: lcd_instruments, state: lcd_state) -> None:
+    instruments.linkam.stop()
+    instruments.agilent.reset_and_clear()
+    state.measurement_status = Status.IDLE
+
+
+def init_agilent(
+    frontend: lcd_ui, instruments: lcd_instruments, state: lcd_state
+) -> None:
+    agilent = AgilentSpectrometer(dpg.get_value(frontend.agilent_com_selector))
+    dpg.set_value(frontend.agilent_status, "Connected")
+    dpg.hide_item(frontend.agilent_initialise)
+    instruments.agilent = agilent
+    state.agilent_connection_status = "Connected"
+
+
+def init_linkam(
+    frontend: lcd_ui, instruments: lcd_instruments, state: lcd_state
+) -> None:
+    linkam = LinkamHotstage(dpg.get_value(frontend.linkam_com_selector))
+    try:
+        linkam.current_temperature()
+        dpg.set_value(frontend.linkam_status, "Connected")
+        dpg.hide_item(frontend.linkam_initialise)
+        instruments.linkam = linkam
+        state.linkam_connection_status = "Connected"
+        with open("address.dat", "w") as f:
+            f.write(dpg.get_value(frontend.linkam_com_selector))
+
+    except pyvisa.errors.VisaIOError:
+        dpg.set_value(frontend.linkam_status, "Couldn't connect")
+
+
+def connect_to_instrument_callback(sender, app_data, user_data):
+    if user_data["instrument"] == "linkam":
+        thread = threading.Thread(
+            target=init_linkam,
+            args=(user_data["frontend"], user_data["instruments"], user_data["state"]),
+        )
+    elif user_data["instrument"] == "agilent":
+        thread = threading.Thread(
+            target=init_agilent,
+            args=(user_data["frontend"], user_data["instruments"], user_data["state"]),
+        )
+
+    thread.daemon = True
+    thread.start()
+
+
+def handle_measurement_status(
+    state: lcd_state, frontend: lcd_ui, instruments: lcd_instruments
+):
     current_wait = 0
     if state.measurement_status == Status.IDLE:
         dpg.set_value(frontend.measurement_status, "Idle")
@@ -21,10 +122,12 @@ def handle_measurement_status(state: lcd_state, frontend: lcd_ui, instruments: l
             state.T_list[state.T_step], dpg.get_value(frontend.T_rate)
         )
         state.measurement_status = Status.GOING_TO_TEMPERATURE
-        dpg.set_value(frontend.measurement_status, f"Going to {state.T_list[state.T_step]} C") 
-    elif (
-        state.measurement_status == Status.GOING_TO_TEMPERATURE
-        and (state.linkam_temperature > state.T_list[state.T_step] - 0.1 and  state.linkam_temperature < state.T_list[state.T_step] + 0.1)
+        dpg.set_value(
+            frontend.measurement_status, f"Going to {state.T_list[state.T_step]} C"
+        )
+    elif state.measurement_status == Status.GOING_TO_TEMPERATURE and (
+        state.linkam_temperature > state.T_list[state.T_step] - 0.1
+        and state.linkam_temperature < state.T_list[state.T_step] + 0.1
     ):
         state.t_stable_start = time.time()
         state.measurement_status = Status.STABILISING_TEMPERATURE
@@ -139,7 +242,7 @@ def get_result(
             make_excel(
                 state.resultsDict,
                 dpg.get_value(frontend.output_file_path),
-                OutputType.SINGLE_VOLT_FREQ
+                OutputType.SINGLE_VOLT_FREQ,
             )
         elif len(state.voltage_list) == 1:
             make_excel(
@@ -175,7 +278,9 @@ def get_result(
                 T = state.T_list[state.T_step]
                 freq = state.freq_list[state.freq_step]
 
-                state.resultsDict[f"{state.T_step + 1}: {state.T_list[state.T_step]}"] = dict()
+                state.resultsDict[
+                    f"{state.T_step + 1}: {state.T_list[state.T_step]}"
+                ] = dict()
                 freq_str = f"{state.freq_step+1}: {freq}"
                 state.resultsDict[T][freq_str] = dict()
                 state.resultsDict[T][freq_str]["volt"] = []
@@ -217,10 +322,9 @@ def parse_result(result: dict, state: lcd_state, frontend: lcd_ui) -> None:
     state.resultsDict[T][freq]["G"].append(result["GB"][0])
     state.resultsDict[T][freq]["B"].append(result["GB"][1])
 
-
     if len(state.voltage_list) == 1 and len(state.freq_list) == 1:
         state.xdata.append(T)
-        state.ydata.append(state.resultsDict[T][freq]["Cp"]) 
+        state.ydata.append(state.resultsDict[T][freq]["Cp"])
     elif len(state.voltage_list) == 1:
         state.xdata.append(freq)
         state.ydata.append(state.resultsDict[T][freq]["Cp"])

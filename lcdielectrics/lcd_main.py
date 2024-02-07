@@ -8,6 +8,7 @@ from lcdielectrics.lcd_utils import (
 from lcdielectrics.lcd_themes import generate_global_theme
 import dearpygui.dearpygui as dpg
 from lcdielectrics.lcd_ui import lcd_ui, VIEWPORT_WIDTH, DRAW_HEIGHT
+from lcdielectrics.lcd_utils import connect_to_instrument_callback, start_measurement, stop_measurement
 import threading
 from pathlib import Path
 import importlib
@@ -44,7 +45,46 @@ def main():
     dpg.bind_item_font(frontend.measurement_status, status_font)
     dpg.bind_item_font(frontend.status_label, status_font)
 
-    frontend.extra_config(instruments, state)
+
+    dpg.configure_item(
+        frontend.agilent_initialise,
+        callback=connect_to_instrument_callback,
+        user_data={
+            "instrument": "agilent",
+            "frontend": frontend,
+            "instruments": instruments,
+            "state": state,
+        },
+    )
+
+    dpg.configure_item(
+        frontend.linkam_initialise,
+        callback=connect_to_instrument_callback,
+        user_data={
+            "instrument": "linkam",
+            "frontend": frontend,
+            "instruments": instruments,
+            "state": state,
+        },
+    )
+
+    dpg.configure_item(
+        frontend.start_button,
+        callback=lambda: start_measurement(state, frontend. instruments),
+    )
+
+    dpg.configure_item(
+        frontend.stop_button,
+        callback=lambda: stop_measurement(instruments, state),
+    )
+
+    dpg.configure_item(
+        frontend.go_to_temp_button,
+        callback=lambda: instruments.linkam.set_temperature(
+            dpg.get_value(frontend.go_to_temp_input),
+            dpg.get_value(frontend.T_rate),
+        ),
+    )
 
     dpg.bind_theme(generate_global_theme())
 
