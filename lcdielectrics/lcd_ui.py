@@ -17,7 +17,7 @@ from tkinter import filedialog
 VIEWPORT_WIDTH = 1280
 DRAW_HEIGHT = 800  # titlebar is approximately 40px
 VIEWPORT_HEIGHT = DRAW_HEIGHT - 40
-VERTICAL_WIDGET_NUMBER = 6
+VERTICAL_WIDGET_NUMBER = 5
 HEIGHT_DISCREPANCY = int(VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER)
 
 
@@ -70,15 +70,10 @@ class lcd_ui:
             height=height / VERTICAL_WIDGET_NUMBER,
             pos=[0, height / VERTICAL_WIDGET_NUMBER * 3],
         )
-        dpg.configure_item(
-            self.output_data_settings_window,
-            pos=[0, height / VERTICAL_WIDGET_NUMBER * 4],
-            width=width / 2,
-            height=height / VERTICAL_WIDGET_NUMBER,
-        )
+        
         dpg.configure_item(
             self.start_stop_button_window,
-            pos=[0, height / VERTICAL_WIDGET_NUMBER * 5],
+            pos=[0, height / VERTICAL_WIDGET_NUMBER * 4],
             width=width / 2,
             height=(height / VERTICAL_WIDGET_NUMBER) + HEIGHT_DISCREPANCY,
         )
@@ -149,29 +144,36 @@ class lcd_ui:
             no_close=True,
             no_title_bar=True
         ) as self.control_window:
+
+            
             with dpg.group(tag="status_window"):
                 with dpg.group(horizontal=True):
                     self.status_label = dpg.add_text("Status: ")
                     self.measurement_status = dpg.add_text(
                         f"{self.status}", tag="status_display"
                     )
+            with dpg.table(header_row=False):
+                dpg.add_table_column()
+                dpg.add_table_column()
+                dpg.add_table_column()
+                dpg.add_table_column()
 
-                with dpg.group(horizontal=True):
+                with dpg.table_row():
                     dpg.add_text("Linkam: ")
                     self.linkam_status = dpg.add_text(
                         f"{self.linkam_status}", tag="linkam_status_display"
                     )
 
-                    self.linkam_com_selector = dpg.add_combo(width=200)
+                    self.linkam_com_selector = dpg.add_combo()
                     self.linkam_initialise = dpg.add_button(label="Initialise")
 
-                with dpg.group(horizontal=True):
+                with dpg.table_row():
                     dpg.add_text("Agilent: ")
                     self.agilent_status = dpg.add_text(
                         f"{self.agilent_status}", tag="agilent_status_display"
                     )
 
-                    self.agilent_com_selector = dpg.add_combo(width=200)
+                    self.agilent_com_selector = dpg.add_combo()
                     self.agilent_initialise = dpg.add_button(label="Initialise")
 
             with dpg.window(
@@ -182,23 +184,39 @@ class lcd_ui:
                 no_collapse=True,
                 no_close=True,
             ) as self.measurement_settings_window:
+                with dpg.table(header_row=False):
+                    dpg.add_table_column()
+                    dpg.add_table_column()
+                    dpg.add_table_column()
+                    dpg.add_table_column()
+
+                    with dpg.table_row():
+                        dpg.add_text("Delay time (s): ")
+                        self.delay_time = dpg.add_input_double(default_value=0.5, width=100, step=0, step_fast=0)
+                        dpg.add_text("Meas. Time Mode: ")
+                        self.meas_time_mode_selector = dpg.add_combo(
+                            ["SHOR", "MED", "LONG"], width=100, default_value="SHOR"
+                        )
+
+                    with dpg.table_row():                    
+                        dpg.add_text("Averaging Factor: ")
+                        self.averaging_factor = dpg.add_input_int(
+                            default_value=1, width=100, step=0, step_fast=0
+                        )
+                        dpg.add_text("Bias Level (V)")
+                        self.bias_level = dpg.add_combo(
+                            [0, 1.5, 2], width=100, default_value=0
+                        )
+                
                 with dpg.group(horizontal=True):
-                    dpg.add_text("Delay time (s): ")
-                    self.delay_time = dpg.add_input_double(default_value=0.5, width=100)
-                    dpg.add_text("Meas. Time Mode: ")
-                    self.meas_time_mode_selector = dpg.add_combo(
-                        ["SHOR", "MED", "LONG"], width=100, default_value="SHOR"
+                    dpg.add_text("Output file path: ")
+                    self.output_file_path = dpg.add_input_text(
+                        default_value="results.json"
+                    )
+                    self.browse_button = dpg.add_button(
+                        label="Browse", callback=self.open_tkinter_saveas_file_picker
                     )
 
-                with dpg.group(horizontal=True):
-                    dpg.add_text("Averaging Factor: ")
-                    self.averaging_factor = dpg.add_input_int(
-                        default_value=1, width=100
-                    )
-                    dpg.add_text("Bias Level (V)")
-                    self.bias_level = dpg.add_combo(
-                        [0, 1.5, 2], width=100, default_value=0
-                    )
 
             with dpg.window(
                 label="Frequency List",
@@ -238,35 +256,35 @@ class lcd_ui:
                         with dpg.group(horizontal=True):
                             self.go_to_temp_button = dpg.add_button(label="Go to:")
                             self.go_to_temp_input = dpg.add_input_float(
-                                default_value=25, width=150
+                                default_value=25, width=150, step=0, step_fast=0
                             )
                             dpg.add_text("°C")
                         with dpg.group(horizontal=True):
                             dpg.add_text("Rate (°C/min): ")
                             self.T_rate = dpg.add_input_double(
-                                default_value=10, width=150
+                                default_value=10, width=150, step=0, step_fast=0
                             )
                         with dpg.group(horizontal=True):
                             dpg.add_text("Stab. Time (s)")
                             self.stab_time = dpg.add_input_double(
-                                default_value=1, width=150
+                                default_value=1, width=150, step=0, step_fast=0
                             )
 
-            with dpg.window(
-                label="Output Data Settings",
-                pos=[0, VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER * 4],
-                width=VIEWPORT_WIDTH / 2,
-                height=VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER,
-                no_collapse=True,
-                no_close=True,
-            ) as self.output_data_settings_window:
-                with dpg.group(horizontal=True):
-                    self.output_file_path = dpg.add_input_text(
-                        default_value="results.json"
-                    )
-                    self.browse_button = dpg.add_button(
-                        label="Browse", callback=self.open_tkinter_saveas_file_picker
-                    )
+            # with dpg.window(
+            #     label="Output Data Settings",
+            #     pos=[0, VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER * 4],
+            #     width=VIEWPORT_WIDTH / 2,
+            #     height=VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER,
+            #     no_collapse=True,
+            #     no_close=True,
+            # ) as self.output_data_settings_window:
+            #     with dpg.group(horizontal=True):
+            #         self.output_file_path = dpg.add_input_text(
+            #             default_value="results.json"
+            #         )
+            #         self.browse_button = dpg.add_button(
+            #             label="Browse", callback=self.open_tkinter_saveas_file_picker
+            #         )
 
             # with dpg.file_dialog(
             #     directory_selector=False,
@@ -535,7 +553,7 @@ def make_variable_list_frame(default_val, min_val, max_val, logspace=False):
             ["1:\t" + str(default_val)], width=150, num_items=10
         )
         with dpg.group():
-            add_text = dpg.add_input_float(default_value=default_val, width=150)
+            add_text = dpg.add_input_float(default_value=default_val, width=150, step=0, step_fast=0)
             add_button = dpg.add_button(
                 label="Add",
                 callback=add_value_to_list_callback,
