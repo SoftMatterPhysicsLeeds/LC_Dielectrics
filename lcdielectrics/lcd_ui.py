@@ -398,6 +398,8 @@ def start_measurement(
     state.resultsDict[T][freq]["B"] = []
 
     state.measurement_status = Status.SET_TEMPERATURE
+    state.xdata = []
+    state.ydata = []
 
 
 def stop_measurement(instruments: lcd_instruments, state: lcd_state) -> None:

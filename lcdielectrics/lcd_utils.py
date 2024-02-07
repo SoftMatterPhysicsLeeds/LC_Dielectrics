@@ -216,8 +216,17 @@ def parse_result(result: dict, state: lcd_state, frontend: lcd_ui) -> None:
     state.resultsDict[T][freq]["D"].append(result["CPD"][1])
     state.resultsDict[T][freq]["G"].append(result["GB"][0])
     state.resultsDict[T][freq]["B"].append(result["GB"][1])
-    state.xdata = state.resultsDict[T][freq]["volt"]
-    state.ydata = state.resultsDict[T][freq]["Cp"]
+
+
+    if len(state.voltage_list) == 1 and len(state.freq_list) == 1:
+        state.xdata.append(T)
+        state.ydata.append(state.resultsDict[T][freq]["Cp"]) 
+    elif len(state.voltage_list) == 1:
+        state.xdata.append(freq)
+        state.ydata.append(state.resultsDict[T][freq]["Cp"])
+    elif len(state.freq_list_list) == 1:
+        state.xdata = state.resultsDict[T][freq]["volt"]
+        state.ydata = state.resultsDict[T][freq]["Cp"]
 
     dpg.set_value(frontend.results_plot, [state.xdata, state.ydata])
 
