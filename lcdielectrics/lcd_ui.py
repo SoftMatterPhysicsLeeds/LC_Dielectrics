@@ -3,13 +3,7 @@ import dearpygui.dearpygui as dpg
 from lcdielectrics.lcd_dataclasses import (
     range_selector_window,
     variable_list,
-    lcd_state,
-    lcd_instruments,
 )
-import threading
-from lcdielectrics.lcd_instruments import LinkamHotstage, AgilentSpectrometer
-from lcdielectrics.lcd_dataclasses import Status
-import pyvisa
 import tkinter as tk
 from tkinter import filedialog
 
