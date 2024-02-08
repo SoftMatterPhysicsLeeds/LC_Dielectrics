@@ -29,6 +29,18 @@ class lcd_ui:
         self._make_control_window()
         self._make_graph_windows()
         self.draw_children(VIEWPORT_WIDTH, DRAW_HEIGHT)
+        
+        with dpg.theme() as START_THEME:
+            with dpg.theme_component(dpg.mvAll):
+                dpg.add_theme_color(dpg.mvThemeCol_Button,
+                                    (0, 100, 0), category=dpg.mvThemeCat_Core)
+        with dpg.theme() as STOP_THEME:
+            with dpg.theme_component(dpg.mvAll):
+                dpg.add_theme_color(dpg.mvThemeCol_Button,
+                                    (204, 36, 29), category=dpg.mvThemeCat_Core)
+
+        dpg.bind_item_theme(self.start_button, START_THEME)
+        dpg.bind_item_theme(self.stop_button, STOP_THEME)
 
     def draw_children(self, width, height):
 
@@ -41,7 +53,7 @@ class lcd_ui:
             width=width / 2,
             height=height / 2,
         )
-
+                
         height_mod = height
         dpg.configure_item(
             self.control_window,

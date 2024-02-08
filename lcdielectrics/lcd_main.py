@@ -17,6 +17,12 @@ import importlib
 import ctypes
 
 
+def find_instruments_thread(frontend: lcd_ui):
+    thread = threading.Thread(target=find_instruments, args=(frontend,))
+    thread.daemon = True
+    thread.start()
+
+
 def main():
     dpg.create_context()
     MODULE_PATH = importlib.resources.files(__package__)
@@ -46,6 +52,9 @@ def main():
 
     dpg.bind_item_font(frontend.measurement_status, status_font)
     dpg.bind_item_font(frontend.status_label, status_font)
+    dpg.bind_item_font(frontend.start_button, status_font)
+    dpg.bind_item_font(frontend.stop_button, status_font)
+
 
 
     dpg.configure_item(
@@ -94,6 +103,8 @@ def main():
     thread = threading.Thread(target=find_instruments, args=(frontend,))
     thread.daemon = True
     thread.start()
+
+    find_instruments_thread(frontend)
 
     linkam_thread = threading.Thread(
         target=read_temperature, args=(frontend, instruments, state)
