@@ -6,6 +6,7 @@ from lcdielectrics.lcd_dataclasses import (
 )
 import tkinter as tk
 from tkinter import filedialog
+import json
 
 
 VIEWPORT_WIDTH = 1280
@@ -23,15 +24,17 @@ class lcd_ui:
         self._make_control_window()
         self._make_graph_windows()
         self.draw_children(VIEWPORT_WIDTH, DRAW_HEIGHT)
-        
+
         with dpg.theme() as START_THEME:
             with dpg.theme_component(dpg.mvAll):
-                dpg.add_theme_color(dpg.mvThemeCol_Button,
-                                    (0, 100, 0), category=dpg.mvThemeCat_Core)
+                dpg.add_theme_color(
+                    dpg.mvThemeCol_Button, (0, 100, 0), category=dpg.mvThemeCat_Core
+                )
         with dpg.theme() as STOP_THEME:
             with dpg.theme_component(dpg.mvAll):
-                dpg.add_theme_color(dpg.mvThemeCol_Button,
-                                    (204, 36, 29), category=dpg.mvThemeCat_Core)
+                dpg.add_theme_color(
+                    dpg.mvThemeCol_Button, (204, 36, 29), category=dpg.mvThemeCat_Core
+                )
 
         dpg.bind_item_theme(self.start_button, START_THEME)
         dpg.bind_item_theme(self.stop_button, STOP_THEME)
@@ -47,7 +50,7 @@ class lcd_ui:
             width=width / 2,
             height=height / 2,
         )
-                
+
         height_mod = height
         dpg.configure_item(
             self.control_window,
@@ -57,7 +60,7 @@ class lcd_ui:
         )
         dpg.configure_item(
             self.measurement_settings_window,
-            pos=[0, 0.17*height_mod],
+            pos=[0, 0.17 * height_mod],
             width=width / 2,
             height=0.20 * height_mod,
         )
@@ -65,33 +68,42 @@ class lcd_ui:
             self.frequency_list_window,
             width=width / 4,
             pos=[0, 0.37 * height_mod],
-            height=0.25*height_mod
+            height=0.25 * height_mod,
         )
         dpg.configure_item(
             self.voltage_list_window,
             width=width / 4,
             pos=[width / 4, 0.37 * height_mod],
-            height=0.25*height_mod
+            height=0.25 * height_mod,
         )
         dpg.configure_item(
             self.temperature_list_window,
             width=width / 2,
-            height=0.25*height_mod,
-            pos=[0, 0.62*height_mod],
+            height=0.25 * height_mod,
+            pos=[0, 0.62 * height_mod],
         )
-        
+
         dpg.configure_item(
             self.start_stop_button_window,
             pos=[0, 0.87 * height_mod],
             width=width / 2,
-            height = 0.13 * height_mod,
-            
+            height=0.13 * height_mod,
         )
 
-        dpg.configure_item(self.start_button, pos = [5, 10], width = width/4 - 10, height = -1)
-        dpg.configure_item(self.stop_button, pos = [width/4 + 5, 10], width = width/4 - 10, height = -1)
-        dpg.configure_item(self.results_plot_window, height=height / 2 - 50, width=width / 2 - 35)
-        dpg.configure_item(self.temperature_log_plot_window, height=height / 2 - 50, width=width / 2 - 35,)
+        dpg.configure_item(
+            self.start_button, pos=[5, 10], width=width / 4 - 10, height=-1
+        )
+        dpg.configure_item(
+            self.stop_button, pos=[width / 4 + 5, 10], width=width / 4 - 10, height=-1
+        )
+        dpg.configure_item(
+            self.results_plot_window, height=height / 2 - 50, width=width / 2 - 35
+        )
+        dpg.configure_item(
+            self.temperature_log_plot_window,
+            height=height / 2 - 50,
+            width=width / 2 - 35,
+        )
 
     def _make_graph_windows(self):
         with dpg.window(
@@ -136,13 +148,9 @@ class lcd_ui:
 
     def _make_control_window(self):
         with dpg.window(
-            label="Status",
-            no_collapse=True,
-            no_close=True,
-            no_title_bar=True
+            label="Status", no_collapse=True, no_close=True, no_title_bar=True
         ) as self.control_window:
 
-            
             with dpg.group(tag="status_window"):
                 with dpg.group(horizontal=True):
                     self.status_label = dpg.add_text("Status: ")
@@ -186,13 +194,15 @@ class lcd_ui:
 
                     with dpg.table_row():
                         dpg.add_text("Delay time (s): ")
-                        self.delay_time = dpg.add_input_double(default_value=0.5, width=100, step=0, step_fast=0)
+                        self.delay_time = dpg.add_input_double(
+                            default_value=0.5, width=100, step=0, step_fast=0
+                        )
                         dpg.add_text("Meas. Time Mode: ")
                         self.meas_time_mode_selector = dpg.add_combo(
                             ["SHOR", "MED", "LONG"], width=100, default_value="SHOR"
                         )
 
-                    with dpg.table_row():                    
+                    with dpg.table_row():
                         dpg.add_text("Averaging Factor: ")
                         self.averaging_factor = dpg.add_input_int(
                             default_value=1, width=100, step=0, step_fast=0
@@ -201,16 +211,26 @@ class lcd_ui:
                         self.bias_level = dpg.add_combo(
                             [0, 1.5, 2], width=100, default_value=0
                         )
-                
+
                 with dpg.group(horizontal=True):
                     dpg.add_text("Output file path: ")
                     self.output_file_path = dpg.add_input_text(
                         default_value="results.json"
                     )
                     self.browse_button = dpg.add_button(
-                        label="Browse", callback=self.open_tkinter_saveas_file_picker
+                        label="Browse", callback=lambda: self.open_tkinter_saveas_file_picker("output")
                     )
 
+                with dpg.table(header_row=False):
+                    dpg.add_table_column()
+                    dpg.add_table_column()
+                    with dpg.table_row():
+                        self.save_setup_button = dpg.add_button(
+                            label="Save Measurement Setup", width=-1, callback=self.save_measurement_settings
+                        )
+                        self.load_setup_button = dpg.add_button(
+                            label="Load Measurement Setup", width=-1
+                        )
 
             with dpg.window(
                 label="Frequency List",
@@ -242,7 +262,9 @@ class lcd_ui:
                             dpg.add_table_column()
                             dpg.add_table_column()
                             with dpg.table_row():
-                                self.go_to_temp_button = dpg.add_button(label="Go to (°C):")
+                                self.go_to_temp_button = dpg.add_button(
+                                    label="Go to (°C):"
+                                )
                                 self.go_to_temp_input = dpg.add_input_float(
                                     default_value=25, width=100, step=0, step_fast=0
                                 )
@@ -257,7 +279,6 @@ class lcd_ui:
                                     default_value=1, width=100, step=0, step_fast=0
                                 )
 
-
             with dpg.window(
                 no_title_bar=True,
             ) as self.start_stop_button_window:
@@ -269,21 +290,41 @@ class lcd_ui:
                         label="Stop",
                     )
 
-
-    def open_tkinter_saveas_file_picker(self):
+    def open_tkinter_saveas_file_picker(self, type, object_to_serialise = None):
         root = tk.Tk()
         root.withdraw()
-        filename = filedialog.asksaveasfilename(
+        if type == "output":
+            filename = filedialog.asksaveasfilename(
                 defaultextension=".json",
                 filetypes=(("JSON Files", "*.json"), ("All files", "*.*")),
             )
+            dpg.set_value(self.output_file_path, filename)
         
+        elif type=="settings":
+            filename = filedialog.asksaveasfilename(
+                defaultextension=".meas",
+                filetypes=(("Measurement Setup Files", "*.meas"), ("All files", "*.*")),
+            )
+            with open(filename,'w') as f:
+                json.dump(object_to_serialise, f)
+                
+
         root.destroy()
-        dpg.set_value(self.output_file_path, filename)
 
+    def save_measurement_settings(self):
+        measurement_settings = {
+            self.delay_time: dpg.get_value(self.delay_time),
+            self.meas_time_mode_selector: dpg.get_value(self.meas_time_mode_selector),
+            self.averaging_factor: dpg.get_value(self.averaging_factor),
+            self.bias_level: dpg.get_value(self.bias_level),
+            self.output_file_path: dpg.get_value(self.output_file_path),
+            self.freq_list.list_handle: dpg.get_item_configuration(self.freq_list.list_handle)["items"],
+            self.volt_list.list_handle: dpg.get_item_configuration(self.volt_list.list_handle)["items"],
+            self.temperature_list.list_handle: dpg.get_item_configuration(self.temperature_list.list_handle)["items"],
+        }
 
-def file_saveas_callback(sender, app_data, output_file_path):
-    dpg.set_value(output_file_path, app_data["file_path_name"])
+        # print(measurement_settings)
+        self.open_tkinter_saveas_file_picker("settings", measurement_settings)
 
 
 def add_value_to_list_callback(sender, app_data, user_data):
@@ -459,10 +500,14 @@ def make_variable_list_frame(default_val, min_val, max_val, logspace=False):
 
     with dpg.group(horizontal=True):
         listbox_handle = dpg.add_listbox(
-            ["1:\t" + str(default_val)], width=150, num_items = 6,
+            ["1:\t" + str(default_val)],
+            width=150,
+            num_items=6,
         )
         with dpg.group():
-            add_text = dpg.add_input_float(default_value=default_val, width=100, step=0, step_fast=0)
+            add_text = dpg.add_input_float(
+                default_value=default_val, width=100, step=0, step_fast=0
+            )
             add_button = dpg.add_button(
                 label="Add",
                 width=100,
