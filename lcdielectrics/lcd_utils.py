@@ -328,12 +328,15 @@ def parse_result(result: dict, state: lcd_state, frontend: lcd_ui) -> None:
     if len(state.voltage_list) == 1 and len(state.freq_list) == 1:
         state.xdata.append(T)
         state.ydata.append(state.resultsDict[T][freq]["Cp"])
+        dpg.configure_item(frontend.results_V_axis, label = "T")
     elif len(state.voltage_list) == 1:
         state.xdata.append(freq)
         state.ydata.append(state.resultsDict[T][freq]["Cp"])
+        dpg.configure_item(frontend.results_V_axis, label = "freq (Hz)")
     elif len(state.freq_list_list) == 1:
         state.xdata = state.resultsDict[T][freq]["volt"]
         state.ydata = state.resultsDict[T][freq]["Cp"]
+        dpg.configure_item(frontend.results_V_axis, label = "voltage (V)")
 
     dpg.set_value(frontend.results_plot, [state.xdata, state.ydata])
 

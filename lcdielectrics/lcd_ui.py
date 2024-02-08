@@ -17,7 +17,7 @@ from tkinter import filedialog
 VIEWPORT_WIDTH = 1280
 DRAW_HEIGHT = 800  # titlebar is approximately 40px
 VIEWPORT_HEIGHT = DRAW_HEIGHT - 40
-VERTICAL_WIDGET_NUMBER = 5
+VERTICAL_WIDGET_NUMBER = 4
 HEIGHT_DISCREPANCY = int(VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER)
 
 
@@ -28,6 +28,7 @@ class lcd_ui:
         self.agilent_status = "Not Connected"
         self._make_control_window()
         self._make_graph_windows()
+        self.draw_children(VIEWPORT_WIDTH, DRAW_HEIGHT)
 
     def draw_children(self, width, height):
 
@@ -40,42 +41,44 @@ class lcd_ui:
             width=width / 2,
             height=height / 2,
         )
+
+        height_mod = height - 80
         dpg.configure_item(
             self.control_window,
             pos=[0, 0],
             width=width / 2,
-            height=height / VERTICAL_WIDGET_NUMBER,
+            height=height_mod/ VERTICAL_WIDGET_NUMBER,
         )
         dpg.configure_item(
             self.measurement_settings_window,
-            pos=[0, height / VERTICAL_WIDGET_NUMBER],
+            pos=[0, height_mod/ VERTICAL_WIDGET_NUMBER],
             width=width / 2,
-            height=height / VERTICAL_WIDGET_NUMBER,
+            height=height_mod/ VERTICAL_WIDGET_NUMBER,
         )
         dpg.configure_item(
             self.frequency_list_window,
             width=width / 4,
-            pos=[0, height / VERTICAL_WIDGET_NUMBER * 2],
-            height=height / VERTICAL_WIDGET_NUMBER,
+            pos=[0, height_mod/ VERTICAL_WIDGET_NUMBER * 2],
+            height=height_mod/ VERTICAL_WIDGET_NUMBER,
         )
         dpg.configure_item(
             self.voltage_list_window,
             width=width / 4,
-            pos=[width / 4, height / VERTICAL_WIDGET_NUMBER * 2],
-            height=height / VERTICAL_WIDGET_NUMBER,
+            pos=[width / 4, height_mod/ VERTICAL_WIDGET_NUMBER * 2],
+            height=height_mod/ VERTICAL_WIDGET_NUMBER,
         )
         dpg.configure_item(
             self.temperature_list_window,
             width=width / 2,
-            height=height / VERTICAL_WIDGET_NUMBER,
-            pos=[0, height / VERTICAL_WIDGET_NUMBER * 3],
+            height=height_mod/ VERTICAL_WIDGET_NUMBER,
+            pos=[0, height_mod/ VERTICAL_WIDGET_NUMBER * 3],
         )
         
         dpg.configure_item(
             self.start_stop_button_window,
-            pos=[0, height / VERTICAL_WIDGET_NUMBER * 4],
+            pos=[0, height_mod/ VERTICAL_WIDGET_NUMBER * 4],
             width=width / 2,
-            height=(height / VERTICAL_WIDGET_NUMBER) + HEIGHT_DISCREPANCY,
+            
         )
 
         dpg.configure_item(self.start_button, pos = [10, height/VERTICAL_WIDGET_NUMBER*0.13], width = width/4 - 10)
@@ -98,7 +101,7 @@ class lcd_ui:
                 anti_aliased=True,
             ) as self.results_plot_window:
                 self.results_V_axis = dpg.add_plot_axis(
-                    dpg.mvXAxis, label="V (volts)", tag="V_axis"
+                    dpg.mvXAxis, label="voltage (V)", tag="V_axis"
                 )
                 self.results_Cp_axis = dpg.add_plot_axis(
                     dpg.mvYAxis, label="C_p", tag="Cp_axis"
@@ -270,32 +273,6 @@ class lcd_ui:
                                 default_value=1, width=150, step=0, step_fast=0
                             )
 
-            # with dpg.window(
-            #     label="Output Data Settings",
-            #     pos=[0, VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER * 4],
-            #     width=VIEWPORT_WIDTH / 2,
-            #     height=VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER,
-            #     no_collapse=True,
-            #     no_close=True,
-            # ) as self.output_data_settings_window:
-            #     with dpg.group(horizontal=True):
-            #         self.output_file_path = dpg.add_input_text(
-            #             default_value="results.json"
-            #         )
-            #         self.browse_button = dpg.add_button(
-            #             label="Browse", callback=self.open_tkinter_saveas_file_picker
-            #         )
-
-            # with dpg.file_dialog(
-            #     directory_selector=False,
-            #     show=False,
-            #     callback=file_saveas_callback,
-            #     user_data=self.output_file_path,
-            #     id="file_dialog_id",
-            #     width=700,
-            #     height=400,
-            # ):
-            #     dpg.add_file_extension(".json")
 
             with dpg.window(
                 pos=[0, VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER * 5],
@@ -306,7 +283,7 @@ class lcd_ui:
                 with dpg.group(horizontal=True):
                     self.start_button = dpg.add_button(
                         label="Start",
-                        pos=[10, VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER * 0.13],
+                        pos=[10, 10],
                         width=285,
                         height=50,
                     )
@@ -314,7 +291,7 @@ class lcd_ui:
                         label="Stop",
                         pos=[
                             VIEWPORT_WIDTH / 4 + 10,
-                            VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER * 0.13,
+                            10,
                         ],
                         width=285,
                         height=50,
