@@ -16,6 +16,11 @@ def start_measurement(
 ) -> None:
 
     dpg.configure_item(frontend.start_button, enabled = False)
+    with dpg.theme() as DEACTIVATED_THEME:
+            with dpg.theme_component(dpg.mvAll):
+                dpg.add_theme_color(
+                    dpg.mvThemeCol_Button, (100, 100, 100), category=dpg.mvThemeCat_Core)
+    dpg.bind_item_theme(frontend.start_button, DEACTIVATED_THEME)
     state.freq_list = [
         float(x.split("\t")[-1])
         for x in dpg.get_item_configuration(frontend.freq_list.list_handle)["items"]
@@ -118,6 +123,12 @@ def handle_measurement_status(
     if state.measurement_status == Status.IDLE:
         dpg.set_value(frontend.measurement_status, "Idle")
         dpg.configure_item(frontend.start_button, enabled = True)
+        with dpg.theme() as START_THEME:
+            with dpg.theme_component(dpg.mvAll):
+                dpg.add_theme_color(
+                    dpg.mvThemeCol_Button, (0, 100, 0), category=dpg.mvThemeCat_Core
+                )
+        dpg.bind_item_theme(frontend.start_button,START_THEME)
     elif state.measurement_status == Status.SET_TEMPERATURE and (
         state.linkam_action == "Stopped" or state.linkam_action == "Holding"
     ):
