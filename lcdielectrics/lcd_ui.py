@@ -96,13 +96,12 @@ class lcd_ui:
         dpg.configure_item(
             self.stop_button, pos=[width / 4 + 5, 10], width=width / 4 - 10, height=-1
         )
-        dpg.configure_item(
-            self.results_plot_window, height=height / 2 - 50, width=width / 2 - 35
-        )
+        dpg.configure_item(self.results_plot_window, height=-1, width=-1)
+
         dpg.configure_item(
             self.temperature_log_plot_window,
-            height=height / 2 - 50,
-            width=width / 2 - 35,
+            height=-1,
+            width=-1,
         )
 
     def _make_graph_windows(self):
@@ -169,8 +168,10 @@ class lcd_ui:
                         f"{self.linkam_status}", tag="linkam_status_display"
                     )
 
-                    self.linkam_com_selector = dpg.add_combo()
-                    self.linkam_initialise = dpg.add_button(label="Initialise")
+                    self.linkam_com_selector = dpg.add_combo(width=-1)
+                    self.linkam_initialise = dpg.add_button(
+                        label="Initialise", width=-1
+                    )
 
                 with dpg.table_row():
                     dpg.add_text("Agilent: ")
@@ -178,8 +179,10 @@ class lcd_ui:
                         f"{self.agilent_status}", tag="agilent_status_display"
                     )
 
-                    self.agilent_com_selector = dpg.add_combo()
-                    self.agilent_initialise = dpg.add_button(label="Initialise")
+                    self.agilent_com_selector = dpg.add_combo(width=-1)
+                    self.agilent_initialise = dpg.add_button(
+                        label="Initialise", width=-1
+                    )
 
             with dpg.window(
                 label="Measurement Settings",
@@ -218,7 +221,8 @@ class lcd_ui:
                         default_value="results.json"
                     )
                     self.browse_button = dpg.add_button(
-                        label="Browse", callback=lambda: self.open_tkinter_saveas_file_picker("output")
+                        label="Browse",
+                        callback=lambda: self.open_tkinter_saveas_file_picker("output"),
                     )
 
                 with dpg.table(header_row=False):
@@ -226,10 +230,14 @@ class lcd_ui:
                     dpg.add_table_column()
                     with dpg.table_row():
                         self.save_setup_button = dpg.add_button(
-                            label="Save Measurement Setup", width=-1, callback=self.save_measurement_settings
+                            label="Save Measurement Setup",
+                            width=-1,
+                            callback=self.save_measurement_settings,
                         )
                         self.load_setup_button = dpg.add_button(
-                            label="Load Measurement Setup", width=-1, callback=self.load_measurement_settings
+                            label="Load Measurement Setup",
+                            width=-1,
+                            callback=self.load_measurement_settings,
                         )
 
             with dpg.window(
@@ -290,7 +298,7 @@ class lcd_ui:
                         label="Stop",
                     )
 
-    def open_tkinter_saveas_file_picker(self, type, object_to_serialise = None):
+    def open_tkinter_saveas_file_picker(self, type, object_to_serialise=None):
         root = tk.Tk()
         root.withdraw()
         if type == "output":
@@ -299,15 +307,14 @@ class lcd_ui:
                 filetypes=(("JSON Files", "*.json"), ("All files", "*.*")),
             )
             dpg.set_value(self.output_file_path, filename)
-        
-        elif type=="settings":
+
+        elif type == "settings":
             filename = filedialog.asksaveasfilename(
                 defaultextension=".meas",
                 filetypes=(("Measurement Setup Files", "*.meas"), ("All files", "*.*")),
             )
-            with open(filename,'w') as f:
+            with open(filename, "w") as f:
                 json.dump(object_to_serialise, f)
-                
 
         root.destroy()
 
@@ -318,9 +325,15 @@ class lcd_ui:
             self.averaging_factor: dpg.get_value(self.averaging_factor),
             self.bias_level: dpg.get_value(self.bias_level),
             self.output_file_path: dpg.get_value(self.output_file_path),
-            self.freq_list.list_handle: dpg.get_item_configuration(self.freq_list.list_handle)["items"],
-            self.volt_list.list_handle: dpg.get_item_configuration(self.volt_list.list_handle)["items"],
-            self.temperature_list.list_handle: dpg.get_item_configuration(self.temperature_list.list_handle)["items"],
+            self.freq_list.list_handle: dpg.get_item_configuration(
+                self.freq_list.list_handle
+            )["items"],
+            self.volt_list.list_handle: dpg.get_item_configuration(
+                self.volt_list.list_handle
+            )["items"],
+            self.temperature_list.list_handle: dpg.get_item_configuration(
+                self.temperature_list.list_handle
+            )["items"],
         }
 
         # print(measurement_settings)
@@ -342,9 +355,7 @@ class lcd_ui:
             if key == "83" or key == "105" or key == "128":
                 dpg.configure_item(int(key), items=tmp[key])
             else:
-                dpg.set_value(int(key),tmp[key])
-
-
+                dpg.set_value(int(key), tmp[key])
 
 
 def add_value_to_list_callback(sender, app_data, user_data):
