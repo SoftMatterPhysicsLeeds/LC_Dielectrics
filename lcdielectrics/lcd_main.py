@@ -25,6 +25,7 @@ def find_instruments_thread(frontend: lcd_ui):
 
 def main():
     dpg.create_context()
+    ctypes.windll.shcore.SetProcessDpiAwareness(2)
     MODULE_PATH = importlib.resources.files(__package__)
     dpg.create_viewport(
         title="LC Dielectrics", width=VIEWPORT_WIDTH, height=DRAW_HEIGHT
