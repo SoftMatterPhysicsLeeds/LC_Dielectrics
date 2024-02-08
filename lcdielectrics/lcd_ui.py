@@ -229,7 +229,7 @@ class lcd_ui:
                             label="Save Measurement Setup", width=-1, callback=self.save_measurement_settings
                         )
                         self.load_setup_button = dpg.add_button(
-                            label="Load Measurement Setup", width=-1
+                            label="Load Measurement Setup", width=-1, callback=self.load_measurement_settings
                         )
 
             with dpg.window(
@@ -325,6 +325,26 @@ class lcd_ui:
 
         # print(measurement_settings)
         self.open_tkinter_saveas_file_picker("settings", measurement_settings)
+
+    def load_measurement_settings(self):
+        root = tk.Tk()
+        root.withdraw()
+        filename = filedialog.askopenfilename(
+            defaultextension=".meas",
+            filetypes=(("Measurement Setup Files", "*.meas"), ("All files", "*.*")),
+        )
+        root.destroy()
+
+        with open(filename, "r") as f:
+            tmp = json.load(f)
+
+        for key in tmp.keys():
+            if key == "83" or key == "105" or key == "128":
+                dpg.configure_item(int(key), items=tmp[key])
+            else:
+                dpg.set_value(int(key),tmp[key])
+
+
 
 
 def add_value_to_list_callback(sender, app_data, user_data):
