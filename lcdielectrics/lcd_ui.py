@@ -42,62 +42,58 @@ class lcd_ui:
             height=height / 2,
         )
 
-        height_mod = height - 80
+        height_mod = height
         dpg.configure_item(
             self.control_window,
             pos=[0, 0],
             width=width / 2,
-            height=height_mod/ VERTICAL_WIDGET_NUMBER,
+            height=0.17 * height_mod,
         )
         dpg.configure_item(
             self.measurement_settings_window,
-            pos=[0, height_mod/ VERTICAL_WIDGET_NUMBER],
+            pos=[0, 0.17*height_mod],
             width=width / 2,
-            height=height_mod/ VERTICAL_WIDGET_NUMBER,
+            height=0.20 * height_mod,
         )
         dpg.configure_item(
             self.frequency_list_window,
             width=width / 4,
-            pos=[0, height_mod/ VERTICAL_WIDGET_NUMBER * 2],
-            height=height_mod/ VERTICAL_WIDGET_NUMBER,
+            pos=[0, 0.37 * height_mod],
+            height=0.25*height_mod
         )
         dpg.configure_item(
             self.voltage_list_window,
             width=width / 4,
-            pos=[width / 4, height_mod/ VERTICAL_WIDGET_NUMBER * 2],
-            height=height_mod/ VERTICAL_WIDGET_NUMBER,
+            pos=[width / 4, 0.37 * height_mod],
+            height=0.25*height_mod
         )
         dpg.configure_item(
             self.temperature_list_window,
             width=width / 2,
-            height=height_mod/ VERTICAL_WIDGET_NUMBER,
-            pos=[0, height_mod/ VERTICAL_WIDGET_NUMBER * 3],
+            height=0.25*height_mod,
+            pos=[0, 0.62*height_mod],
         )
         
         dpg.configure_item(
             self.start_stop_button_window,
-            pos=[0, height_mod/ VERTICAL_WIDGET_NUMBER * 4],
+            pos=[0, 0.87 * height_mod],
             width=width / 2,
+            height = 0.13 * height_mod,
             
         )
 
-        dpg.configure_item(self.start_button, pos = [10, height/VERTICAL_WIDGET_NUMBER*0.13], width = width/4 - 10)
-        dpg.configure_item(self.stop_button, pos = [width/4 + 10, height/VERTICAL_WIDGET_NUMBER*0.13], width = width/4 - 10)
+        dpg.configure_item(self.start_button, pos = [5, 10], width = width/4 - 10, height = -1)
+        dpg.configure_item(self.stop_button, pos = [width/4 + 5, 10], width = width/4 - 10, height = -1)
         dpg.configure_item(self.results_plot_window, height=height / 2 - 50, width=width / 2 - 35)
         dpg.configure_item(self.temperature_log_plot_window, height=height / 2 - 50, width=width / 2 - 35,)
 
     def _make_graph_windows(self):
         with dpg.window(
             label="Results",
-            pos=[VIEWPORT_WIDTH / 2, 0],
-            width=VIEWPORT_WIDTH / 2,
-            height=VIEWPORT_HEIGHT / 2,
             no_collapse=True,
             no_close=True,
         ) as self.results_graph:
             with dpg.plot(
-                height=VIEWPORT_HEIGHT / 2 - 50,
-                width=VIEWPORT_WIDTH / 2 - 35,
                 anti_aliased=True,
             ) as self.results_plot_window:
                 self.results_V_axis = dpg.add_plot_axis(
@@ -114,15 +110,10 @@ class lcd_ui:
                 )
         with dpg.window(
             label="Temperature Log",
-            pos=[VIEWPORT_WIDTH / 2, VIEWPORT_HEIGHT / 2],
-            width=VIEWPORT_WIDTH / 2,
-            height=VIEWPORT_HEIGHT / 2,
             no_collapse=True,
             no_close=True,
         ) as self.temperature_log_graph:
             with dpg.plot(
-                height=VIEWPORT_HEIGHT / 2 - 50,
-                width=VIEWPORT_WIDTH / 2 - 35,
                 anti_aliased=True,
             ) as self.temperature_log_plot_window:
                 self.temperature_log_time_axis = dpg.add_plot_axis(
@@ -140,9 +131,6 @@ class lcd_ui:
     def _make_control_window(self):
         with dpg.window(
             label="Status",
-            pos=[0, 0],
-            width=VIEWPORT_WIDTH / 2,
-            height=VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER,
             no_collapse=True,
             no_close=True,
             no_title_bar=True
@@ -181,9 +169,6 @@ class lcd_ui:
 
             with dpg.window(
                 label="Measurement Settings",
-                pos=[0, VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER],
-                width=VIEWPORT_WIDTH / 2,
-                height=VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER,
                 no_collapse=True,
                 no_close=True,
             ) as self.measurement_settings_window:
@@ -223,9 +208,6 @@ class lcd_ui:
 
             with dpg.window(
                 label="Frequency List",
-                width=VIEWPORT_WIDTH / 4,
-                pos=[0, VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER * 2],
-                height=VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER,
                 no_collapse=True,
                 no_close=True,
             ) as self.frequency_list_window:
@@ -235,9 +217,6 @@ class lcd_ui:
 
             with dpg.window(
                 label="Voltage List",
-                width=VIEWPORT_WIDTH / 4,
-                pos=[VIEWPORT_WIDTH / 4, VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER * 2],
-                height=VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER,
                 no_collapse=True,
                 no_close=True,
             ) as self.voltage_list_window:
@@ -245,9 +224,6 @@ class lcd_ui:
 
             with dpg.window(
                 label="Temperature List",
-                width=VIEWPORT_WIDTH / 2,
-                height=VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER,
-                pos=[0, VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER * 3],
                 no_collapse=True,
                 no_close=True,
             ) as self.temperature_list_window:
@@ -256,87 +232,37 @@ class lcd_ui:
                         *make_variable_list_frame(25.0, -40, 250)
                     )
                     with dpg.group():
-                        with dpg.group(horizontal=True):
-                            self.go_to_temp_button = dpg.add_button(label="Go to:")
-                            self.go_to_temp_input = dpg.add_input_float(
-                                default_value=25, width=150, step=0, step_fast=0
-                            )
-                            dpg.add_text("°C")
-                        with dpg.group(horizontal=True):
-                            dpg.add_text("Rate (°C/min): ")
-                            self.T_rate = dpg.add_input_double(
-                                default_value=10, width=150, step=0, step_fast=0
-                            )
-                        with dpg.group(horizontal=True):
-                            dpg.add_text("Stab. Time (s)")
-                            self.stab_time = dpg.add_input_double(
-                                default_value=1, width=150, step=0, step_fast=0
-                            )
+                        with dpg.table(header_row=False):
+                            dpg.add_table_column()
+                            dpg.add_table_column()
+                            with dpg.table_row():
+                                self.go_to_temp_button = dpg.add_button(label="Go to (°C):")
+                                self.go_to_temp_input = dpg.add_input_float(
+                                    default_value=25, width=100, step=0, step_fast=0
+                                )
+                            with dpg.table_row():
+                                dpg.add_text("Rate (°C/min): ")
+                                self.T_rate = dpg.add_input_double(
+                                    default_value=10, width=100, step=0, step_fast=0
+                                )
+                            with dpg.table_row():
+                                dpg.add_text("Stab. Time (s)")
+                                self.stab_time = dpg.add_input_double(
+                                    default_value=1, width=100, step=0, step_fast=0
+                                )
 
 
             with dpg.window(
-                pos=[0, VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER * 5],
                 no_title_bar=True,
-                width=VIEWPORT_WIDTH / 2,
-                height=(VIEWPORT_HEIGHT / VERTICAL_WIDGET_NUMBER) + HEIGHT_DISCREPANCY,
             ) as self.start_stop_button_window:
                 with dpg.group(horizontal=True):
                     self.start_button = dpg.add_button(
                         label="Start",
-                        pos=[10, 10],
-                        width=285,
-                        height=50,
                     )
                     self.stop_button = dpg.add_button(
                         label="Stop",
-                        pos=[
-                            VIEWPORT_WIDTH / 4 + 10,
-                            10,
-                        ],
-                        width=285,
-                        height=50,
                     )
 
-    def extra_config(self, instruments: lcd_instruments, state: lcd_state):
-        dpg.configure_item(
-            self.agilent_initialise,
-            callback=connect_to_instrument_callback,
-            user_data={
-                "instrument": "agilent",
-                "frontend": self,
-                "instruments": instruments,
-                "state": state,
-            },
-        )
-
-        dpg.configure_item(
-            self.linkam_initialise,
-            callback=connect_to_instrument_callback,
-            user_data={
-                "instrument": "linkam",
-                "frontend": self,
-                "instruments": instruments,
-                "state": state,
-            },
-        )
-
-        dpg.configure_item(
-            self.start_button,
-            callback=lambda: start_measurement(state, self, instruments),
-        )
-
-        dpg.configure_item(
-            self.stop_button,
-            callback=lambda: stop_measurement(instruments, state),
-        )
-
-        dpg.configure_item(
-            self.go_to_temp_button,
-            callback=lambda: instruments.linkam.set_temperature(
-                dpg.get_value(self.go_to_temp_input),
-                dpg.get_value(self.T_rate),
-            ),
-        )
 
     def open_tkinter_saveas_file_picker(self):
         root = tk.Tk()
@@ -527,20 +453,22 @@ def make_variable_list_frame(default_val, min_val, max_val, logspace=False):
 
     with dpg.group(horizontal=True):
         listbox_handle = dpg.add_listbox(
-            ["1:\t" + str(default_val)], width=150, num_items=10
+            ["1:\t" + str(default_val)], width=150, num_items = 6,
         )
         with dpg.group():
-            add_text = dpg.add_input_float(default_value=default_val, width=150, step=0, step_fast=0)
+            add_text = dpg.add_input_float(default_value=default_val, width=100, step=0, step_fast=0)
             add_button = dpg.add_button(
                 label="Add",
+                width=100,
                 callback=add_value_to_list_callback,
                 user_data={"listbox_handle": listbox_handle, "add_text": add_text},
             )
             add_range_button = dpg.add_button(
-                label="Add Range", callback=lambda: dpg.show_item(window_tag)
+                label="Add Range", width=100, callback=lambda: dpg.show_item(window_tag)
             )
             delete_button = dpg.add_button(
                 label="Delete",
+                width=100,
                 callback=del_value_from_list_callback,
                 user_data={"listbox_handle": listbox_handle, "add_text": add_text},
             )
