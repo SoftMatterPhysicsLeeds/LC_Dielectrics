@@ -201,21 +201,21 @@ class lcd_ui:
                     with dpg.table_row():
                         dpg.add_text("Delay time (s): ")
                         self.delay_time = dpg.add_input_double(
-                            default_value=0.5, width=-1, step=0, step_fast=0
+                            default_value=0.5, width=-1, step=0, step_fast=0, tag="delay_time"
                         )
                         dpg.add_text("Meas. Time Mode: ")
                         self.meas_time_mode_selector = dpg.add_combo(
-                            ["SHOR", "MED", "LONG"], width=-1, default_value="SHOR"
+                            ["SHOR", "MED", "LONG"], width=-1, default_value="SHOR", tag = "meas_time_mode"
                         )
 
                     with dpg.table_row():
                         dpg.add_text("Averaging Factor: ")
                         self.averaging_factor = dpg.add_input_int(
-                            default_value=1, width=-1, step=0, step_fast=0
+                            default_value=1, width=-1, step=0, step_fast=0, tag = "averaging_factor"
                         )
                         dpg.add_text("Bias Level (V)")
                         self.bias_level = dpg.add_combo(
-                            [0, 1.5, 2], width=-1, default_value=0
+                            [0, 1.5, 2], width=-1, default_value=0, tag = "bias_level"
                         )
 
                 with dpg.group(horizontal=True):
@@ -226,7 +226,7 @@ class lcd_ui:
                         with dpg.table_row():
 
                             self.output_file_path = dpg.add_input_text(
-                                default_value="results.json", width = -1
+                                default_value="results.json", width = -1, tag = "output_file_path"
                             )
                             self.browse_button = dpg.add_button(
                                 label="Browse",
@@ -338,13 +338,13 @@ class lcd_ui:
             self.averaging_factor: dpg.get_value(self.averaging_factor),
             self.bias_level: dpg.get_value(self.bias_level),
             self.output_file_path: dpg.get_value(self.output_file_path),
-            self.freq_list.list_handle: dpg.get_item_configuration(
+            "freq_list": dpg.get_item_configuration(
                 self.freq_list.list_handle
             )["items"],
-            self.volt_list.list_handle: dpg.get_item_configuration(
+            "volt_list": dpg.get_item_configuration(
                 self.volt_list.list_handle
             )["items"],
-            self.temperature_list.list_handle: dpg.get_item_configuration(
+            "temperature_list": dpg.get_item_configuration(
                 self.temperature_list.list_handle
             )["items"],
         }
@@ -365,10 +365,14 @@ class lcd_ui:
             tmp = json.load(f)
 
         for key in tmp.keys():
-            if key == "83" or key == "105" or key == "128":
-                dpg.configure_item(int(key), items=tmp[key])
+            if key == "freq_list":
+                dpg.configure_item(self.freq_list.list_handle, items=tmp[key])
+            elif key == "volt_list": 
+                dpg.configure_item(self.volt_list.list_handle, items=tmp[key])
+            elif key == "temperature_list":
+                dpg.configure_item(self.temperature_list.list_handle, items=tmp[key])
             else:
-                dpg.set_value(int(key), tmp[key])
+                dpg.set_value(key, tmp[key])
 
 
 def add_value_to_list_callback(sender, app_data, user_data):
