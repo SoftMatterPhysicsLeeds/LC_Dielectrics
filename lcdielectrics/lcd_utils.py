@@ -15,11 +15,12 @@ def start_measurement(
     state: lcd_state, frontend: lcd_ui, instruments: lcd_instruments
 ) -> None:
 
-    dpg.configure_item(frontend.start_button, enabled = False)
+    dpg.configure_item(frontend.start_button, enabled=False)
     with dpg.theme() as DEACTIVATED_THEME:
-            with dpg.theme_component(dpg.mvAll):
-                dpg.add_theme_color(
-                    dpg.mvThemeCol_Button, (100, 100, 100), category=dpg.mvThemeCat_Core)
+        with dpg.theme_component(dpg.mvAll):
+            dpg.add_theme_color(
+                dpg.mvThemeCol_Button, (100, 100, 100), category=dpg.mvThemeCat_Core
+            )
     dpg.bind_item_theme(frontend.start_button, DEACTIVATED_THEME)
     state.freq_list = [
         float(x.split("\t")[-1])
@@ -122,13 +123,14 @@ def handle_measurement_status(
     current_wait = 0
     if state.measurement_status == Status.IDLE:
         dpg.set_value(frontend.measurement_status, "Idle")
-        dpg.configure_item(frontend.start_button, enabled = True)
+        dpg.configure_item(frontend.start_button, enabled=True)
+
         with dpg.theme() as START_THEME:
             with dpg.theme_component(dpg.mvAll):
                 dpg.add_theme_color(
                     dpg.mvThemeCol_Button, (0, 100, 0), category=dpg.mvThemeCat_Core
                 )
-        dpg.bind_item_theme(frontend.start_button,START_THEME)
+        dpg.bind_item_theme(frontend.start_button, START_THEME)
     elif state.measurement_status == Status.SET_TEMPERATURE and (
         state.linkam_action == "Stopped" or state.linkam_action == "Holding"
     ):
@@ -339,15 +341,15 @@ def parse_result(result: dict, state: lcd_state, frontend: lcd_ui) -> None:
     if len(state.voltage_list) == 1 and len(state.freq_list) == 1:
         state.xdata.append(T)
         state.ydata.append(state.resultsDict[T][freq]["Cp"])
-        dpg.configure_item(frontend.results_V_axis, label = "T")
+        dpg.configure_item(frontend.results_V_axis, label="T")
     elif len(state.voltage_list) == 1:
         state.xdata.append(freq)
         state.ydata.append(state.resultsDict[T][freq]["Cp"])
-        dpg.configure_item(frontend.results_V_axis, label = "freq (Hz)")
+        dpg.configure_item(frontend.results_V_axis, label="freq (Hz)")
     elif len(state.freq_list_list) == 1:
         state.xdata = state.resultsDict[T][freq]["volt"]
         state.ydata = state.resultsDict[T][freq]["Cp"]
-        dpg.configure_item(frontend.results_V_axis, label = "voltage (V)")
+        dpg.configure_item(frontend.results_V_axis, label="voltage (V)")
 
     dpg.set_value(frontend.results_plot, [state.xdata, state.ydata])
 

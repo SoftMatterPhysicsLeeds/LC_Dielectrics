@@ -42,6 +42,7 @@ def main():
     with dpg.font_registry():
         default_font = dpg.add_font(font_path, 18 * screensize[1] / 1080)
         status_font = dpg.add_font(font_path, 36 * screensize[1] / 1080)
+        
 
     dpg.bind_font(default_font)
     
@@ -113,6 +114,8 @@ def main():
     linkam_thread.daemon = True
     viewport_width = dpg.get_viewport_client_width()
     viewport_height = dpg.get_viewport_client_height()
+    
+    
     while dpg.is_dearpygui_running():
         # check if linkam is connected. If it is, start thread to poll temperature.
         if (
