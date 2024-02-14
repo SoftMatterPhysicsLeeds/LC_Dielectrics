@@ -45,23 +45,26 @@ def start_measurement(
     )
 
     bias = dpg.get_value(frontend.bias_level)
-    if bias == -1.5 or 2:
+    if bias == 1.5 or 2:
         instruments.agilent.set_DC_bias(float(bias))
 
-    state.T_step = -2
-    state.freq_step = -2
-    state.volt_step = -2
+    state.T_step = 0 
+    state.freq_step = 0
+    state.volt_step = 0 
 
     T = state.T_list[state.T_step]
     freq = state.freq_list[state.freq_step]
 
-    state.resultsDict[state.T_list[state.T_step]] = dict()
-    state.resultsDict[T][freq] = dict()
-    state.resultsDict[T][freq]["volt"] = []
-    state.resultsDict[T][freq]["Cp"] = []
-    state.resultsDict[T][freq]["D"] = []
-    state.resultsDict[T][freq]["G"] = []
-    state.resultsDict[T][freq]["B"] = []
+    T_str =f"{state.T_step + 1}: {state.T_list[state.T_step]}"
+    freq_str = f"{state.freq_step+1}: {freq}"
+
+    state.resultsDict[T_str] = dict()
+    state.resultsDict[T_str][freq_str] = dict()
+    state.resultsDict[T_str][freq_str]["volt"] = []
+    state.resultsDict[T_str][freq_str]["Cp"] = []
+    state.resultsDict[T_str][freq_str]["D"] = []
+    state.resultsDict[T_str][freq_str]["G"] = []
+    state.resultsDict[T_str][freq_str]["B"] = []
 
     state.measurement_status = Status.SET_TEMPERATURE
     state.xdata = []
@@ -266,7 +269,7 @@ def get_result(
                 dpg.get_value(frontend.output_file_path),
                 OutputType.SINGLE_VOLT,
             )
-        elif len(state.freq_list_list) == 1:
+        elif len(state.freq_list) == 1:
             make_excel(
                 state.resultsDict,
                 dpg.get_value(frontend.output_file_path),
@@ -293,17 +296,18 @@ def get_result(
 
                 T = state.T_list[state.T_step]
                 freq = state.freq_list[state.freq_step]
-
+                T_str =f"{state.T_step + 1}: {state.T_list[state.T_step]}"
                 state.resultsDict[
                     f"{state.T_step + 1}: {state.T_list[state.T_step]}"
                 ] = dict()
                 freq_str = f"{state.freq_step+1}: {freq}"
-                state.resultsDict[T][freq_str] = dict()
-                state.resultsDict[T][freq_str]["volt"] = []
-                state.resultsDict[T][freq_str]["Cp"] = []
-                state.resultsDict[T][freq_str]["D"] = []
-                state.resultsDict[T][freq_str]["G"] = []
-                state.resultsDict[T][freq_str]["B"] = []
+                state.resultsDict[T_str] = dict()
+                state.resultsDict[T_str][freq_str] = dict()
+                state.resultsDict[T_str][freq_str]["volt"] = []
+                state.resultsDict[T_str][freq_str]["Cp"] = []
+                state.resultsDict[T_str][freq_str]["D"] = []
+                state.resultsDict[T_str][freq_str]["G"] = []
+                state.resultsDict[T_str][freq_str]["B"] = []
 
                 instruments.agilent.set_voltage(0)
                 state.measurement_status = Status.SET_TEMPERATURE
@@ -315,13 +319,15 @@ def get_result(
                 T = state.T_list[state.T_step]
                 freq = state.freq_list[state.freq_step]
 
-                state.resultsDict[T][freq] = dict()
-                state.resultsDict[T][freq]["volt"] = []
-                state.resultsDict[T][freq]["Cp"] = []
-                state.resultsDict[T][freq]["D"] = []
-                state.resultsDict[T][freq]["G"] = []
-                state.resultsDict[T][freq]["B"] = []
+                T_str =f"{state.T_step + 1}: {state.T_list[state.T_step]}"
+                freq_str = f"{state.freq_step+1}: {freq}"
 
+                state.resultsDict[T_str][freq_str] = dict()
+                state.resultsDict[T_str][freq_str]["volt"] = []
+                state.resultsDict[T_str][freq_str]["Cp"] = []
+                state.resultsDict[T_str][freq_str]["D"] = []
+                state.resultsDict[T_str][freq_str]["G"] = []
+                state.resultsDict[T_str][freq_str]["B"] = []
                 state.measurement_status = Status.TEMPERATURE_STABILISED
             else:
                 state.volt_step += 1
@@ -331,35 +337,41 @@ def get_result(
 def parse_result(result: dict, state: lcd_state, frontend: lcd_ui) -> None:
     T = state.T_list[state.T_step]
     freq = state.freq_list[state.freq_step]
+
+    T_str =f"{state.T_step + 1}: {state.T_list[state.T_step]}"
+    freq_str = f"{state.freq_step+1}: {freq}"
+
     volt = state.voltage_list[state.volt_step]
-    state.resultsDict[T][freq]["volt"].append(volt)
-    state.resultsDict[T][freq]["Cp"].append(result["CPD"][0])
-    state.resultsDict[T][freq]["D"].append(result["CPD"][1])
-    state.resultsDict[T][freq]["G"].append(result["GB"][0])
-    state.resultsDict[T][freq]["B"].append(result["GB"][1])
+    state.resultsDict[T_str][freq_str]["volt"].append(volt)
+    state.resultsDict[T_str][freq_str]["Cp"].append(result["CPD"][0])
+    state.resultsDict[T_str][freq_str]["D"].append(result["CPD"][1])
+    state.resultsDict[T_str][freq_str]["G"].append(result["GB"][0])
+    state.resultsDict[T_str][freq_str]["B"].append(result["GB"][1])
 
     if len(state.voltage_list) == 1 and len(state.freq_list) == 1:
         state.xdata.append(T)
-        state.ydata.append(state.resultsDict[T][freq]["Cp"])
+        state.ydata.append(state.resultsDict[T_str][freq_str]["Cp"])
         dpg.configure_item(frontend.results_V_axis, label="T")
     elif len(state.voltage_list) == 1:
         state.xdata.append(freq)
-        state.ydata.append(state.resultsDict[T][freq]["Cp"])
+        state.ydata.append(state.resultsDict[T_str][freq_str]["Cp"])
         dpg.configure_item(frontend.results_V_axis, label="freq (Hz)")
-    elif len(state.freq_list_list) == 1:
-        state.xdata = state.resultsDict[T][freq]["volt"]
-        state.ydata = state.resultsDict[T][freq]["Cp"]
+    elif len(state.freq_list) == 1:
+        state.xdata = state.resultsDict[T_str][freq_str]["volt"]
+        state.ydata = state.resultsDict[T_str][freq_str]["Cp"]
         dpg.configure_item(frontend.results_V_axis, label="voltage (V)")
 
     dpg.set_value(frontend.results_plot, [state.xdata, state.ydata])
+    
+    if len(state.ydata) > 1 and len(state.xdata) > 1:
 
-    dpg.set_axis_limits(
-        frontend.results_Cp_axis,
-        min(state.ydata) - 0.1 * min(state.ydata),
-        max(state.ydata) + 0.1 * max(state.ydata),
-    )
-    dpg.set_axis_limits(
-        frontend.results_V_axis,
-        min(state.xdata) - 0.1,
-        max(state.xdata) + 0.1,
-    )
+        dpg.set_axis_limits(
+            frontend.results_Cp_axis,
+            min(state.ydata) - 0.1 * min(state.ydata),
+            max(state.ydata) + 0.1 * max(state.ydata),
+        )
+        dpg.set_axis_limits(
+            frontend.results_V_axis,
+            min(state.xdata) - 0.1,
+            max(state.xdata) + 0.1,
+        )

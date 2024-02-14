@@ -51,9 +51,10 @@ class LinkamHotstage:
                 self.init = True
 
     def stop(self) -> None:
-        self.link.write("E")  # type: ignore
-        self.link.read()  # type: ignore
-        self.init = False
+        with self.lock:
+            self.link.write("E")  # type: ignore
+            self.link.read()  # type: ignore
+            self.init = False
 
     def current_temperature(self) -> tuple[float, str]:
         with self.lock:
