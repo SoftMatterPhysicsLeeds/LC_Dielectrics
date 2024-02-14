@@ -185,7 +185,16 @@ class lcd_ui:
                     self.agilent_initialise = dpg.add_button(
                         label="Initialise", width=-1
                     )
+                with dpg.table_row():
+                    dpg.add_text("Oscilloscope: ")
+                    self.oscilloscope_status = dpg.add_text(
+                        f"{self.oscilloscope_status}", tag="oscilloscope_status_display"
+                    )
 
+                    self.oscilloscope_com_selector = dpg.add_combo(width=-1)
+                    self.oscilloscope_initialise = dpg.add_button(
+                        label="Initialise", width=-1
+                    )
             with dpg.window(
                 label="Measurement Settings",
                 no_collapse=True,

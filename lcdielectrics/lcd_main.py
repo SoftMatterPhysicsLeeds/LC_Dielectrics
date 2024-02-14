@@ -80,7 +80,16 @@ def main():
             "state": state,
         },
     )
-
+    dpg.configure_item(
+        frontend.oscilloscope_initialise,
+        callback=connect_to_instrument_callback,
+        user_data={
+            "instrument": "oscilloscope",
+            "frontend": frontend,
+            "instruments": instruments,
+            "state": state,
+        },
+    )
     dpg.configure_item(
         frontend.start_button,
         callback=lambda: start_measurement(state, frontend, instruments),
