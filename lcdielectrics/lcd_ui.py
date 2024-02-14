@@ -21,6 +21,7 @@ class lcd_ui:
         self.status = "Idle"
         self.linkam_status = "Not Connected"
         self.agilent_status = "Not Connected"
+        self.oscilloscope_status = "Not Connected"
         self._make_control_window()
         self._make_graph_windows()
         self.draw_children(VIEWPORT_WIDTH, DRAW_HEIGHT)
@@ -183,6 +184,17 @@ class lcd_ui:
 
                     self.agilent_com_selector = dpg.add_combo(width=-1)
                     self.agilent_initialise = dpg.add_button(
+                        label="Initialise", width=-1
+                    )
+
+                with dpg.table_row():
+                    dpg.add_text("Oscilloscope: ")
+                    self.oscilloscope_status = dpg.add_text(
+                        f"{self.oscilloscope_status}", tag="oscilloscope_status_display"
+                    )
+
+                    self.oscilloscope_com_selector = dpg.add_combo(width=-1)
+                    self.oscilloscope_initialise = dpg.add_button(
                         label="Initialise", width=-1
                     )
 

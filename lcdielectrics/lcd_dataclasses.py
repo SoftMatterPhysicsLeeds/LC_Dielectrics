@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from lcdielectrics.lcd_instruments import LinkamHotstage, AgilentSpectrometer
 from enum import Enum
+from pyvisa.resources import Resource
 
 
 class OutputType(Enum):
@@ -47,6 +48,7 @@ class lcd_state:
     voltage_list_mode: bool = False
     linkam_connection_status: str = "Disconnected"
     agilent_connection_status: str = "Disconnected"
+    oscilloscope_connection_status: str = "Disconnected"
     linkam_action: str = "Idle"
     linkam_temperature: float = 25.0
     T_list: list = field(default_factory=list)
@@ -54,6 +56,7 @@ class lcd_state:
     voltage_list: list = field(default_factory=list)
     xdata: list = field(default_factory=list)
     ydata: list = field(default_factory=list)
+    averages: list = field(default_factory=list)
     T_step: int = 0
     freq_step: int = 0
     volt_step: int = 0
@@ -65,3 +68,4 @@ class lcd_state:
 class lcd_instruments:
     linkam: LinkamHotstage | None = None
     agilent: AgilentSpectrometer | None = None
+    oscilloscope: Resource | None = None

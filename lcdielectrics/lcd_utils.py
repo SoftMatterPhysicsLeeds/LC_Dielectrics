@@ -84,6 +84,21 @@ def init_agilent(
     state.agilent_connection_status = "Connected"
 
 
+def init_oscilloscope(
+    frontend: lcd_ui, instruments: lcd_instruments, state: lcd_state
+) -> None:
+    rm = pyvisa.ResourceManager()
+    oscilloscope = rm.open_resource(dpg.get_value(frontend.oscilloscope_com_selector))
+    dpg.set_value(frontend.oscilloscope_status, "Connected")
+    dpg.hide_item(frontend.oscilloscope_initialise)
+    instruments.oscilloscope = oscilloscope
+    state.oscilloscope_connection_status = "Connected"
+    # oscilloscope.write(":AUToscale")
+    oscilloscope.write(":WAVeform:FORMat ASCII")
+    oscilloscope.write(":ACQuire:TYPE NORMal")
+    oscilloscope.write(":TIMebase:DELay 0")
+
+
 def init_linkam(
     frontend: lcd_ui, instruments: lcd_instruments, state: lcd_state
 ) -> None:
@@ -110,6 +125,12 @@ def connect_to_instrument_callback(sender, app_data, user_data):
     elif user_data["instrument"] == "agilent":
         thread = threading.Thread(
             target=init_agilent,
+            args=(user_data["frontend"], user_data["instruments"], user_data["state"]),
+        )
+
+    elif user_data["instrument"] == 'oscilloscope':
+        thread = threading.Thread(
+            target=init_oscilloscope,
             args=(user_data["frontend"], user_data["instruments"], user_data["state"]),
         )
 
@@ -189,6 +210,7 @@ def find_instruments(frontend: lcd_ui):
 
     dpg.configure_item(frontend.linkam_com_selector, items=com_selector)
     dpg.configure_item(frontend.agilent_com_selector, items=usb_selector)
+    dpg.configure_item(frontend.oscilloscope_com_selector, items=usb_selector)
 
     dpg.set_value(frontend.measurement_status, "Found instruments!")
     dpg.set_value(frontend.measurement_status, "Idle")
@@ -211,8 +233,15 @@ def run_experiment(frontend: lcd_ui, instruments: lcd_state, state: lcd_state):
     time.sleep(0.5)
     result["GB"] = instruments.agilent.measure("GB")
     time.sleep(0.5)
+    get_data_from_scope(instruments, lcd_state)
     get_result(result, state, frontend, instruments)
 
+def get_data_from_scope(instruments: lcd_instruments, state: lcd_state):
+    instruments.oscilloscope.write(":DIGitize CHANnel1")
+    data = instruments.oscilloscope.query(":WAV:DATA?")
+    data = data.strip().split(",")
+    data = [float(x) for x in data[1:]]
+    state.averages.append(sum(data) / len(data))
 
 def read_temperature(frontend: lcd_ui, instruments: lcd_instruments, state: lcd_state):
     log_time = 0
