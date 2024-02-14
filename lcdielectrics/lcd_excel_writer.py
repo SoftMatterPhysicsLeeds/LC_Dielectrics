@@ -25,6 +25,9 @@ def make_excel(results: dict, output: str, output_type: OutputType) -> None:
                     worksheet.write_row(
                         i + 2, j+1, results[T][freq][heading]
                     )
+
+            
+            worksheet.autofit() 
         elif output_type == OutputType.SINGLE_FREQ:
             worksheet = workbook.add_worksheet(name=str(f"{T.split(':')[0]} - {T.split(':')[1]}"))
             for i, freq in enumerate(results[T].keys()):
@@ -39,6 +42,7 @@ def make_excel(results: dict, output: str, output_type: OutputType) -> None:
                         start_row * i + 2, j, results[T][freq][heading]
                     )
 
+            worksheet.autofit() 
         elif output_type == OutputType.SINGLE_VOLT_FREQ:
             worksheet.write(0,0, "Temperature (C)")
             worksheet.write(0,1, "Frequency (Hz)")
@@ -50,6 +54,7 @@ def make_excel(results: dict, output: str, output_type: OutputType) -> None:
             for i, heading in enumerate(col_headings):
                 worksheet.write_column(1, 2+i, results[T][freq][heading])
 
+            worksheet.autofit() 
         elif output_type == OutputType.MULTI_VOLT_FREQ:
             worksheet = workbook.add_worksheet(name=str(f"{T.split(':')[0]} - {T.split(':')[1]}"))
             for i, freq in enumerate(results[T].keys()):
@@ -63,6 +68,6 @@ def make_excel(results: dict, output: str, output_type: OutputType) -> None:
                     worksheet.write_column(
                         start_row * i + 2, j, results[T][freq][heading]
                     )
-                
-
+            worksheet.autofit() 
+    
     workbook.close()

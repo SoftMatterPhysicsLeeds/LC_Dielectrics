@@ -51,6 +51,7 @@ class lcd_state:
     linkam_connection_status: str = "Disconnected"
     agilent_connection_status: str = "Disconnected"
     oscilloscope_connection_status: str = "Disconnected"
+    scope_run_number: int = 1 
     linkam_action: str = "Idle"
     linkam_temperature: float = 25.0
     T_list: list = field(default_factory=list)

@@ -67,7 +67,8 @@ def start_measurement(
     state.resultsDict[T_str][freq_str]["B"] = []
 
     if instruments.oscilloscope:
-        state.resultsDict[T_str][freq_str]["Ave. Transmission"] = []
+        for i in range(dpg.get_value(frontend.num_averages)):
+            state.resultsDict[T_str][freq_str][f"Ave. Transmission #{i+1}"] = []
 
     state.measurement_status = Status.SET_TEMPERATURE
     state.xdata = []
@@ -96,6 +97,8 @@ def init_oscilloscope(
     oscilloscope = rm.open_resource(dpg.get_value(frontend.oscilloscope_com_selector))
     dpg.set_value(frontend.oscilloscope_status, "Connected")
     dpg.hide_item(frontend.oscilloscope_initialise)
+    dpg.show_item(frontend.num_averages)
+    dpg.show_item(frontend.num_averages_text)
     instruments.oscilloscope = oscilloscope
     state.oscilloscope_connection_status = "Connected"
     # oscilloscope.write(":AUToscale")
@@ -247,16 +250,23 @@ def run_experiment(frontend: lcd_ui, instruments: lcd_state, state: lcd_state):
     time.sleep(0.5)
     if state.oscilloscope_connection_status == "Connected":
         state.spectrometer_running = False
-        result["averages"] = get_data_from_scope(instruments, lcd_state)
+        result["averages"] = get_data_from_scope(frontend, instruments, state)
         state.spectrometer_running = True
     get_result(result, state, frontend, instruments)
 
-def get_data_from_scope(instruments: lcd_instruments, state: lcd_state):
-    instruments.oscilloscope.write(":DIGitize CHANnel1")
-    data = instruments.oscilloscope.query(":WAV:DATA?")
-    data = data.strip().split(",")
-    data = [float(x) for x in data[1:]]
-    return sum(data) / len(data)
+def get_data_from_scope(frontend: lcd_ui, instruments: lcd_instruments, state: lcd_state):
+
+    n = dpg.get_value(frontend.num_averages)
+    total = []
+    for i in range(n):
+        print(f"Measuring {i+1}/{dpg.get_value(frontend.num_averages)} f = {state.freq_list[state.freq_step]:.2f}, V = {state.voltage_list[state.volt_step]} ")
+        instruments.oscilloscope.write(":DIGitize CHANnel1")
+        data = instruments.oscilloscope.query(":WAV:DATA?")
+        data = data.strip().split(",")
+        data = [float(x) for x in data[1:]]
+        average = sum(data) / len(data)
+        total.append(average)
+    return total
 
 def read_temperature(frontend: lcd_ui, instruments: lcd_instruments, state: lcd_state):
     log_time = 0
@@ -356,7 +366,8 @@ def get_result(
                 state.resultsDict[T_str][freq_str]["G"] = []
                 state.resultsDict[T_str][freq_str]["B"] = []
                 if instruments.oscilloscope:
-                    state.resultsDict[T_str][freq_str]["Ave. Transmission"] = []
+                    for i in range(dpg.get_value(frontend.num_averages)):
+                        state.resultsDict[T_str][freq_str][f"Ave. Transmission #{i+1}"] = []
                 instruments.agilent.set_voltage(0)
                 state.measurement_status = Status.SET_TEMPERATURE
 
@@ -377,7 +388,8 @@ def get_result(
                 state.resultsDict[T_str][freq_str]["G"] = []
                 state.resultsDict[T_str][freq_str]["B"] = []
                 if instruments.oscilloscope:
-                    state.resultsDict[T_str][freq_str]["Ave. Transmission"] = []
+                    for i in range(dpg.get_value(frontend.num_averages)):
+                        state.resultsDict[T_str][freq_str][f"Ave. Transmission #{i+1}"] = []
                 state.measurement_status = Status.TEMPERATURE_STABILISED
             else:
                 state.volt_step += 1
@@ -398,7 +410,8 @@ def parse_result(result: dict, state: lcd_state, frontend: lcd_ui) -> None:
     state.resultsDict[T_str][freq_str]["G"].append(result["GB"][0])
     state.resultsDict[T_str][freq_str]["B"].append(result["GB"][1])
     if state.oscilloscope_connection_status == "Connected":
-        state.resultsDict[T_str][freq_str]["Ave. Transmission"].append(result["averages"])
+        for i in range(len(result["averages"])):
+            state.resultsDict[T_str][freq_str][f"Ave. Transmission #{i+1}"].append(result["averages"][i])
 
     if len(state.voltage_list) == 1 and len(state.freq_list) == 1:
         state.xdata.append(T)

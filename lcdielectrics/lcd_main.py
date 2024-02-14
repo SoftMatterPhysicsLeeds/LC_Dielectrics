@@ -124,7 +124,6 @@ def main():
     viewport_width = dpg.get_viewport_client_width()
     viewport_height = dpg.get_viewport_client_height()
     
-    
     while dpg.is_dearpygui_running():
         # check if linkam is connected. If it is, start thread to poll temperature.
         if (
