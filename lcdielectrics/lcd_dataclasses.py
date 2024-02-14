@@ -47,6 +47,7 @@ class lcd_state:
     measurement_status: Status = Status.IDLE
     t_stable_start: float = 0
     voltage_list_mode: bool = False
+    spectrometer_running: bool = True
     linkam_connection_status: str = "Disconnected"
     agilent_connection_status: str = "Disconnected"
     oscilloscope_connection_status: str = "Disconnected"

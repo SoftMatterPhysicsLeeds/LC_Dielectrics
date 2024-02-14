@@ -66,6 +66,9 @@ def start_measurement(
     state.resultsDict[T_str][freq_str]["G"] = []
     state.resultsDict[T_str][freq_str]["B"] = []
 
+    if instruments.oscilloscope:
+        state.resultsDict[T_str][freq_str]["Ave. Transmission"] = []
+
     state.measurement_status = Status.SET_TEMPERATURE
     state.xdata = []
     state.ydata = []
@@ -187,10 +190,18 @@ def handle_measurement_status(
         run_spectrometer(frontend, instruments, state)
 
     elif state.measurement_status == Status.COLLECTING_DATA:
-        dpg.set_value(
-            frontend.measurement_status,
-            f"Measuring f = {state.freq_list[state.freq_step]}, V = {state.voltage_list[state.volt_step]}",
-        )
+
+        if state.spectrometer_running:
+            dpg.set_value(
+                frontend.measurement_status,
+                f"Spectrometer: f = {state.freq_list[state.freq_step]:.2f}, V = {state.voltage_list[state.volt_step]}",
+            )
+
+        else: 
+            dpg.set_value(
+                frontend.measurement_status,
+                f"Oscilloscope: f = {state.freq_list[state.freq_step]:.2f}, V = {state.voltage_list[state.volt_step]}",
+            )
 
     elif state.measurement_status == Status.FINISHED:
         instruments.linkam.stop()
@@ -211,6 +222,7 @@ def find_instruments(frontend: lcd_ui):
 
     dpg.configure_item(frontend.linkam_com_selector, items=com_selector)
     dpg.configure_item(frontend.agilent_com_selector, items=usb_selector)
+    dpg.configure_item(frontend.oscilloscope_com_selector, items=usb_selector)
 
     dpg.set_value(frontend.measurement_status, "Found instruments!")
     dpg.set_value(frontend.measurement_status, "Idle")
@@ -233,7 +245,10 @@ def run_experiment(frontend: lcd_ui, instruments: lcd_state, state: lcd_state):
     time.sleep(0.5)
     result["GB"] = instruments.agilent.measure("GB")
     time.sleep(0.5)
-    get_data_from_scope(instruments, lcd_state)
+    if state.oscilloscope_connection_status == "Connected":
+        state.spectrometer_running = False
+        result["averages"] = get_data_from_scope(instruments, lcd_state)
+        state.spectrometer_running = True
     get_result(result, state, frontend, instruments)
 
 def get_data_from_scope(instruments: lcd_instruments, state: lcd_state):
@@ -241,7 +256,7 @@ def get_data_from_scope(instruments: lcd_instruments, state: lcd_state):
     data = instruments.oscilloscope.query(":WAV:DATA?")
     data = data.strip().split(",")
     data = [float(x) for x in data[1:]]
-    state.averages.append(sum(data) / len(data))
+    return sum(data) / len(data)
 
 def read_temperature(frontend: lcd_ui, instruments: lcd_instruments, state: lcd_state):
     log_time = 0
@@ -340,7 +355,8 @@ def get_result(
                 state.resultsDict[T_str][freq_str]["D"] = []
                 state.resultsDict[T_str][freq_str]["G"] = []
                 state.resultsDict[T_str][freq_str]["B"] = []
-
+                if instruments.oscilloscope:
+                    state.resultsDict[T_str][freq_str]["Ave. Transmission"] = []
                 instruments.agilent.set_voltage(0)
                 state.measurement_status = Status.SET_TEMPERATURE
 
@@ -360,6 +376,8 @@ def get_result(
                 state.resultsDict[T_str][freq_str]["D"] = []
                 state.resultsDict[T_str][freq_str]["G"] = []
                 state.resultsDict[T_str][freq_str]["B"] = []
+                if instruments.oscilloscope:
+                    state.resultsDict[T_str][freq_str]["Ave. Transmission"] = []
                 state.measurement_status = Status.TEMPERATURE_STABILISED
             else:
                 state.volt_step += 1
@@ -379,6 +397,8 @@ def parse_result(result: dict, state: lcd_state, frontend: lcd_ui) -> None:
     state.resultsDict[T_str][freq_str]["D"].append(result["CPD"][1])
     state.resultsDict[T_str][freq_str]["G"].append(result["GB"][0])
     state.resultsDict[T_str][freq_str]["B"].append(result["GB"][1])
+    if state.oscilloscope_connection_status == "Connected":
+        state.resultsDict[T_str][freq_str]["Ave. Transmission"].append(result["averages"])
 
     if len(state.voltage_list) == 1 and len(state.freq_list) == 1:
         state.xdata.append(T)

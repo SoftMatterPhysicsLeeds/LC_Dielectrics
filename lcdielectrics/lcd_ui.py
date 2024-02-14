@@ -21,6 +21,7 @@ class lcd_ui:
         self.status = "Idle"
         self.linkam_status = "Not Connected"
         self.agilent_status = "Not Connected"
+        self.oscilloscope_status = "Not Connected"
         self._make_control_window()
         self._make_graph_windows()
         self.draw_children(VIEWPORT_WIDTH, DRAW_HEIGHT)
