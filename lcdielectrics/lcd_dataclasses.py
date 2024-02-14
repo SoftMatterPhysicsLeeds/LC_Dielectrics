@@ -7,6 +7,7 @@ class OutputType(Enum):
     SINGLE_VOLT = 1
     SINGLE_FREQ = 2
     SINGLE_VOLT_FREQ = 3
+    MULTI_VOLT_FREQ = 4
 
 class Status(Enum):
     IDLE = 1

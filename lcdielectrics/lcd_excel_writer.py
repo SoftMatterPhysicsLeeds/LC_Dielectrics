@@ -10,7 +10,7 @@ def make_excel(results: dict, output: str, output_type: OutputType) -> None:
 
     for t, T in enumerate(results.keys()):
         if output_type == OutputType.SINGLE_VOLT:
-            worksheet = workbook.add_worksheet(name=str(T))
+            worksheet = workbook.add_worksheet(name=str(f"{T.split(':')[0]} - {T.split(':')[1]}"))
             for i, freq in enumerate(results[T].keys()):
                 col_headings = list(results[T][freq].keys())
                 col_headings.remove("volt")
@@ -26,12 +26,12 @@ def make_excel(results: dict, output: str, output_type: OutputType) -> None:
                         i + 2, j+1, results[T][freq][heading]
                     )
         elif output_type == OutputType.SINGLE_FREQ:
-            worksheet = workbook.add_worksheet(name=str(T))
+            worksheet = workbook.add_worksheet(name=str(f"{T.split(':')[0]} - {T.split(':')[1]}"))
             for i, freq in enumerate(results[T].keys()):
                 col_headings = list(results[T][freq].keys())
                 start_row = len(results[T][freq][col_headings[0]]) + 3
                 worksheet.write(start_row * i, 0, "Frequency (Hz): ")
-                worksheet.write(start_row * i, 1, float(freq))
+                worksheet.write(start_row * i, 1, float(freq.split(':')[1]))
                 worksheet.write_row((start_row) * i + 1, 0, col_headings)
 
                 for j, heading in enumerate(col_headings):
@@ -45,10 +45,24 @@ def make_excel(results: dict, output: str, output_type: OutputType) -> None:
             freq = list(results[T].keys())[0]
             col_headings = list(results[T][freq].keys())
             worksheet.write_row(0, 2, col_headings)
-            worksheet.write(1,0, float(T))
-            worksheet.write(1,1, float(freq))
+            worksheet.write(1,0, float(T.split(':')[1]))
+            worksheet.write(1,1, float(freq.split(':')[1]))
             for i, heading in enumerate(col_headings):
                 worksheet.write_column(1, 2+i, results[T][freq][heading])
+
+        elif output_type == OutputType.MULTI_VOLT_FREQ:
+            worksheet = workbook.add_worksheet(name=str(f"{T.split(':')[0]} - {T.split(':')[1]}"))
+            for i, freq in enumerate(results[T].keys()):
+                col_headings = list(results[T][freq].keys())
+                start_row = len(results[T][freq][col_headings[0]]) + 3
+                worksheet.write(start_row * i, 0, "Frequency (Hz): ")
+                worksheet.write(start_row * i, 1, float(freq.split(':')[1]))
+                worksheet.write_row((start_row) * i + 1, 0, col_headings)
+
+                for j, heading in enumerate(col_headings):
+                    worksheet.write_column(
+                        start_row * i + 2, j, results[T][freq][heading]
+                    )
                 
 
     workbook.close()

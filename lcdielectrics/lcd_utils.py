@@ -275,6 +275,12 @@ def get_result(
                 dpg.get_value(frontend.output_file_path),
                 OutputType.SINGLE_FREQ,
             )
+        else:
+            make_excel(
+                state.resultsDict,
+                dpg.get_value(frontend.output_file_path),
+                OutputType.MULTI_VOLT_FREQ
+            )
 
         with open(dpg.get_value(frontend.output_file_path), "w") as write_file:
             json.dump(state.resultsDict, write_file, indent=4)
