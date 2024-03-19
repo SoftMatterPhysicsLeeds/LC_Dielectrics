@@ -97,7 +97,7 @@ def main():
 
     dpg.configure_item(
         frontend.stop_button,
-        callback=lambda: stop_measurement(instruments, state),
+        callback=lambda: stop_measurement(instruments, state, frontend),
     )
 
     dpg.configure_item(

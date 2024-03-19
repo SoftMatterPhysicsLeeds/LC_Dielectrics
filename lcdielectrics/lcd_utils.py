@@ -47,14 +47,23 @@ def start_measurement(
 
     state.T_list = [round(x, 0) for x in state.T_list]
 
-    instruments.agilent.set_aperture_mode(
+    err = instruments.agilent.set_aperture_mode(
         dpg.get_value(frontend.meas_time_mode_selector),
         dpg.get_value(frontend.averaging_factor),
     )
+    if err:
+        init_agilent(frontend, instruments, state)
+        err = instruments.agilent.set_aperture_mode(
+        dpg.get_value(frontend.meas_time_mode_selector),
+        dpg.get_value(frontend.averaging_factor),
+        )
 
     bias = dpg.get_value(frontend.bias_level)
     if bias == 1.5 or 2:
-        instruments.agilent.set_DC_bias(float(bias))
+        err = instruments.agilent.set_DC_bias(float(bias))
+        if err:
+            init_agilent(frontend, instruments, state)
+            err = instruments.agilent.set_DC_bias(float(bias))
 
     state.T_step = 0 
     state.freq_step = 0
@@ -83,9 +92,12 @@ def start_measurement(
     state.ydata = []
 
 
-def stop_measurement(instruments: lcd_instruments, state: lcd_state) -> None:
+def stop_measurement(instruments: lcd_instruments, state: lcd_state, frontend: lcd_ui) -> None:
     instruments.linkam.stop()
-    instruments.agilent.reset_and_clear()
+    err = instruments.agilent.reset_and_clear()
+    if err:
+        init_agilent(frontend, instruments, state)
+        err = instruments.agilent.reset_and_clear()
     state.measurement_status = Status.IDLE
 
 
@@ -199,8 +211,14 @@ def handle_measurement_status(
 
     elif state.measurement_status == Status.TEMPERATURE_STABILISED:
         state.measurement_status = Status.COLLECTING_DATA
-        instruments.agilent.set_frequency(state.freq_list[state.freq_step])
-        instruments.agilent.set_voltage(state.voltage_list[state.volt_step])
+        err = instruments.agilent.set_frequency(state.freq_list[state.freq_step])
+        if err:
+            init_agilent(frontend, instruments, state)
+            instruments.agilent.set_frequency(state.freq_list[state.freq_step])
+        err = instruments.agilent.set_voltage(state.voltage_list[state.volt_step])
+        if err:
+            init_agilent(frontend, instruments, state)
+            instruments.agilent.set_voltage(state.voltage_list[state.volt_step])
 
         run_spectrometer(frontend, instruments, state)
 
@@ -220,10 +238,11 @@ def handle_measurement_status(
 
     elif state.measurement_status == Status.FINISHED:
         instruments.linkam.stop()
-        try:
+        
+        err = instruments.agilent.reset_and_clear()
+        if err:
+            init_agilent(frontend, instruments, state)
             instruments.agilent.reset_and_clear()
-        except Exception as e:
-            print("Error initialising the Agilent: ", e)
         state.measurement_status = Status.IDLE
         dpg.set_value(frontend.measurement_status, "Idle")
 
@@ -259,9 +278,15 @@ def run_spectrometer(
 def run_experiment(frontend: lcd_ui, instruments: lcd_state, state: lcd_state):
     result = dict()
     time.sleep(dpg.get_value(frontend.delay_time))
-    result["CPD"] = instruments.agilent.measure("CPD")
+    result["CPD"], err = instruments.agilent.measure("CPD")
+    if err:
+        init_agilent(frontend, instruments, state)
+        result["CPD"], err = instruments.agilent.measure("CPD")
     time.sleep(0.5)
-    result["GB"] = instruments.agilent.measure("GB")
+    result["GB"], err = instruments.agilent.measure("GB")
+    if err:
+        init_agilent(frontend, instruments, state)
+        result["GB"], err = instruments.agilent.measure("GB")
     time.sleep(0.5)
     if state.oscilloscope_connection_status == "Connected":
         state.spectrometer_running = False
@@ -391,7 +416,10 @@ def get_result(
                 if instruments.oscilloscope:
                     for i in range(dpg.get_value(frontend.num_averages)):
                         state.resultsDict[T_str][freq_str][f"Ave. Transmission #{i+1}"] = []
-                instruments.agilent.set_voltage(0)
+                err = instruments.agilent.set_voltage(0)
+                if err:
+                    init_agilent(frontend, instruments, state)
+                    instruments.agilent.set_voltage(0)
                 state.measurement_status = Status.SET_TEMPERATURE
 
             elif state.volt_step == len(state.voltage_list) - 1:
