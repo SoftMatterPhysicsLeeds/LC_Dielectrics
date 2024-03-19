@@ -186,6 +186,7 @@ class lcd_ui:
                     self.agilent_initialise = dpg.add_button(
                         label="Initialise", width=-1
                     )
+                    
                 with dpg.table_row():
                     dpg.add_text("Oscilloscope: ")
                     self.oscilloscope_status = dpg.add_text(
@@ -196,9 +197,12 @@ class lcd_ui:
                     self.oscilloscope_initialise = dpg.add_button(
                         label="Initialise", width=-1
                     )
+                    
                 with dpg.table_row():
                     self.num_averages_text = dpg.add_text("N: ", show=False)
                     self.num_averages = dpg.add_input_int(default_value=5, width=-1, step =0, step_fast=0, show=False)
+
+               
             with dpg.window(
                 label="Measurement Settings",
                 no_collapse=True,
