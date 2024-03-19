@@ -119,7 +119,7 @@ def init_oscilloscope(
         instruments.oscilloscope.close()
     rm = pyvisa.ResourceManager()
     instruments.oscilloscope = rm.open_resource(dpg.get_value(frontend.oscilloscope_com_selector))
-    write_handler(instruments.oscilloscope, "*RST; *CLS")
+    # write_handler(instruments.oscilloscope, "*RST; *CLS")
     dpg.set_value(frontend.oscilloscope_status, "Connected")
     dpg.configure_item(frontend.oscilloscope_initialise, label = "Reconnect")
     dpg.show_item(frontend.num_averages)
@@ -310,7 +310,7 @@ def get_data_from_scope(frontend: lcd_ui, instruments: lcd_instruments, state: l
         data = [float(x) for x in data[1:]]
         average = sum(data) / len(data)
         total.append(average)
-    write_handler(instruments.oscilloscope,"*RST; *CLS")
+    # write_handler(instruments.oscilloscope,"*RST; *CLS")
     write_handler(instruments.oscilloscope,":WAVeform:FORMat ASCII")
     write_handler(instruments.oscilloscope,":ACQuire:TYPE NORMal")
     write_handler(instruments.oscilloscope,":TIMebase:DELay 0")
