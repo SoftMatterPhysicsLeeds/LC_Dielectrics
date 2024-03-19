@@ -2,6 +2,11 @@ from typing import Any
 import pyvisa
 import threading
 
+def write_handler(instrument, command_string):
+    try:
+        instrument.write(command_string)
+    except Exception as e:
+        print(f"Could not write {command_string} to {instrument}: ",e) 
 
 class LinkamHotstage:
     def __init__(self, address: str) -> None:
@@ -103,7 +108,7 @@ class AgilentSpectrometer:
         self.spectrometer.timeout = None
         # self.spectrometer.query("*IDN?")
         try:
-            self.spectrometer.write("*IDN?")  # type: ignore
+            write_handler(self.spectrometer, "*IDN?")
             self.spectrometer_id = self.spectrometer.read()  # type: ignore
             print(self.spectrometer_id)
             self.reset_and_clear()
@@ -112,61 +117,61 @@ class AgilentSpectrometer:
             print("Could not connect to E4980A. Check address is correct.")
 
     def reset_and_clear(self) -> None:
-        self.spectrometer.write("*RST; *CLS")  # type:ignore # reset and clear buffer
-        self.spectrometer.write(":DISP:ENAB")  # type:ignore # enable display and update
-        self.spectrometer.write(  # type: ignore
+        write_handler(self.spectrometer,"*RST; *CLS")  # type:ignore # reset and clear buffer
+        write_handler(self.spectrometer,":DISP:ENAB")  # type:ignore # enable display and update
+        write_handler(self.spectrometer,  # type: ignore
             ":INIT:CONT"
         )  # type: ignore # automatically perform continuous measurements
-        self.spectrometer.write(":TRIG:SOUR EXT")  # type: ignore
+        write_handler(self.spectrometer,":TRIG:SOUR EXT")  # type: ignore
         self.set_voltage(0)
 
     def set_frequency(self, freq: float) -> None:
-        self.spectrometer.write(f":FREQ {freq}")  # type: ignore
+        write_handler(self.spectrometer, f":FREQ {freq}")
 
     def set_freq_list(self, freq_list: Any) -> None:
-        self.spectrometer.write(":DISP:PAGE LIST")  # type: ignore
-        self.spectrometer.write(":LIST:MODE SEQ")  # type: ignore
+        write_handler(self.spectrometer,":DISP:PAGE LIST")  # type: ignore
+        write_handler(self.spectrometer,":LIST:MODE SEQ")  # type: ignore
 
         freq_str = str(freq_list)
         freq_str = freq_str.split("[")[1].split("]")[0]
 
-        self.spectrometer.write(":LIST:FREQ ", freq_str)  # type: ignore
+        write_handler(self.spectrometer,":LIST:FREQ ", freq_str)  # type: ignore
 
     def set_volt_list(self, volt_list: Any) -> None:
-        self.spectrometer.write(":DISP:PAGE LIST")  # type: ignore
-        self.spectrometer.write(":LIST:MODE SEQ")  # type: ignore
+        write_handler(self.spectrometer,":DISP:PAGE LIST")  # type: ignore
+        write_handler(self.spectrometer,":LIST:MODE SEQ")  # type: ignore
 
         volt_str = str(volt_list)
         volt_str = volt_str.split("[")[1].split("]")[0]
 
-        self.spectrometer.write(":LIST:VOLT ", volt_str)  # type: ignore
+        write_handler(self.spectrometer,":LIST:VOLT ", volt_str)  # type: ignore
 
     def set_voltage(self, volt: float) -> None:
-        self.spectrometer.write(f":VOLT {volt}")  # type: ignore
+        write_handler(self.spectrometer,f":VOLT {volt}")  # type: ignore
 
     def set_func(self, func: str, auto: bool = True) -> None:
-        self.spectrometer.write(f":FUNC:IMP {func}")  # type: ignore
+        write_handler(self.spectrometer,f":FUNC:IMP {func}")  # type: ignore
         if auto:
-            self.spectrometer.write(":FUNC:IMP:RANG:AUTO ON")  # type: ignore
+            write_handler(self.spectrometer,":FUNC:IMP:RANG:AUTO ON")  # type: ignore
 
     def set_aperture_mode(self, mode: str, av_factor: int) -> None:
-        self.spectrometer.write(f":APER {mode},{av_factor}")  # type: ignore
+        write_handler(self.spectrometer,f":APER {mode},{av_factor}")  # type: ignore
 
     def measure(self, func: str) -> list[float]:
-        # self.spectrometer.write(":INIT")
-        self.spectrometer.write(f":FUNC:IMP {func}")  # type: ignore
-        self.spectrometer.write(":TRIG:IMM")  # type: ignore
-        self.spectrometer.write(":FETC?")  # type: ignore # request data acquisition
+        # write_handler(self.spectrometer,":INIT")
+        write_handler(self.spectrometer,f":FUNC:IMP {func}")  # type: ignore
+        write_handler(self.spectrometer,":TRIG:IMM")  # type: ignore
+        write_handler(self.spectrometer,":FETC?")  # type: ignore # request data acquisition
         # get data as [val1, val2, data_status].
         # For CP-D func, this is [Cp, D, data_status]
         return self.spectrometer.read_ascii_values()  # type: ignore
 
     def set_DC_bias(self, voltage: float) -> None:
-        self.spectrometer.write(f":BIAS:VOLT {voltage}")  # type: ignore
-        self.spectrometer.write(":BIAS:STATE ON")  # type: ignore
+        write_handler(self.spectrometer,f":BIAS:VOLT {voltage}")  # type: ignore
+        write_handler(self.spectrometer,":BIAS:STATE ON")  # type: ignore
 
     def turn_off_DC_bias(self) -> None:
-        self.spectrometer.write(":BIAS:STATE OFF")  # type: ignore
+        write_handler(self.spectrometer,":BIAS:STATE OFF")  # type: ignore
 
     def close(self):
         self.spectrometer.close()

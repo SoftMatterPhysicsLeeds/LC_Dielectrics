@@ -11,6 +11,14 @@ import threading
 # TODO: find a way to handle exceptions in instrument threads?
 
 
+def write_handler(instrument, command_string):
+    try:
+        instrument.write(command_string)
+    except Exception as e:
+        print(f"Could not write {command_string} to {instrument}: ",e) 
+
+
+
 def start_measurement(
     state: lcd_state, frontend: lcd_ui, instruments: lcd_instruments
 ) -> None:
@@ -99,16 +107,16 @@ def init_oscilloscope(
         instruments.oscilloscope.close()
     rm = pyvisa.ResourceManager()
     instruments.oscilloscope = rm.open_resource(dpg.get_value(frontend.oscilloscope_com_selector))
-    instruments.oscilloscope.write("*RST; *CLS")
+    write_handler(instruments.oscilloscope, "*RST; *CLS")
     dpg.set_value(frontend.oscilloscope_status, "Connected")
     dpg.configure_item(frontend.oscilloscope_initialise, label = "Reconnect")
     dpg.show_item(frontend.num_averages)
     dpg.show_item(frontend.num_averages_text)
     state.oscilloscope_connection_status = "Connected"
     # oscilloscope.write(":AUToscale")
-    instruments.oscilloscope.write(":WAVeform:FORMat ASCII")
-    instruments.oscilloscope.write(":ACQuire:TYPE NORMal")
-    instruments.oscilloscope.write(":TIMebase:DELay 0")
+    write_handler(instruments.oscilloscope,":WAVeform:FORMat ASCII")
+    write_handler(instruments.oscilloscope,":ACQuire:TYPE NORMal")
+    write_handler(instruments.oscilloscope,":TIMebase:DELay 0")
 
 def init_linkam(
     frontend: lcd_ui, instruments: lcd_instruments, state: lcd_state
@@ -267,7 +275,7 @@ def get_data_from_scope(frontend: lcd_ui, instruments: lcd_instruments, state: l
     total = []
     for i in range(n):
         print(f"Measuring {i+1}/{dpg.get_value(frontend.num_averages)} f = {state.freq_list[state.freq_step]:.2f}, V = {state.voltage_list[state.volt_step]} ")
-        instruments.oscilloscope.write(":DIGitize CHANnel1")
+        write_handler(instruments.oscilloscope,":DIGitize CHANnel1")
         data = "1"
         try:    
             data = instruments.oscilloscope.query(":WAV:DATA?")
@@ -277,10 +285,10 @@ def get_data_from_scope(frontend: lcd_ui, instruments: lcd_instruments, state: l
         data = [float(x) for x in data[1:]]
         average = sum(data) / len(data)
         total.append(average)
-    instruments.oscilloscope.write("*RST; *CLS")
-    instruments.oscilloscope.write(":WAVeform:FORMat ASCII")
-    instruments.oscilloscope.write(":ACQuire:TYPE NORMal")
-    instruments.oscilloscope.write(":TIMebase:DELay 0")
+    write_handler(instruments.oscilloscope,"*RST; *CLS")
+    write_handler(instruments.oscilloscope,":WAVeform:FORMat ASCII")
+    write_handler(instruments.oscilloscope,":ACQuire:TYPE NORMal")
+    write_handler(instruments.oscilloscope,":TIMebase:DELay 0")
     return total
 
 def read_temperature(frontend: lcd_ui, instruments: lcd_instruments, state: lcd_state):
