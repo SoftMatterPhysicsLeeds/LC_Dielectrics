@@ -288,11 +288,18 @@ def run_experiment(frontend: lcd_ui, instruments: lcd_state, state: lcd_state):
         init_agilent(frontend, instruments, state)
         result["GB"], err = instruments.agilent.measure("GB")
     time.sleep(0.5)
+    get_result(result, state, frontend, instruments) 
+
+def run_oscilloscope(result, frontend: lcd_ui, instruments: lcd_state, state: lcd_state):
+    result = dict()
     if state.oscilloscope_connection_status == "Connected":
         state.spectrometer_running = False
         result["averages"] = get_data_from_scope(frontend, instruments, state)
         state.spectrometer_running = True
-    get_result(result, state, frontend, instruments)
+        T_str =f"{state.T_step + 1}: {state.T_list[state.T_step]}"
+        freq_str = f"{state.freq_step+1}: {state.freq_list[state.freq_step]}"
+        for i in range(len(result["averages"])):
+            state.resultsDict[T_str][freq_str][f"Ave. Transmission #{i+1}"].append(result["averages"][i])
 
 def get_data_from_scope(frontend: lcd_ui, instruments: lcd_instruments, state: lcd_state):
 
