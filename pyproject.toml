@@ -10,14 +10,14 @@ authors = [
 ]
 description = "GUI to perform dielectric measurements on LC cells."
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)"
 ]
 dependencies = [
     "dearpygui",
-    "numpy",
+    "numpy==2",
     "pyvisa",
     "xlsxwriter",
     "pyvisa-py",
