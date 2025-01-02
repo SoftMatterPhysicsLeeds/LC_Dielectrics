@@ -24,7 +24,8 @@ dependencies = [
     "pyusb",
     "pyserial",
     "psutil",
-    "zeroconf"
+    "zeroconf",
+    "pyside6==6.8.1",
 ]
 
 [project.urls]

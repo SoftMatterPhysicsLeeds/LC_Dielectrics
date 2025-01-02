@@ -16,6 +16,11 @@ from pathlib import Path
 import importlib
 import ctypes
 
+import sys
+
+from PySide6.QtWidgets import QApplication, QMainWindow, QLabel
+from PySide6.QtCore import Qt
+
 
 def find_instruments_thread(frontend: lcd_ui):
     thread = threading.Thread(target=find_instruments, args=(frontend,))
@@ -23,7 +28,7 @@ def find_instruments_thread(frontend: lcd_ui):
     thread.start()
 
 
-def main():
+# def main():
     dpg.create_context()
     ctypes.windll.shcore.SetProcessDpiAwareness(2)
     MODULE_PATH = importlib.resources.files(__package__)
@@ -152,6 +157,25 @@ def main():
         instruments.agilent.reset_and_clear()
         instruments.agilent.close()
 
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Hello World App")
+        self.setGeometry(100, 100, 400, 200)
+        
+        # Create main window content
+        label = QLabel("Hello, World!", self)
+        label.setStyleSheet("font-size: 24px;")
+        label.setAlignment(Qt.AlignCenter)
+        self.setCentralWidget(label)
+
+
+def main():
+    app = QApplication()
+    main_window = MainWindow()
+    main_window.show()
+
+    sys.exit(app.exec())
 
 if __name__ == "__main__":
     main()
