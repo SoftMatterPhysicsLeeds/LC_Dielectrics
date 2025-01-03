@@ -11,6 +11,7 @@ from lcdielectrics.lcd_utils import (
 from lcdielectrics.lcd_themes import generate_global_theme
 import dearpygui.dearpygui as dpg
 from lcdielectrics.lcd_ui import lcd_ui, VIEWPORT_WIDTH, DRAW_HEIGHT
+from lcdielectrics.lcd_ui_qt import MainWindow
 import threading
 from pathlib import Path
 import importlib
@@ -18,8 +19,8 @@ import ctypes
 
 import sys
 
-from PySide6.QtWidgets import QApplication, QMainWindow, QLabel
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication
+
 
 
 def find_instruments_thread(frontend: lcd_ui):
@@ -157,17 +158,7 @@ def find_instruments_thread(frontend: lcd_ui):
         instruments.agilent.reset_and_clear()
         instruments.agilent.close()
 
-class MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Hello World App")
-        self.setGeometry(100, 100, 400, 200)
-        
-        # Create main window content
-        label = QLabel("Hello, World!", self)
-        label.setStyleSheet("font-size: 24px;")
-        label.setAlignment(Qt.AlignCenter)
-        self.setCentralWidget(label)
+
 
 
 def main():
