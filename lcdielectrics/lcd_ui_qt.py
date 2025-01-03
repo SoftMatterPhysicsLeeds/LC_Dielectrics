@@ -28,13 +28,19 @@ class MainWindow(QMainWindow):
         layout = QGridLayout(central_widget)
 
         self.status_window = StatusWindow()
-        layout.addWidget(self.status_window, 0, 0)
+        layout.addWidget(self.status_window, 0, 0, 1, 2)
 
         self.measurement_settings_window = MeasurementSettings()
-        layout.addWidget(self.measurement_settings_window, 1, 0)
+        layout.addWidget(self.measurement_settings_window, 1, 0, 1, 2)
 
-        self.value_list_window = ValueListWidget()
-        layout.addWidget(self.value_list_window, 2, 0)
+        self.frequency_list_window = ValueListWidget("Frequency", 20, 2e6)
+        layout.addWidget(self.frequency_list_window, 2, 0)
+
+        self.voltage_list_window = ValueListWidget("Voltage", 0, 20)
+        layout.addWidget(self.voltage_list_window, 2, 1)
+
+        self.temperature_list_window = ValueListWidget("Temperature", -150, 300)
+        layout.addWidget(self.temperature_list_window, 3, 0, 1, 2)
 
 
 class StatusWindow(QWidget):
@@ -98,12 +104,22 @@ class MeasurementSettings(QWidget):
 
 
 class ValueListWidget(QWidget):
-    def __init__(self):
+    def __init__(self, variable_name = "Frequency", min_value = 20, max_value = 2e6):
         super().__init__()
+        self.main_layout = QGridLayout()
+        self.setLayout(self.main_layout)
+
+        self.min_value = min_value
+        self.max_value = max_value
+
+        group_box = QGroupBox(variable_name + " List")
         self.layout = QGridLayout()
-        self.setLayout(self.layout)
+        group_box.setLayout(self.layout)
+
         self.setup_ui()
         self.setup_connections()
+        
+        self.main_layout.addWidget(group_box)
 
     def setup_ui(self):
         self.value_list = QListWidget()
@@ -111,8 +127,9 @@ class ValueListWidget(QWidget):
         self.layout.addWidget(self.value_list, 0, 0, 4, 1)
 
         self.value_spinner = QDoubleSpinBox()
-        self.value_spinner.setRange(-999999, 999999)
+        self.value_spinner.setRange(self.min_value, self.max_value)
         self.value_spinner.setDecimals(3)
+        self.value_spinner.setValue(self.min_value)
         self.layout.addWidget(self.value_spinner, 0, 1)
 
         self.add_button = QPushButton("Add")
@@ -180,25 +197,27 @@ class RangeDialog(QDialog):
         self.setWindowTitle("Add Range")
         self.setup_ui()
 
-    def setup_ui(self):
+    def setup_ui(self, parent):
         layout = QVBoxLayout()
         self.setLayout(layout)
 
         layout.addWidget(QLabel("Minimum:"))
         self.min_spinner = QDoubleSpinBox()
-        self.min_spinner.setRange(-999999, 999999)
+        self.min_spinner.setRange(parent.min_value, parent.max_value)
         self.min_spinner.setDecimals(3)
+        self.min_spinner.setValue(parent.min_value)
         layout.addWidget(self.min_spinner)
 
         layout.addWidget(QLabel("Maximum:"))
         self.max_spinner = QDoubleSpinBox()
-        self.max_spinner.setRange(-999999, 999999)
+        self.max_spinner.setRange(parent.min_value, parent.max_value)
         self.max_spinner.setDecimals(3)
+        self.max_spinner.setValue(parent.max_value)
         layout.addWidget(self.max_spinner)
 
         layout.addWidget(QLabel("Step:"))
         self.step_spinner = QDoubleSpinBox()
-        self.step_spinner.setRange(0.001, 999999)
+        self.step_spinner.setRange(parent.min_value, parent.max_value)
         self.step_spinner.setDecimals(3)
         self.step_spinner.setValue(1.0)
         layout.addWidget(self.step_spinner)
