@@ -151,6 +151,11 @@ def find_instruments_thread(frontend: lcd_ui):
 
     dpg.destroy_context()
 
+
+def cleanup(instruments):
+
+    print("Closing all connections to connected instruments.")
+
     if instruments.linkam:
         instruments.linkam.stop()
         instruments.linkam.close()
@@ -165,6 +170,10 @@ def main():
     app = QApplication()
     main_window = MainWindow()
     main_window.showMaximized()
+
+    instruments = lcd_instruments()
+
+    app.aboutToQuit.connect(cleanup(instruments))
 
     sys.exit(app.exec())
 
