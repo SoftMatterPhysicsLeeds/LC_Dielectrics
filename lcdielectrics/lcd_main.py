@@ -164,7 +164,7 @@ def find_instruments_thread(frontend: lcd_ui):
 def main():
     app = QApplication()
     main_window = MainWindow()
-    main_window.show()
+    main_window.showMaximized()
 
     sys.exit(app.exec())
 

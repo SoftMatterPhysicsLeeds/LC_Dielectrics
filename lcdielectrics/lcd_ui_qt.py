@@ -4,12 +4,14 @@ from PySide6.QtWidgets import (
     QLabel,
     QWidget,
     QPushButton,
+    QComboBox,
+    QSpinBox,
     QDoubleSpinBox,
     QGroupBox,
     QListWidget,
     QDialog,
     QVBoxLayout,
-    QDialogButtonBox
+    QDialogButtonBox,
 )
 # from PySide6.QtCore import Qt
 
@@ -41,6 +43,9 @@ class MainWindow(QMainWindow):
 
         self.temperature_list_window = ValueListWidget("Temperature", -150, 300)
         layout.addWidget(self.temperature_list_window, 3, 0, 1, 2)
+
+        self.start_stop_buttons = StartStopButtons()
+        layout.addWidget(self.start_stop_buttons, 4, 0, 1, 2)
 
 
 class StatusWindow(QWidget):
@@ -79,32 +84,73 @@ class StatusWindow(QWidget):
 
         self.layout.addWidget(group_box)
 
+
 class MeasurementSettings(QWidget):
     def __init__(self):
         super().__init__()
-        
+
         self.layout = QGridLayout()
         self.setLayout(self.layout)
-        
+
         # Create a QGroupBox with title
         group_box = QGroupBox("Measurement Settings")
         group_layout = QGridLayout()
         group_box.setLayout(group_layout)
-        
+
         # Add widgets to group layout instead of main layout
-        group_layout.addWidget(QLabel("Delay Time (s)"), 0, 0)
-        
+        group_layout.addWidget(QLabel("Delay Time (s): "), 0, 0)
+
         self.delay_time_selector = QDoubleSpinBox()
         self.delay_time_selector.setRange(0, 10000)
         self.delay_time_selector.setDecimals(1)
+        self.delay_time_selector.setValue(0.5)
         group_layout.addWidget(self.delay_time_selector, 0, 1)
-        
+
+        group_layout.addWidget(QLabel("Averaging Factor: "), 1, 0)
+        self.averaging_factor_selector = QSpinBox()
+        self.averaging_factor_selector.setRange(1, 10000)
+        self.averaging_factor_selector.setValue(1)
+        group_layout.addWidget(self.averaging_factor_selector, 1, 1)
+
+        group_layout.addWidget(QLabel("Meas. Time Mode: "), 0, 2 )
+        self.measure_time_mode_combo = QComboBox()
+        self.measure_time_mode_combo.addItems(["SHOR", "MED", "LONG"])
+        self.measure_time_mode_combo.setCurrentIndex(0)
+        group_layout.addWidget(self.measure_time_mode_combo, 0, 3)
+
+        group_layout.addWidget(QLabel("Bias Level (V): "), 1, 2 )
+        self.bias_level_combo = QComboBox()
+        self.bias_level_combo.addItems(["0", "1.5", "2"])
+        self.bias_level_combo.setCurrentIndex(0)
+        group_layout.addWidget(self.bias_level_combo, 1, 3)
+
+
+
         # Add the group box to the main layout
+        self.layout.addWidget(group_box)
+
+class StartStopButtons(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.layout = QGridLayout()
+        self.setLayout(self.layout)
+
+        group_box = QGroupBox()
+        group_layout = QGridLayout()
+        group_box.setLayout(group_layout)
+
+        self.start_button = QPushButton("Start")
+        group_layout.addWidget(self.start_button, 0, 0)
+
+        self.stop_button = QPushButton("Stop")
+        group_layout.addWidget(self.stop_button, 0, 1)
+
+
         self.layout.addWidget(group_box)
 
 
 class ValueListWidget(QWidget):
-    def __init__(self, variable_name = "Frequency", min_value = 20, max_value = 2e6):
+    def __init__(self, variable_name="Frequency", min_value=20, max_value=2e6):
         super().__init__()
         self.main_layout = QGridLayout()
         self.setLayout(self.main_layout)
@@ -118,7 +164,7 @@ class ValueListWidget(QWidget):
 
         self.setup_ui()
         self.setup_connections()
-        
+
         self.main_layout.addWidget(group_box)
 
     def setup_ui(self):
@@ -154,11 +200,11 @@ class ValueListWidget(QWidget):
     def delete_selected(self):
         # Get all selected items
         selected_items = self.value_list.selectedItems()
-        
+
         # Remove the selected items
         for item in selected_items:
             self.value_list.takeItem(self.value_list.row(item))
-        
+
         # Renumber remaining items
         self.renumber_items()
 
@@ -168,7 +214,7 @@ class ValueListWidget(QWidget):
             item = self.value_list.item(i)
             # Get the value part after the colon
             old_text = item.text()
-            value = old_text.split(': ')[1]
+            value = old_text.split(": ")[1]
             # Set new numbered text
             item.setText(f"{i+1}: {value}")
 
@@ -177,7 +223,7 @@ class ValueListWidget(QWidget):
         values = []
         for i in range(self.value_list.count()):
             item = self.value_list.item(i)
-            value = float(item.text().split(': ')[1])
+            value = float(item.text().split(": ")[1])
             values.append(value)
         return values
 
@@ -190,6 +236,7 @@ class ValueListWidget(QWidget):
                 next_index = self.value_list.count() + 1
                 self.value_list.addItem(f"{next_index}: {current}")
                 current += step
+
 
 class RangeDialog(QDialog):
     def __init__(self, parent=None):
@@ -222,9 +269,7 @@ class RangeDialog(QDialog):
         self.step_spinner.setValue(1.0)
         layout.addWidget(self.step_spinner)
 
-        buttons = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
-        )
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
@@ -233,5 +278,5 @@ class RangeDialog(QDialog):
         return (
             self.min_spinner.value(),
             self.max_spinner.value(),
-            self.step_spinner.value()
+            self.step_spinner.value(),
         )
