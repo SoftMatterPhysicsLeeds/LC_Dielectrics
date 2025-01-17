@@ -27,6 +27,7 @@ dependencies = [
     "zeroconf",
     "pyside6==6.8.1",
     "pyside6-stubs>=6.4.2.0",
+    "pyqtgraph>=0.13.7",
 ]
 
 [project.urls]

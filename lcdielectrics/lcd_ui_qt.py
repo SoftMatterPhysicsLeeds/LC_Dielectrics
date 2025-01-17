@@ -12,8 +12,12 @@ from PySide6.QtWidgets import (
     QDialog,
     QVBoxLayout,
     QDialogButtonBox,
+    QSplitter,  # Add QSplitter import
 )
-# from PySide6.QtCore import Qt
+
+from PySide6.QtCore import Qt
+
+import pyqtgraph as pg
 
 
 class MainWindow(QMainWindow):
@@ -25,27 +29,83 @@ class MainWindow(QMainWindow):
 
     def setup_ui(self):
         central_widget = QWidget()
+
+        central_widget.setStyleSheet("QSplitter::handle { background-color: #d3d3d3;};")
+
         self.setCentralWidget(central_widget)
 
         layout = QGridLayout(central_widget)
 
+        splitter = QSplitter()  # Create a QSplitter
+        splitter.setHandleWidth(5)  # Set the handle width to make it more visible
+        layout.addWidget(splitter)
+
+        left_widget = QWidget()
+        left_layout = QGridLayout(left_widget)
+        splitter.addWidget(left_widget)
+
+        right_widget = QWidget()
+        right_layout = QGridLayout(right_widget)
+        splitter.addWidget(right_widget)
+
         self.status_window = StatusWindow()
-        layout.addWidget(self.status_window, 0, 0, 1, 2)
+        left_layout.addWidget(self.status_window, 0, 0, 1, 2)
 
         self.measurement_settings_window = MeasurementSettings()
-        layout.addWidget(self.measurement_settings_window, 1, 0, 1, 2)
+        left_layout.addWidget(self.measurement_settings_window, 1, 0, 1, 2)
 
         self.frequency_list_window = ValueListWidget("Frequency", 20, 2e6)
-        layout.addWidget(self.frequency_list_window, 2, 0)
+        left_layout.addWidget(self.frequency_list_window, 2, 0)
 
         self.voltage_list_window = ValueListWidget("Voltage", 0, 20)
-        layout.addWidget(self.voltage_list_window, 2, 1)
+        left_layout.addWidget(self.voltage_list_window, 2, 1)
 
         self.temperature_list_window = ValueListWidget("Temperature", -150, 300)
-        layout.addWidget(self.temperature_list_window, 3, 0, 1, 2)
+        left_layout.addWidget(self.temperature_list_window, 3, 0, 1, 2)
 
         self.start_stop_buttons = StartStopButtons()
-        layout.addWidget(self.start_stop_buttons, 4, 0, 1, 2)
+        left_layout.addWidget(self.start_stop_buttons, 4, 0, 1, 2)
+
+        right_splitter = QSplitter()  # Create another QSplitter for the right layout
+        right_splitter.setOrientation(Qt.Vertical)  # Set orientation to vertical
+        right_splitter.setHandleWidth(5)  # Set the handle width to make it more visible
+        right_layout.addWidget(right_splitter)
+
+        self.results_window = ResultsWindow()
+        right_splitter.addWidget(self.results_window)
+
+        self.results_window2 = ResultsWindow()
+        right_splitter.addWidget(self.results_window2)
+
+        splitter.setStretchFactor(0, 1)  # Set stretch factor for left widget
+        splitter.setStretchFactor(1, 3)  # Set stretch factor for right widget
+
+        right_splitter.setStretchFactor(0, 1)  # Set stretch factor for first results window
+        right_splitter.setStretchFactor(1, 1)  # Set stretch factor for second results window
+
+
+class ResultsWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.layout: QGridLayout = QGridLayout()
+        self.setLayout(self.layout)
+
+        group_box = QGroupBox()
+        group_layout = QGridLayout()
+        group_box.setLayout(group_layout)
+
+        self.plot_widget = pg.PlotWidget()
+        group_layout.addWidget(self.plot_widget)
+
+        self.x = [1, 2, 3, 4, 5]
+        self.y = [1, 2, 3, 4, 5]
+
+        self.plot_widget.plot(self.x, self.y, pen="b")
+        self.plot_widget.setLabel("left", "Value", units="V")
+        self.plot_widget.setLabel("bottom", "Time", units="s")
+        self.plot_widget.showGrid(x=True, y=True)
+
+        self.layout.addWidget(group_box)
 
 
 class StatusWindow(QWidget):
@@ -112,22 +172,21 @@ class MeasurementSettings(QWidget):
         self.averaging_factor_selector.setValue(1)
         group_layout.addWidget(self.averaging_factor_selector, 1, 1)
 
-        group_layout.addWidget(QLabel("Meas. Time Mode: "), 0, 2 )
+        group_layout.addWidget(QLabel("Meas. Time Mode: "), 0, 2)
         self.measure_time_mode_combo = QComboBox()
         self.measure_time_mode_combo.addItems(["SHOR", "MED", "LONG"])
         self.measure_time_mode_combo.setCurrentIndex(0)
         group_layout.addWidget(self.measure_time_mode_combo, 0, 3)
 
-        group_layout.addWidget(QLabel("Bias Level (V): "), 1, 2 )
+        group_layout.addWidget(QLabel("Bias Level (V): "), 1, 2)
         self.bias_level_combo = QComboBox()
         self.bias_level_combo.addItems(["0", "1.5", "2"])
         self.bias_level_combo.setCurrentIndex(0)
         group_layout.addWidget(self.bias_level_combo, 1, 3)
 
-
-
         # Add the group box to the main layout
         self.layout.addWidget(group_box)
+
 
 class StartStopButtons(QWidget):
     def __init__(self):
@@ -144,7 +203,6 @@ class StartStopButtons(QWidget):
 
         self.stop_button = QPushButton("Stop")
         group_layout.addWidget(self.stop_button, 0, 1)
-
 
         self.layout.addWidget(group_box)
 
@@ -216,7 +274,7 @@ class ValueListWidget(QWidget):
             old_text = item.text()
             value = old_text.split(": ")[1]
             # Set new numbered text
-            item.setText(f"{i+1}: {value}")
+            item.setText(f"{i + 1}: {value}")
 
     def get_values(self):
         """Returns a list of just the values without the numbering"""

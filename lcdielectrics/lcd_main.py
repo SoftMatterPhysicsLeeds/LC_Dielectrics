@@ -173,7 +173,7 @@ def main():
 
     instruments = lcd_instruments()
 
-    app.aboutToQuit.connect(cleanup(instruments))
+    app.aboutToQuit.connect(lambda: cleanup(instruments))
 
     sys.exit(app.exec())
 
