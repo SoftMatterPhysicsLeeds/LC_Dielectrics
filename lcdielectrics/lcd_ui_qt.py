@@ -14,8 +14,7 @@ from PySide6.QtWidgets import (
     QDialogButtonBox,
     QSplitter,  # Add QSplitter import
 )
-
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QSettings  # Add QSettings import
 
 import pyqtgraph as pg
 
@@ -25,6 +24,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("LC Dielectrics")
         self.setGeometry(100, 100, 1280, 850)
+        self.settings = QSettings("SMPLeeds", "LC_Dielectrics")  # Initialize QSettings
         self.setup_ui()
 
     def setup_ui(self):
@@ -36,17 +36,17 @@ class MainWindow(QMainWindow):
 
         layout = QGridLayout(central_widget)
 
-        splitter = QSplitter()  # Create a QSplitter
-        splitter.setHandleWidth(5)  # Set the handle width to make it more visible
-        layout.addWidget(splitter)
+        self.splitter = QSplitter()  # Create a QSplitter
+        self.splitter.setHandleWidth(5)  # Set the handle width to make it more visible
+        layout.addWidget(self.splitter)
 
         left_widget = QWidget()
         left_layout = QGridLayout(left_widget)
-        splitter.addWidget(left_widget)
+        self.splitter.addWidget(left_widget)
 
         right_widget = QWidget()
         right_layout = QGridLayout(right_widget)
-        splitter.addWidget(right_widget)
+        self.splitter.addWidget(right_widget)
 
         self.status_window = StatusWindow()
         left_layout.addWidget(self.status_window, 0, 0, 1, 2)
@@ -66,22 +66,40 @@ class MainWindow(QMainWindow):
         self.start_stop_buttons = StartStopButtons()
         left_layout.addWidget(self.start_stop_buttons, 4, 0, 1, 2)
 
-        right_splitter = QSplitter()  # Create another QSplitter for the right layout
-        right_splitter.setOrientation(Qt.Vertical)  # Set orientation to vertical
-        right_splitter.setHandleWidth(5)  # Set the handle width to make it more visible
-        right_layout.addWidget(right_splitter)
+        self.right_splitter = QSplitter()  # Create another QSplitter for the right layout
+        self.right_splitter.setOrientation(Qt.Vertical)  # Set orientation to vertical
+        self.right_splitter.setHandleWidth(5)  # Set the handle width to make it more visible
+        right_layout.addWidget(self.right_splitter)
 
         self.results_window = ResultsWindow()
-        right_splitter.addWidget(self.results_window)
+        self.right_splitter.addWidget(self.results_window)
 
         self.results_window2 = ResultsWindow()
-        right_splitter.addWidget(self.results_window2)
+        self.right_splitter.addWidget(self.results_window2)
 
-        splitter.setStretchFactor(0, 1)  # Set stretch factor for left widget
-        splitter.setStretchFactor(1, 3)  # Set stretch factor for right widget
+        self.splitter.setStretchFactor(0, 1)  # Set stretch factor for left widget
+        self.splitter.setStretchFactor(1, 3)  # Set stretch factor for right widget
 
-        right_splitter.setStretchFactor(0, 1)  # Set stretch factor for first results window
-        right_splitter.setStretchFactor(1, 1)  # Set stretch factor for second results window
+        self.right_splitter.setStretchFactor(0, 1)  # Set stretch factor for first results window
+        self.right_splitter.setStretchFactor(1, 1)  # Set stretch factor for second results window
+
+        self.restore_splitter_sizes()  # Restore splitter sizes
+
+    def closeEvent(self, event):
+        self.save_splitter_sizes()  # Save splitter sizes on close
+        super().closeEvent(event)
+
+    def save_splitter_sizes(self):
+        self.settings.setValue("main_splitter_sizes", self.splitter.saveState())
+        self.settings.setValue("right_splitter_sizes", self.right_splitter.saveState())
+
+    def restore_splitter_sizes(self):
+        main_splitter_sizes = self.settings.value("main_splitter_sizes")
+        if main_splitter_sizes:
+            self.splitter.restoreState(main_splitter_sizes)
+        right_splitter_sizes = self.settings.value("right_splitter_sizes")
+        if right_splitter_sizes:
+            self.right_splitter.restoreState(right_splitter_sizes)
 
 
 class ResultsWindow(QWidget):
@@ -300,7 +318,7 @@ class RangeDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Add Range")
-        self.setup_ui()
+        self.setup_ui(parent)
 
     def setup_ui(self, parent):
         layout = QVBoxLayout()
