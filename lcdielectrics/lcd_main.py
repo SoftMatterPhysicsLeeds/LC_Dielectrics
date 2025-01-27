@@ -20,6 +20,7 @@ import ctypes
 import sys
 
 from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QIcon
 
 
 
@@ -152,6 +153,7 @@ def find_instruments_thread(frontend: lcd_ui):
     dpg.destroy_context()
 
 
+
 def cleanup(instruments):
 
     print("Closing all connections to connected instruments.")
@@ -164,11 +166,14 @@ def cleanup(instruments):
         instruments.agilent.close()
 
 
-
-
 def main():
     app = QApplication()
     main_window = MainWindow()
+
+    MODULE_PATH = importlib.resources.files(__package__)
+
+    icon = QIcon(str(Path(MODULE_PATH / "assets/LCD_icon.ico")))
+    main_window.setWindowIcon(icon)
     main_window.showMaximized()
 
     instruments = lcd_instruments()
