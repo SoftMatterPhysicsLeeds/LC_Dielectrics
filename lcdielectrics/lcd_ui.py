@@ -186,7 +186,7 @@ class lcd_ui:
                     self.agilent_initialise = dpg.add_button(
                         label="Initialise", width=-1
                     )
-                    
+
                 with dpg.table_row():
                     dpg.add_text("Oscilloscope: ")
                     self.oscilloscope_status = dpg.add_text(
@@ -197,12 +197,12 @@ class lcd_ui:
                     self.oscilloscope_initialise = dpg.add_button(
                         label="Initialise", width=-1
                     )
-                    
+
                 with dpg.table_row():
                     self.num_averages_text = dpg.add_text("N: ", show=False)
                     self.num_averages = dpg.add_input_int(default_value=5, width=-1, step =0, step_fast=0, show=False)
 
-               
+
             with dpg.window(
                 label="Measurement Settings",
                 no_collapse=True,
@@ -384,7 +384,7 @@ class lcd_ui:
         for key in tmp.keys():
             if key == "freq_list":
                 dpg.configure_item(self.freq_list.list_handle, items=tmp[key])
-            elif key == "volt_list": 
+            elif key == "volt_list":
                 dpg.configure_item(self.volt_list.list_handle, items=tmp[key])
             elif key == "temperature_list":
                 dpg.configure_item(self.temperature_list.list_handle, items=tmp[key])
@@ -398,8 +398,9 @@ def add_value_to_list_callback(sender, app_data, user_data):
         new_item_number = 1
     else:
         new_item_number = int(current_list[-1].split(":")[0]) + 1
+    value = round(float(dpg.get_value(user_data["add_text"])), 3)
     current_list.append(
-        f"{new_item_number}:\t" + str(dpg.get_value(user_data["add_text"]))
+        f"{new_item_number}:\t{value}"
     )
     dpg.configure_item(user_data["listbox_handle"], items=current_list)
 
@@ -451,6 +452,9 @@ def append_range_to_list_callback(sender, app_data, user_data):
             )
         )
 
+    # Round all values to 3 decimal places
+    values_to_add = [round(x, 3) for x in values_to_add]
+
     new_list = current_list + [
         f"{i+1+len(current_list)}:\t{x}" for i, x in enumerate(values_to_add)
     ]
@@ -491,6 +495,9 @@ def replace_list_callback(sender, app_data, user_data):
                 dpg.get_value(user_data["range_selector"].spacing_input),
             )
         )
+
+    # Round all values to  decimal places
+    values_to_add = [round(x, 3) for x in values_to_add]
 
     new_list_numbered = [f"{i+1}:\t{x}" for i, x in enumerate(values_to_add)]
 
@@ -564,8 +571,9 @@ def make_variable_list_frame(default_val, min_val, max_val, logspace=False):
     dpg.hide_item(window_tag)
 
     with dpg.group(horizontal=True):
+        default_val_rounded = round(default_val, 3)
         listbox_handle = dpg.add_listbox(
-            ["1:\t" + str(default_val)],
+            [f"1:\t{default_val_rounded}"],
             width=150,
             num_items=6,
         )

@@ -10,7 +10,7 @@ authors = [
 ]
 description = "GUI to perform dielectric measurements on LC cells."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = "<=3.12, >=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)"
@@ -30,6 +30,3 @@ dependencies = [
 [project.urls]
 "Homepage" = "https://github.com/SoftMatterPhysicsLeeds/LC_Dielectrics"
 "Bug Tracker" = "https://github.com/SoftMatterPhysicsLeeds/LC_Dielectrics/issues"
-
-[project.gui-scripts]
-lcdielectrics = "lcdielectrics.lcd_main:main"
