@@ -1,19 +1,21 @@
+import ctypes
+import threading
+from pathlib import Path
+
+import dearpygui.dearpygui as dpg
+
+from lcdielectrics.lcd_themes import generate_global_theme
+from lcdielectrics.lcd_ui import DRAW_HEIGHT, VIEWPORT_WIDTH, lcd_ui
 from lcdielectrics.lcd_utils import (
+    connect_to_instrument_callback,
     find_instruments,
+    handle_measurement_status,
     lcd_instruments,
     lcd_state,
     read_temperature,
-    handle_measurement_status,
-    connect_to_instrument_callback,
     start_measurement,
-    stop_measurement
+    stop_measurement,
 )
-from lcdielectrics.lcd_themes import generate_global_theme
-import dearpygui.dearpygui as dpg
-from lcdielectrics.lcd_ui import lcd_ui, VIEWPORT_WIDTH, DRAW_HEIGHT
-import threading
-from pathlib import Path
-import ctypes
 
 
 def find_instruments_thread(frontend: lcd_ui):
@@ -34,6 +36,8 @@ def main():
     dpg.set_viewport_small_icon(MODULE_PATH / "assets/LCD_icon.ico")
     dpg.setup_dearpygui()
     dpg.show_viewport()
+
+    # TODO: implement linux version of below
     user32 = ctypes.windll.user32
     screensize = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
 
@@ -42,10 +46,7 @@ def main():
         default_font = dpg.add_font(font_path, 18 * screensize[1] / 1080)
         status_font = dpg.add_font(font_path, 36 * screensize[1] / 1080)
 
-
     dpg.bind_font(default_font)
-
-
 
     state = lcd_state()
     frontend = lcd_ui()
@@ -55,8 +56,6 @@ def main():
     dpg.bind_item_font(frontend.status_label, status_font)
     dpg.bind_item_font(frontend.start_button, status_font)
     dpg.bind_item_font(frontend.stop_button, status_font)
-
-
 
     dpg.configure_item(
         frontend.agilent_initialise,
