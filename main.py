@@ -36,6 +36,8 @@ def main():
     dpg.set_viewport_small_icon(str(MODULE_PATH / "assets/LCD_icon.ico"))
     dpg.setup_dearpygui()
     dpg.show_viewport()
+
+    # TODO: implement linux version of below
     user32 = ctypes.windll.user32
     screensize = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
 
